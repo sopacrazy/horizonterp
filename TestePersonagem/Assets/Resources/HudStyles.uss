@@ -1,0 +1,212 @@
+.hud-root {
+    position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+    color: rgb(238, 244, 247); font-size: 13px;
+    -unity-font-style: normal;
+}
+.hud-root Label { -unity-text-align: middle-left; }
+.card { background-color: rgba(12, 22, 30, 0.94); border-radius: 16px; border-width: 1px; border-color: rgba(169, 205, 217, 0.15); }
+.eyebrow { font-size: 9px; letter-spacing: 2px; color: rgb(149, 172, 185); }
+.muted { color: rgb(149, 172, 185); font-size: 11px; }
+.mint { color: rgb(123, 237, 194); }
+.profile { position: absolute; top: 26px; left: 26px; width: 244px; height: 94px; padding: 16px; }
+.profile-row { flex-direction: row; align-items: center; }
+.avatar { width: 42px; height: 42px; border-radius: 12px; background-color: rgb(35, 61, 63); border-width: 1px; border-color: rgb(84, 153, 131); align-items: center; justify-content: center; margin-right: 12px; }
+.avatar Label { color: rgb(153, 249, 211); font-size: 22px; -unity-font-style: bold; }
+.player-name { font-size: 16px; -unity-font-style: bold; letter-spacing: 1px; max-width: 156px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.player-sub { font-size: 9px; color: rgb(159, 184, 194); margin-top: 4px; letter-spacing: 1px; }
+.profile-line { height: 1px; margin-top: 10px; background-color: rgba(155, 204, 212, 0.16); }
+.mini-wrap { position: absolute; left: 26px; top: 132px; width: 194px; height: 214px; padding: 7px; }
+.mini-viewport { width: 178px; height: 172px; border-radius: 11px; overflow: hidden; background-color: rgb(20, 33, 43); }
+.mini-image { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
+.north { position: absolute; top: 10px; left: 10px; color: rgb(235, 246, 245); font-size: 10px; -unity-font-style: bold; }
+.marker { width: 20px; height: 20px; position: absolute; left: 79px; top: 76px; }
+.mini-label { font-size: 9px; letter-spacing: 1px; margin-top: 9px; margin-left: 5px; color: rgb(185, 205, 211); }
+.nav-row { position: absolute; left: 26px; top: 356px; flex-direction: row; }
+Button { margin: 0; padding: 0; border-width: 1px; border-color: rgba(155, 194, 209, 0.2); border-radius: 12px; background-color: rgba(12, 22, 30, 0.92); color: rgb(229, 240, 245); -unity-font-style: normal; }
+Button:hover { background-color: rgb(34, 55, 64); border-color: rgba(123, 237, 194, 0.8); }
+Button:active { background-color: rgb(46, 79, 78); }
+Button:focus { border-color: rgb(123, 237, 194); }
+.nav-button { width: 59px; height: 62px; margin-right: 8px; align-items: center; justify-content: center; }
+.nav-button Label { font-size: 8px; letter-spacing: .4px; margin-top: 5px; }
+.nav-button .icon { width: 21px; height: 21px; }
+.session { position: absolute; right: 26px; top: 26px; flex-direction: row; align-items: center; padding: 10px 14px; border-radius: 10px; background-color: rgba(12, 22, 30, 0.88); }
+.dot { width: 5px; height: 5px; border-radius: 5px; background-color: rgb(123, 237, 194); margin-right: 8px; }
+.session Label { font-size: 9px; letter-spacing: 1.2px; color: rgb(206, 224, 230); }
+.session-time { margin-left: 16px; color: rgb(132, 156, 170); }
+.compass { position: absolute; top: 28px; left: 44%; width: 160px; align-items: center; }
+.compass Label { -unity-text-align: middle-center; }
+.compass-value { font-size: 12px; -unity-font-style: bold; letter-spacing: 3px; }
+.compass-tick { width: 1px; height: 9px; background-color: rgb(123, 237, 194); margin-top: 5px; }
+.actions { position: absolute; right: 26px; bottom: 196px; }
+.action-button { width: 52px; height: 52px; border-radius: 26px; margin-top: 10px; align-items: center; justify-content: center; }
+.action-button .icon { width: 23px; height: 23px; }
+.sprint-wrap { position: absolute; right: 26px; bottom: 66px; width: 84px; align-items: center; }
+.sprint-button { width: 78px; height: 78px; border-radius: 39px; background-color: rgba(21, 49, 46, .95); border-color: rgba(123, 237, 194, .7); align-items: center; justify-content: center; }
+.sprint-button .icon { width: 33px; height: 33px; }
+.sprint-button.active { background-color: rgb(123, 237, 194); border-color: rgb(169, 255, 222); }
+.sprint-label { margin-top: 8px; font-size: 9px; letter-spacing: 1.7px; }
+.key-hint { color: rgb(169, 193, 201); font-size: 8px; letter-spacing: 1px; margin-top: 4px; }
+.location { position: absolute; left: 26px; bottom: 26px; flex-direction: row; align-items: center; background-color: rgba(12, 22, 30, 0.92); padding: 10px 14px 10px 10px; border-radius: 14px; }
+.location-icon { width: 36px; height: 36px; border-radius: 12px; background-color: rgba(12, 22, 30, 0.9); align-items: center; justify-content: center; margin-right: 10px; }
+.location-icon .icon { width: 18px; height: 18px; }
+.location-title { font-size: 10px; letter-spacing: 1px; -unity-font-style: bold; }
+.coordinates { font-size: 10px; color: rgb(184, 210, 222); margin-top: 4px; }
+.locomotion { position: absolute; bottom: 26px; left: 43%; width: 176px; align-items: center; background-color: rgba(12, 22, 30, .88); padding: 10px 16px; border-radius: 14px; }
+.speed-row { flex-direction: row; align-items: center; }
+.speed { font-size: 22px; -unity-font-style: bold; }
+.speed-unit { margin-left: 5px; font-size: 10px; color: rgb(166, 191, 201); }
+.motion-label { margin-top: 3px; font-size: 8px; letter-spacing: 1.8px; color: rgb(192, 215, 223); }
+.speed-track { width: 80px; height: 2px; background-color: rgba(180, 205, 215, 0.3); margin-top: 8px; }
+.speed-fill { height: 2px; background-color: rgb(123, 237, 194); }
+.drawer { position: absolute; top: 26px; bottom: 26px; left: 286px; width: 370px; padding: 24px; background-color: rgba(12, 22, 30, 0.98); border-radius: 18px; border-width: 1px; border-color: rgba(155, 194, 209, 0.24); }
+.drawer-header { flex-direction: row; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+.drawer-title { font-size: 26px; -unity-font-style: bold; margin-top: 6px; }
+.close { width: 32px; height: 32px; align-items: center; justify-content: center; border-radius: 16px; }
+.close .icon { width: 16px; height: 16px; }
+.drawer-content { flex-grow: 1; }
+.menu-item { height: 72px; width: 100%; margin-bottom: 10px; flex-direction: row; align-items: center; padding: 15px; border-radius: 12px; background-color: rgb(22, 36, 46); }
+.menu-item .icon { width: 24px; height: 24px; margin-right: 16px; }
+.item-title { font-size: 13px; -unity-font-style: bold; }
+.item-description { font-size: 10px; color: rgb(153, 181, 196); margin-top: 5px; }
+.primary { height: 44px; background-color: rgb(123, 237, 194); color: rgb(12, 34, 30); border-color: rgb(123, 237, 194); border-radius: 11px; -unity-font-style: bold; font-size: 11px; letter-spacing: 1px; margin-top: 12px; }
+.primary:hover { background-color: rgb(161, 255, 216); }
+.divider { height: 1px; background-color: rgba(167, 200, 215, 0.15); margin-top: 18px; margin-bottom: 18px; }
+.panel-description { font-size: 12px; color: rgb(168, 191, 202); white-space: normal; margin-bottom: 20px; }
+.metric-row { flex-direction: row; justify-content: space-between; padding-top: 14px; padding-bottom: 14px; border-bottom-width: 1px; border-bottom-color: rgba(167, 200, 215, .13); }
+.metric-row Label { font-size: 11px; }
+.metric-value { color: rgb(123, 237, 194); -unity-font-style: bold; }
+.name-input { margin: 8px 0 18px 0; height: 40px; }
+.name-input .unity-text-field__input { background-color: rgb(24, 41, 53); border-width: 1px; border-color: rgb(66, 94, 108); border-radius: 8px; padding-left: 12px; color: rgb(237, 246, 249); font-size: 14px; }
+.field-label { font-size: 9px; letter-spacing: 1.5px; color: rgb(157, 184, 196); margin-top: 14px; }
+.settings-slider { margin: 14px 0 22px 0; }
+.settings-slider .unity-base-slider__dragger { background-color: rgb(123, 237, 194); border-width: 0; }
+.settings-slider .unity-base-slider__tracker { background-color: rgb(51, 80, 93); height: 3px; }
+.settings-slider .unity-text-field__input { background-color: rgb(24, 41, 53); color: rgb(231, 245, 250); border-width: 1px; border-color: rgb(60, 90, 103); border-radius: 6px; padding: 5px; -unity-text-align: middle-center; }
+.map-area { width: 320px; height: 320px; border-radius: 12px; overflow: hidden; background-color: rgb(27, 42, 53); margin-bottom: 16px; }
+.map-area .marker { left: 150px; top: 150px; }
+.help-row { flex-direction: row; align-items: center; margin-bottom: 14px; }
+.keyboard-key { width: 80px; height: 30px; border-radius: 6px; background-color: rgb(34, 51, 63); color: rgb(217, 237, 242); -unity-text-align: middle-center; font-size: 10px; -unity-font-style: bold; margin-right: 14px; }
+.help-row > Label { font-size: 12px; }
+.toast { position: absolute; top: 82px; right: 26px; width: 340px; padding: 12px 18px; border-radius: 12px; background-color: rgba(15, 39, 35, .97); border-width: 1px; border-color: rgba(123, 237, 194, .55); color: rgb(196, 255, 230); font-size: 12px; -unity-text-align: middle-center; }
+.hide-hint { position: absolute; bottom: 26px; right: 26px; font-size: 9px; letter-spacing: 1px; color: rgb(194, 219, 228); background-color: rgba(12, 22, 30, .88); padding: 8px 10px; border-radius: 6px; }
+.compact .profile { top: 16px; left: 16px; }
+.compact .mini-wrap { left: 16px; }
+.compact .nav-row { left: 16px; }
+.compact .drawer { left: 276px; }
+/* Layout rebuilt from the user supplied transparent HUD atlas. */
+.asset-hud { color: rgb(247, 247, 246); }
+.asset-hud .card { background-color: rgba(18, 19, 20, .95); border-color: rgba(210, 211, 211, .18); border-radius: 12px; }
+.asset-hud .profile { top: 24px; left: 22px; width: 270px; height: 74px; padding: 5px 8px; }
+.asset-hud .profile-row { height: 64px; }
+.asset-hud .avatar { width: 62px; height: 64px; margin-right: 12px; border-width: 0; background-color: transparent; overflow: hidden; border-radius: 8px; }
+.atlas-portrait { width: 62px; height: 64px; }
+.asset-hud .player-name { font-size: 16px; letter-spacing: 0; max-width: 172px; margin-bottom: 1px; }
+.profile-info { flex-grow: 1; }
+.atlas-level-row { flex-direction: row; align-items: center; height: 24px; }
+.atlas-level-caption { font-size: 19px; -unity-font-style: bold; }
+.atlas-level { font-size: 21px; -unity-font-style: bold; color: rgb(255, 216, 37); margin-left: 6px; }
+.atlas-id { margin-left: 36px; font-size: 11px; }
+.atlas-xp-track { height: 9px; margin-top: 4px; margin-right: 5px; border-radius: 6px; background-color: rgb(63, 67, 72); border-width: 1px; border-color: rgb(97, 101, 105); overflow: hidden; }
+.atlas-xp-fill { height: 7px; width: 0; background-color: rgb(255, 205, 40); border-radius: 5px; }
+.atlas-wallet { position: absolute; left: 22px; top: 99px; width: 270px; height: 34px; flex-direction: row; align-items: center; background-color: rgba(17, 20, 21, .96); border-radius: 8px; border-width: 1px; border-color: rgba(215, 215, 215, .18); padding-left: 11px; }
+.atlas-wallet-icon { width: 22px; height: 22px; margin-right: 8px; }
+.atlas-cash { font-size: 19px; -unity-font-style: bold; color: rgb(0, 231, 108); }
+.atlas-plus { position: absolute; right: 10px; top: 2px; width: 30px; height: 29px; }
+.atlas-stats { position: absolute; top: 140px; left: 22px; width: 205px; height: 73px; padding: 7px 10px; border-radius: 10px; background-color: rgba(17, 18, 19, .95); }
+.atlas-stat-row { height: 19px; flex-direction: row; align-items: center; }
+.atlas-stat-icon { width: 19px; height: 19px; margin-right: 9px; }
+.atlas-stat-track { width: 119px; height: 10px; border-radius: 6px; background-color: rgb(53, 56, 60); overflow: hidden; }
+.atlas-stat-fill { height: 10px; width: 100%; border-radius: 6px; }
+.atlas-stat-fill.health { background-color: rgb(255, 61, 79); }
+.atlas-stat-fill.energy { background-color: rgb(255, 194, 55); }
+.atlas-stat-fill.water { background-color: rgb(78, 181, 240); }
+.atlas-stat-value { font-size: 13px; width: 29px; margin-left: 7px; -unity-font-style: bold; }
+.atlas-button { position: relative; padding: 0; margin: 0; border-width: 0; background-color: transparent; }
+.atlas-button:hover { background-color: rgba(255, 211, 73, .10); border-width: 0; }
+.atlas-button:active { background-color: rgba(255, 211, 73, .20); }
+.atlas-button:focus { border-width: 0; }
+.atlas-button:disabled { opacity: .58; }
+.atlas-image { position: absolute; top: 0; bottom: 0; left: 0; right: 0; }
+.asset-hud .mini-wrap { left: 22px; top: 240px; width: 188px; height: 194px; padding: 0; background-color: transparent; border-width: 0; }
+.atlas-mini-button { width: 188px; height: 194px; padding: 0; margin: 0; background-color: transparent; border-width: 0; }
+.atlas-mini-button:hover { background-color: transparent; border-width: 0; }
+.atlas-mini-button:focus { border-width: 0; }
+.atlas-map-frame { position: absolute; left: 0; top: 0; width: 188px; height: 194px; }
+.asset-hud .mini-viewport { position: absolute; left: 12px; top: 15px; width: 164px; height: 164px; border-radius: 82px; overflow: hidden; }
+.asset-hud .mini-viewport .marker { left: 72px; top: 72px; width: 20px; height: 20px; }
+.atlas-north { position: absolute; left: 76px; top: 0; width: 20px; height: 24px; }
+.atlas-social { position: absolute; left: 216px; top: 253px; }
+.atlas-social-button { width: 52px; height: 53px; margin-bottom: 6px; border-radius: 27px; }
+.asset-hud .nav-row { top: 442px; left: 22px; }
+.asset-hud .nav-button { width: 56px; height: 55px; margin-right: 6px; border-radius: 11px; }
+.atlas-top-nav { position: absolute; top: 26px; right: 22px; height: 65px; flex-direction: row; }
+.atlas-top-nav .atlas-button { margin-left: 3px; }
+.atlas-rewards { width: 70px; height: 64px; }
+.atlas-top-button { width: 54px; height: 64px; }
+.atlas-inventory { width: 62px; height: 64px; }
+.atlas-guides-wrap { width: 84px; height: 64px; margin-left: 3px; }
+.atlas-guides { position: absolute; left: 0; bottom: 0; width: 51px; height: 34px; }
+.atlas-signal { height: 25px; flex-direction: row; align-items: center; }
+.atlas-signal-icon { width: 20px; height: 21px; }
+.atlas-signal Label { font-size: 8px; color: rgb(0, 236, 63); -unity-font-style: bold; }
+.atlas-banners { position: absolute; top: 101px; right: 22px; flex-direction: row; }
+.atlas-banner { width: 173px; height: 73px; margin-left: 8px; border-radius: 10px; overflow: hidden; background-color: rgba(15, 16, 19, .97); border-width: 1px; border-color: rgba(178, 144, 58, .65); }
+.atlas-banner:hover { border-color: rgb(255, 208, 53); background-color: rgba(26, 27, 29, .98); }
+.atlas-banner-art { position: absolute; right: 0; top: 0; width: 79px; height: 73px; }
+.atlas-banner-person { position: absolute; right: 1px; top: 10px; width: 61px; height: 53px; }
+.atlas-banner-text { padding: 10px 8px; }
+.atlas-banner-small { font-size: 9px; -unity-font-style: bold; }
+.atlas-banner-title { font-size: 17px; color: rgb(255, 219, 36); -unity-font-style: bold; margin-top: 2px; margin-bottom: 2px; }
+.asset-hud .compass { visibility: hidden; }
+.asset-hud .actions { position: absolute; top: auto; right: 22px; bottom: 143px; width: 160px; height: auto; flex-direction: column; align-items: flex-end; }
+.camera-actions { position: relative; width: 160px; height: 60px; flex-shrink: 0; margin-bottom: 18px; }
+.atlas-camera { position: absolute; right: 0; top: 0; width: 60px; height: 60px; border-radius: 30px; }
+.atlas-reset { position: absolute; right: 73px; top: 10px; width: 36px; height: 38px; border-radius: 16px; }
+.atlas-fist { position: relative; width: 96px; height: 95px; flex-shrink: 0; margin: 0 0 14px; border-radius: 48px; }
+.asset-hud .sprint-wrap { position: relative; right: auto; bottom: auto; width: 96px; height: 92px; flex-shrink: 0; }
+.asset-hud .sprint-button { width: 96px; height: 92px; background-color: transparent; border-width: 0; border-radius: 48px; }
+.asset-hud .sprint-button.active { background-color: rgba(255, 207, 47, .15); border-width: 2px; border-color: rgba(255, 210, 61, .8); }
+.atlas-lower-actions { position: absolute; right: 22px; bottom: 40px; width: 255px; height: 82px; flex-direction: row; }
+.jump-button { width: 78px; height: 78px; margin: 3px 7px 0 0; border-radius: 39px; border-width: 1px; border-color: rgba(255, 255, 255, .3); background-color: rgba(10, 13, 18, .75); color: white; font-size: 43px; -unity-font-style: bold; -unity-text-align: middle-center; }
+.jump-button:hover, .jump-button:active { background-color: rgba(124, 103, 35, .9); border-color: rgb(255, 214, 73); }
+.jump-button { align-items: center; justify-content: center; flex-shrink: 0; }
+.jump-button .icon { width: 44px; height: 44px; }
+.atlas-crouch { width: 82px; height: 81px; border-radius: 41px; margin-right: 7px; }
+.atlas-aim { width: 78px; height: 78px; border-radius: 39px; margin-top: 3px; }
+.atlas-safe-zone { position: absolute; bottom: 97px; left: 22px; width: 276px; height: 50px; border-radius: 10px; background-color: rgba(16, 18, 17, .94); flex-direction: row; align-items: center; padding: 8px 10px; }
+.atlas-shield { width: 29px; height: 35px; margin-right: 13px; }
+.atlas-safe-title { font-size: 13px; -unity-font-style: bold; }
+.atlas-safe-description { font-size: 10px; margin-top: 3px; }
+.asset-hud .location { left: 22px; bottom: 30px; width: 338px; height: 56px; padding: 8px 10px; border-radius: 12px; background-color: rgba(17, 18, 19, .97); }
+.atlas-location-icon { width: 24px; height: 30px; margin-right: 10px; }
+.asset-hud .location-title { font-size: 12px; -unity-font-style: bold; letter-spacing: 0; }
+.asset-hud .coordinates { font-size: 10px; color: rgb(206, 207, 208); }
+.atlas-location-divider { width: 1px; height: 30px; background-color: rgb(75, 76, 77); margin-left: 12px; margin-right: 10px; }
+.atlas-calendar { width: 27px; height: 29px; margin-right: 10px; }
+.atlas-date { font-size: 12px; }
+.atlas-clock { font-size: 11px; margin-top: 2px; }
+.asset-hud .locomotion { left: 44%; bottom: 30px; width: 150px; padding: 8px 13px; background-color: rgba(17, 18, 19, .88); }
+.asset-hud .speed { font-size: 18px; }
+.asset-hud .speed-fill { background-color: rgb(255, 207, 44); }
+.asset-hud .hide-hint { bottom: 7px; right: 22px; background-color: rgba(18, 18, 18, .85); font-size: 8px; }
+.asset-hud .drawer { left: 310px; background-color: rgba(17, 18, 20, .98); border-color: rgba(200, 200, 200, .25); }
+.asset-hud .primary { background-color: rgb(255, 206, 43); border-color: rgb(255, 206, 43); color: rgb(25, 22, 12); }
+.asset-hud .primary:hover { background-color: rgb(255, 225, 114); }
+.asset-hud .menu-item { background-color: rgb(29, 31, 34); }
+.asset-hud .menu-item:hover { border-color: rgb(255, 207, 43); background-color: rgb(40, 41, 43); }
+.asset-hud .metric-value { color: rgb(255, 216, 60); }
+.asset-hud .settings-slider .unity-base-slider__dragger { background-color: rgb(255, 208, 43); }
+.asset-hud .toast { top: 187px; background-color: rgba(25, 23, 15, .97); border-color: rgba(255, 208, 43, .65); color: rgb(255, 231, 154); }
+.asset-hud .atlas-plus { position: absolute; right: 10px; top: 2px; }
+.atlas-banner-text { position: absolute; left: 8px; top: 10px; right: 0; bottom: 0; padding: 0; }
+.atlas-banner-art { width: 79px; height: 53px; top: 0; }
+.atlas-north { left: 77px; top: -1px; width: 20.2px; height: 24.2px; }
+.asset-hud .day-night-control { position: absolute; top: 26px; left: 50%; margin-left: -89px; width: 178px; height: 59px; padding: 6px 8px 8px; border-radius: 10px; border-width: 1px; border-color: rgba(255, 208, 43, .38); background-color: rgba(17, 18, 20, .94); }
+.asset-hud .day-night-state { height: 14px; margin-bottom: 3px; font-size: 9px; letter-spacing: 1.5px; color: rgb(255, 218, 92); -unity-text-align: middle-center; }
+.asset-hud .day-night-button { height: 27px; border-radius: 6px; border-width: 1px; border-color: rgba(255, 208, 43, .5); background-color: rgba(255, 207, 43, .10); color: rgb(255, 228, 145); font-size: 10px; -unity-font-style: bold; -unity-text-align: middle-center; }
+.asset-hud .day-night-button:hover { background-color: rgba(255, 207, 43, .22); border-color: rgb(255, 219, 83); }
+.asset-hud .day-night-button:active { background-color: rgba(255, 207, 43, .34); }
+.asset-hud .day-night-button:focus { border-color: rgb(255, 219, 83); }
+.asset-hud .day-night-control.night .day-night-state { color: rgb(196, 217, 255); }
+.asset-hud.compact .day-night-control { width: 164px; margin-left: -82px; }
+.asset-hud.narrow-hud .day-night-control { top: 184px; }

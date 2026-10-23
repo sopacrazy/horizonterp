@@ -1,0 +1,4 @@
+# Dedicated HBRP backup, 03:15 in the VPS timezone. No other crontabs are modified.
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+15 3 * * * root /srv/hbrp/database/backup.sh >> /srv/hbrp/backups/backup.log 2>&1

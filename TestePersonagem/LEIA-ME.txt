@@ -1,0 +1,185 @@
+TESTE PERSONAGEM - UNITY
+
+Para jogar: abra C:\SistemaAdr\gta\Jogar.bat.
+Para editar: abra C:\SistemaAdr\gta\AbrirProjeto.bat.
+Projeto: C:\SistemaAdr\gta\TestePersonagem
+Cena: Assets/Scenes/TestePersonagem.unity
+Entrada: Assets/Scenes/Entrada.unity (arte, musica e carregamento minimo de 10s).
+No Editor, abra Entrada.unity e pressione Play. A cena TestePersonagem abre direto para editar e testar a cidade.
+
+CONTROLES
+WASD ou setas: andar.
+Shift + movimento: correr.
+Soltar as teclas: ficar parado.
+Arrastar com botao esquerdo ou direito do mouse: girar a camera.
+Roda do mouse: aproximar/afastar.
+R: voltar ao inicio.
+
+ANIMACOES ENVIADAS PELO USUARIO
+Parado: Idle.fbx -> Assets/Animations/IdleRetarget.anim.
+Andar: Walking Left Turn.fbx -> Assets/Animations/WalkingRetarget.anim.
+Correr: Fast Run.fbx -> Assets/Animations/FastRunRetarget.anim.
+As fontes sao preservadas em Assets/Animations/Source.
+O deslocamento e a direcao sao controlados pelo CharacterController.
+A virada acumulada da caminhada foi compensada para repetir o ciclo sem girar automaticamente.
+Rig Generic. A skin e as texturas sao do material ByBeyby enviado pelo usuario.
+Creditos originais em Assets/Personagem/Creditos-originais.txt.
+
+Menu Teste > Preparar cena e animacoes recria a cena e os assets gerados.
+Esse comando preserva o uso dos tres clips transferidos, quando presentes.
+Salve suas alteracoes antes de recriar a cena.
+Menu Teste > Aplicar Idle enviado / Aplicar Fast Run enviado / Aplicar Walking Left Turn enviado
+refaz a transferencia da animacao selecionada.
+Menu Teste > Gerar executavel Windows atualiza Builds/Windows/TestePersonagem.exe.
+Android: metade esquerda livre controla o joystick; metade direita gira a camera.
+
+Relatorios de verificacao: ..\tools\idle-validation.txt, walking-validation.txt,
+fast-run-validation.txt e unity-play-validation.txt.
+
+Correcao da locomocao: transferencia usa a pose de referencia da malha; curvas a 60 Hz com tangentes continuas no loop; caminhada com direcao corrigida; sem deriva horizontal do quadril; cadencia ajustada a velocidade do CharacterController.
+
+HUD E MENUS
+TAB: menu principal. M: mapa da area. P: perfil do personagem.
+H: ocultar/mostrar a interface. ESC: fechar o menu.
+C: centralizar a camera. R: voltar ao ponto inicial.
+O botao CORRER alterna o modo corrida; SHIFT continua funcionando enquanto segurado.
+Menu > Configuracoes ajusta sensibilidade e distancia da camera.
+Perfil permite alterar o nome, salvo localmente.
+O minimapa representa o cenario atual e o marcador acompanha a orientacao do personagem.
+A interface bloqueia o giro da camera ao clicar em botoes; menus abertos bloqueiam o movimento.
+O mesmo jogo aceita teclado/mouse no PC e dois dedos no Android.
+Assets/Resources/HudStyles.uss define o visual do HUD.
+Assets/Scripts/GameHud.cs implementa os menus e a ligacao com o jogo.
+Menu Teste > Preparar HUD recria o PanelSettings se necessario.
+
+HUD COM A IMAGEM DO USUARIO
+Fonte preservada: personagem\HUD de jogo transparente sem chat.png.
+Atlas no projeto: Assets/Resources/HudAtlas.png.
+Os recortes individuais estao definidos por coordenadas em Assets/Resources/HudAtlasLayout.json.
+HudAtlas.cs cria sprites separados no Unity sem redesenhar ou alterar o PNG original.
+Nome, dinheiro, nivel, barras, data e mapa sao elementos dinamicos sobre o layout.
+As barras leem Health, Energy e Hydration do personagem (valores iniciais 100).
+Nao foram adicionados sistemas de combate, fome ou sede nesta alteracao visual.
+Loja, recompensas, inventario, faccoes, microfone e agachar ficam desativados enquanto esses sistemas nao existem.
+O punho abre as acoes disponiveis; a mira aproxima/afasta a camera; o alto-falante silencia/ativa o audio.
+O celular abre atalhos. A prancheta mostra dados da sessao. O carro abre o painel de veiculos.
+Apenas o atlas original e suas coordenadas sao necessarios para preservar os recortes.
+
+RUA DO CENTRO - CENARIO DE TESTE
+
+A cena atual agora contem uma rua de 36 metros, com asfalto de 6 metros e calcadas
+de 3 metros dos dois lados. A area total ocupa 48 x 48 metros.
+Sao quatro edificios, faixa de pedestres, postes, floreiras, bueiros e balizadores.
+Modelos do Downtown City MegaKit Standard, de Quaternius. Licenca original
+preservada em Assets/DowntownCity/License_Standard.txt.
+
+Para testar, use Jogar.bat na pasta raiz. Os controles continuam os mesmos.
+O ponto inicial fica no centro da rua; R retorna para esse ponto.
+As fachadas sao cenograficas e tem colisao; as portas nao abrem.
+
+Escala: 1 unidade Unity = 1 metro. A malha animada do personagem foi medida
+em aproximadamente 1,833 metro na pose parada e ajustada uniformemente para
+1,80 metro. CharacterController de 1,80 metro, raio de 26 cm e degrau de 25 cm.
+O meio-fio tem 15 cm e pode ser subido caminhando, sem salto.
+
+Materiais configurados para o pipeline Built-in com shader Standard, texturas
+de cor e normais, oclusao, metalicidade e suavidade. Os mapas ORM do pacote
+foram convertidos para o formato do Standard nos arquivos *_UnityMask.png.
+Janelas usam as imagens de interiores do pacote e vidro transparente.
+
+Menu Teste > Montar Rua do Centro refaz o ambiente e ajusta a escala do jogador.
+Menu Teste > Preparar cena e animacoes tambem reaplica a rua quando o pacote
+DowntownCity estiver presente. Esses comandos recriam o ambiente da cena atual.
+A cena inicial foi preservada fora do projeto, em ../tools/city-backup.
+
+Verificacao automatica do executavel: argumento --verify-city. O modo percorre
+a rua, sobe a calcada, verifica bloqueio de fachada, camera, respawn, materiais
+e mapas. Relatorios e capturas ficam em ../tools/city-review.
+O teste so e ativado por esse argumento, nao durante o jogo normal.
+
+DIA E NOITE - ILUMINACAO DE TESTE
+
+O jogo agora inicia a noite. O ceu tem estrelas e lua, os seis postes iluminam
+a rua e as calcadas, e as janelas ficam iluminadas.
+
+Use o botao no topo central da tela: MUDAR PARA DIA / MUDAR PARA NOITE.
+Atalho: N. As luzes dos postes apagam durante o dia e reacendem a noite.
+A alternancia nao move o personagem; o modo inicial continua noturno ao reabrir.
+
+Assets/Scripts/CityDayNight.cs controla a iluminacao em tempo de execucao.
+Assets/DowntownCity/Shaders/StarrySky.shader desenha o ceu estrelado sem imagens externas.
+O menu Teste > Montar Rua do Centro tambem recria os postes e o modo noturno.
+
+Verificacao da iluminacao: executar com --verify-lighting. Testa o botao,
+luzes, emissoes, mapas, posicao/altura do jogador e cinco ciclos de alternancia.
+Relatorios e capturas em ../tools/night-review.
+
+ATUALIZACAO 0.1.1
+Corrida: 4.5 m/s, com cadencia da animacao proporcional. Base visual sob o asfalto desativada para eliminar sobreposicao; colisao mantida.
+Entrada: Horizonte Brasil.png e intro.mp3 preservados em Assets/Startup. Metodo GameUpdateSetup.PrepareAndBuildAndroid prepara e gera o APK.
+
+ENTRADA E CONTA - 0.2.1
+
+Apos o carregamento, a musica continua em loop na tela de acesso.
+A arte intro.png da pasta personagem aparece como fundo completo, mantendo
+a proporcao e recortando o necessario para preencher a tela sem faixas pretas.
+A arte do carregamento tambem preenche toda a tela.
+
+A tela inicial oferece Facebook e Google apenas visuais, sem abrir navegadores
+ou iniciar autenticacao. CADASTRAR COM E-MAIL abre o cadastro real;
+JA TENHO CONTA / ENTRAR abre o login pela API que ja esta configurada.
+
+Cadastro: nome do personagem, e-mail, senha e confirmacao. Login: e-mail e senha.
+Os campos tem placeholders, ajuda, indicacao individual de erro e botao de
+mostrar/ocultar senha. A senha precisa de 10 a 128 caracteres; o nome precisa
+de 3 a 24 letras, numeros, espacos ou _.
+Enter dentro de um campo envia o formulario; Esc ou VOLTAR retorna a tela inicial.
+Durante o envio os controles do formulario ficam bloqueados para evitar duplicacao.
+Senhas e tokens nao sao gravados em PlayerPrefs; permanece apenas o ultimo e-mail.
+A musica faz fade depois da autenticacao, ao entrar no jogo.
+
+A API e o salvamento de progresso existentes foram preservados.
+Assets/Scripts/AccountSession.cs contem a sessao e as chamadas de rede;
+AccountSessionScreen.cs e Resources/AuthStyles.uss definem a apresentacao.
+GameUpdateSetup.PrepareAndBuildWindows / PrepareAndBuildAndroid atualizam as versoes.
+Gerar APK somente quando o usuario pedir; por padrao, validar e compilar no Windows.
+
+Verificacao visual sem criar contas: --verify-auth-presentation.
+Testa carregamento, musica, botoes, navegacao e validacao local em quatro resolucoes.
+Relatorios e capturas: ../tools/auth-review.
+
+CONTA E LOBBY DE PERSONAGEM - 0.3.0
+
+O cadastro da conta pede somente e-mail, senha e confirmacao. Nome de personagem
+nao faz parte do cadastro da conta. O acesso autenticado abre o lobby:
+- Sem personagem: nome e sobrenome obrigatorios, com 2 a 24 caracteres cada,
+  e escolha explicita de feminino ou masculino. O cartao escolhido recebe borda
+  dourada e SELECIONADO. Salvar grava o personagem na conta antes de entrar.
+- Com personagem: mostra a imagem correspondente a selecao salva, o nome
+  completo e ENTRAR NA CIDADE. Nao entra automaticamente apos o login.
+
+As imagens sao personagem/feminina.png e personagem/masculino.png, copiadas
+para Resources/Characters durante a preparacao. Sao previews do lobby;
+o modelo 3D usado na cidade permanece o bybeyby ja importado.
+
+A musica continua no lobby. A entrada na cidade passa por uma tela preta com
+carregamento e so libera movimento depois de preparar o jogador e a cena.
+TROCAR CONTA volta a entrada, inclusive antes de criar um personagem.
+
+A API precisa do server.mjs atualizado e da migracao aditiva
+Backend/database/004_character_creation.sql. Contas/personagens existentes
+sao preservados. Prompt para o agente da VPS: Backend/api/PROMPT_VPS_LOBBY.txt.
+
+Verificacao offline do fluxo completo: --verify-character-flow.
+Usa transporte local de teste em memoria e nao chama a API real.
+Verificacao de apresentacao e validacoes sem login: --verify-auth-presentation.
+APK somente sob solicitacao explicita do usuario.
+
+ARTE DE ACESSO E IDENTIDADE DO APLICATIVO
+
+O fundo da tela de acesso (Google/Facebook/e-mail) usa personagem/amigos.png,
+importado em Assets/Startup/IntroLogin.png. Continua preenchendo a tela sem
+faixas pretas. A imagem do carregamento inicial permanece a do carro anterior.
+O nome de exibicao do aplicativo passa a Horizonte, e personagem/logo.png e
+a fonte dos icones do Android. BrandingSetup.Prepare reaplica essa configuracao
+sem gerar APK. O pacote Android existente nao e modificado sem novo build.

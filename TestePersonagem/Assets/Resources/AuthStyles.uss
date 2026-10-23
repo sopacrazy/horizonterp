@@ -1,0 +1,62 @@
+.auth-root { flex-grow: 1; color: rgb(249, 249, 247); background-color: rgb(10, 13, 18); }
+.auth-art { position: absolute; left: 0; right: 0; top: 0; bottom: 0; }
+.auth-shade { position: absolute; left: 0; right: 0; top: 0; bottom: 0; background-color: rgba(4, 7, 12, .10); }
+.auth-landing { position: absolute; right: 4%; top: 36%; bottom: 5%; width: 352px; max-width: 39%; justify-content: center; }
+.auth-kicker { font-size: 9px; letter-spacing: 1.8px; color: rgb(255, 208, 94); -unity-font-style: bold; margin-bottom: 5px; }
+.auth-welcome { font-size: 29px; -unity-font-style: bold; margin-bottom: 4px; }
+.auth-intro { font-size: 12px; color: rgb(215, 217, 220); margin-bottom: 17px; }
+.auth-provider { height: 52px; min-height: 52px; margin: 0 0 11px 0; padding: 0 17px; flex-direction: row; align-items: center; justify-content: center; border-radius: 11px; border-width: 0; }
+.auth-facebook { background-color: rgb(8, 119, 249); color: white; }
+.auth-facebook:hover { background-color: rgb(31, 137, 255); }
+.auth-google { background-color: rgb(255, 255, 255); color: rgb(41, 44, 48); }
+.auth-google:hover { background-color: rgb(236, 240, 244); }
+.auth-provider-icon { width: 27px; height: 27px; margin-right: 14px; flex-shrink: 0; }
+.auth-provider-text { font-size: 16px; -unity-font-style: bold; }
+.auth-provider-note { font-size: 9px; color: rgb(182, 186, 194); -unity-text-align: middle-center; margin-top: -3px; margin-bottom: 4px; }
+.auth-divider { height: 30px; align-items: center; justify-content: center; }
+.auth-divider-text { font-size: 9px; letter-spacing: 1.4px; color: rgb(208, 210, 216); }
+.auth-email-button { height: 49px; min-height: 49px; margin: 0 0 8px 0; background-color: rgb(255, 205, 68); color: rgb(35, 28, 12); border-width: 0; border-radius: 10px; -unity-font-style: bold; font-size: 13px; letter-spacing: .7px; }
+.auth-email-button:hover { background-color: rgb(255, 223, 126); }
+.auth-login-button { height: 41px; min-height: 41px; margin: 0; background-color: rgba(14, 17, 24, .70); color: rgb(247, 247, 247); border-width: 1px; border-color: rgba(225, 228, 236, .42); border-radius: 10px; font-size: 11px; -unity-font-style: bold; letter-spacing: .4px; }
+.auth-login-button:hover { border-color: rgb(255, 213, 100); background-color: rgba(29, 31, 36, .9); }
+.auth-scroll { position: absolute; right: 4%; top: 5%; bottom: 5%; width: 392px; max-width: 46%; }
+.auth-scroll > .unity-scroll-view__content-viewport { border-radius: 17px; }
+.auth-form { padding: 16px 24px; background-color: rgba(12, 16, 23, .96); border-radius: 17px; border-width: 1px; border-color: rgba(236, 216, 159, .25); }
+.auth-back { height: 25px; align-self: flex-start; padding: 0; margin: 0 0 6px; background-color: transparent; border-width: 0; font-size: 10px; letter-spacing: 1px; color: rgb(210, 216, 228); }
+.auth-back:hover { color: rgb(255, 214, 101); }
+.auth-brand { font-size: 9px; letter-spacing: 1.5px; color: rgb(255, 208, 94); -unity-font-style: bold; margin-bottom: 7px; }
+.auth-title { font-size: 27px; -unity-font-style: bold; margin-bottom: 5px; }
+.auth-description { font-size: 11px; color: rgb(168, 180, 196); white-space: normal; margin-bottom: 6px; }
+.auth-field-group { margin-bottom: 2px; }
+.auth-field-label { font-size: 11px; color: rgb(226, 231, 240); margin-top: 6px; margin-bottom: 5px; -unity-font-style: bold; }
+.auth-input-row { position: relative; }
+.auth-input { height: 40px; margin: 0; }
+.auth-input > .unity-text-field__input { background-color: rgb(25, 32, 43); color: rgb(250, 251, 253); border-radius: 8px; border-width: 1px; border-color: rgb(68, 80, 99); padding: 8px 12px; font-size: 14px; }
+.auth-input > .unity-text-field__input:focus { border-color: rgb(255, 207, 77); background-color: rgb(31, 38, 49); }
+.auth-input.invalid > .unity-text-field__input { border-color: rgb(255, 126, 133); }
+.auth-input .unity-base-text-field__input--placeholder { color: rgb(132, 146, 167); }
+.auth-password-row .unity-text-field__input { padding-right: 84px; }
+.auth-show-password { position: absolute; right: 8px; top: 8px; width: 66px; height: 27px; margin: 0; padding: 0; border-width: 0; border-radius: 5px; background-color: rgba(255, 208, 86, .08); color: rgb(255, 214, 112); font-size: 8px; -unity-font-style: bold; }
+.auth-show-password:hover { background-color: rgba(255, 208, 86, .18); }
+.auth-field-hint { font-size: 9px; color: rgb(153, 169, 190); margin-top: 4px; white-space: normal; }
+.auth-field-error { font-size: 10px; color: rgb(255, 151, 155); margin-top: 4px; white-space: normal; }
+.auth-message { font-size: 11px; color: rgb(200, 217, 236); white-space: normal; margin-top: 10px; margin-bottom: 1px; }
+.auth-message.error { color: rgb(255, 165, 165); }
+.auth-submit { height: 45px; min-height: 45px; background-color: rgb(255, 205, 68); color: rgb(35, 28, 12); border-width: 0; border-radius: 9px; -unity-font-style: bold; font-size: 12px; margin: 14px 0 0; letter-spacing: .6px; }
+.auth-submit:hover { background-color: rgb(255, 224, 132); }
+.auth-submit:disabled { background-color: rgb(133, 119, 79); color: rgb(220, 216, 203); }
+.auth-toggle { min-height: 35px; margin: 6px 0 0; padding: 7px 0; background-color: transparent; border-width: 0; font-size: 10px; color: rgb(224, 231, 243); -unity-font-style: bold; white-space: normal; }
+.auth-toggle:hover { color: rgb(255, 216, 115); }
+.auth-footer { font-size: 9px; color: rgb(148, 163, 182); -unity-text-align: middle-center; margin-top: 9px; white-space: normal; }
+.auth-language { position: absolute; left: 4%; bottom: 5%; padding: 9px 13px; border-radius: 7px; font-size: 9px; letter-spacing: 1px; background-color: rgba(235, 239, 248, .17); color: rgb(246, 248, 252); }
+.auth-compact .auth-landing { right: 3%; width: 330px; max-width: 43%; }
+.auth-compact .auth-scroll { right: 3%; width: 374px; max-width: 48%; }
+.auth-short .auth-form { padding-top: 12px; padding-bottom: 12px; }
+.auth-short .auth-field-label { margin-top: 6px; }
+.auth-short .auth-input { height: 39px; }
+.auth-short .auth-welcome { font-size: 25px; }
+.auth-short .auth-intro { margin-bottom: 10px; }
+.auth-scroll #unity-vertical-scroller { width: 6px; margin-left: 5px; background-color: transparent; }
+.auth-scroll .unity-scroller__low-button, .auth-scroll .unity-scroller__high-button { display: none; }
+.auth-scroll .unity-base-slider__tracker { width: 3px; background-color: rgba(202, 213, 230, .13); border-radius: 3px; }
+.auth-scroll .unity-base-slider__dragger { width: 5px; min-height: 25px; background-color: rgba(255, 208, 84, .58); border-width: 0; border-radius: 4px; }
