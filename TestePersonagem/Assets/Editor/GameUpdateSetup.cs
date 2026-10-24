@@ -70,8 +70,7 @@ public static class GameUpdateSetup
         loader.minimumSeconds=10;
         EditorSceneManager.SaveScene(boot,BootScene);
         EditorBuildSettings.scenes=Scenes.Select(s=>new EditorBuildSettingsScene(s,true)).ToArray();
-        PlayerSettings.bundleVersion="0.3.0";
-        PlayerSettings.Android.bundleVersionCode=5;
+        GameVersionBuildSetup.Apply();
         AssetDatabase.SaveAssets();
         File.WriteAllText("../tools/game-update-setup.txt","Base visual desativada; colisão preservada.\nCorrida 4.5 m/s; animação sincronizada.\nEntrada 10s mínimo com arte original em tela inteira; cena assíncrona.\nLogin com amigos.png em IntroLogin.png e música contínua até entrar no jogo.\nNome Horizonte e ícone logo.png preparados para Android; APK somente sob solicitação.\n");
         Debug.Log("GAME_UPDATE_SETUP_OK");

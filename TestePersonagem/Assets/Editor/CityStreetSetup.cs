@@ -265,7 +265,8 @@ public static class CityStreetSetup
             var collider = filter.gameObject.AddComponent<MeshCollider>();
             collider.sharedMesh = filter.sharedMesh;
         }
-        // A solid core prevents entry into fake interiors; the original steps retain mesh collision.
+        if(stairs)StairSetup.ConfigureBuilding(obj);
+        // A solid core prevents entry into fake interiors; stairs use a smooth collision ramp.
         float back = side > 0 ? bounds.max.z : bounds.min.z;
         float face = side * 6.45f;
         Box(label + " - volume solido", buildings,

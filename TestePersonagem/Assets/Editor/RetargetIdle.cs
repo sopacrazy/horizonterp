@@ -48,10 +48,10 @@ public static class RetargetIdle
         Transfer("Assets/Animations/Source/Fast Run.fbx","Assets/Animations/FastRunRetarget.anim",2,"fast-run");
     }
 
-    [MenuItem("Teste/Aplicar Walking Left Turn enviado")]
+    [MenuItem("Teste/Aplicar Walking enviado")]
     public static void ApplyWalk()
     {
-        Transfer("Assets/Animations/Source/Walking Left Turn.fbx","Assets/Animations/WalkingRetarget.anim",1,"walking");
+        AuthoredWalkSetup.Apply();
     }
 
     [MenuItem("Teste/Aplicar Jump enviado")]
@@ -60,7 +60,7 @@ public static class RetargetIdle
         Transfer("Assets/Animations/Source/Jump.fbx","Assets/Animations/JumpRetarget.anim",3,"jump");
     }
 
-    static void Transfer(string SourcePath,string OutputPath,int childIndex,string reportPrefix)
+    internal static void Transfer(string SourcePath,string OutputPath,int childIndex,string reportPrefix,bool preserveAuthoredWalk=false)
     {
         EditorSceneManager.OpenScene("Assets/Scenes/TestePersonagem.unity");
         AssetDatabase.Refresh();
@@ -111,10 +111,26 @@ public static class RetargetIdle
         Quaternion rotationDelta=srcEndRotation*Quaternion.Inverse(src["Hips"].rotation);
         float headingTurn=childIndex==1?Vector3.SignedAngle(Vector3.forward,Vector3.ProjectOnPlane(rotationDelta*Vector3.forward,Vector3.up),Vector3.up):0;
         Vector3 travel = childIndex > 0 ? Vector3.ProjectOnPlane(srcEnd-srcStart,Vector3.up) : Vector3.zero;
+        float walkingYawBias=0,walkingRollBias=0,archWeight=0;Vector3 walkingArch=Vector3.zero;
+        if(preserveAuthoredWalk)
+        {
+            for(int i=0;i<120;i++)
+            {
+                float phase=i/120f;clip.SampleAnimation(source,clip.length*phase);
+                var delta=Quaternion.AngleAxis(-headingTurn*phase,Vector3.up)*src["Hips"].rotation*Quaternion.Inverse(srcRest[" Pelvis"]);
+                var forward=delta*Vector3.forward;var right=delta*Vector3.right;
+                walkingYawBias+=Mathf.Atan2(forward.x,forward.z)*Mathf.Rad2Deg/120;
+                walkingRollBias+=Mathf.Asin(Mathf.Clamp(right.y,-1,1))*Mathf.Rad2Deg/120;
+                float weight=4*phase*(1-phase);
+                walkingArch+=Vector3.ProjectOnPlane(src["Hips"].position-srcStart-travel*phase,Vector3.up)*weight;
+                archWeight+=weight*weight;
+            }
+            walkingArch/=Mathf.Max(.001f,archWeight);
+        }
         bool jump=childIndex==3;
         float sampleStart=jump?.65f:0;
         float duration=jump?Mathf.Min(1.85f,clip.length)-sampleStart:clip.length;
-        float seamDuration = childIndex >= 2 ? 0 : childIndex == 1 ? .12f : .2f;
+        float seamDuration = preserveAuthoredWalk?0:childIndex >= 2 ? 0 : childIndex == 1 ? .12f : .2f;
         int frames = Mathf.CeilToInt(duration * 60);
         var rotations = pairs.ToDictionary(p => p[0], p => new List<Quaternion>());
         var positions = new List<Vector3>();
@@ -125,7 +141,14 @@ public static class RetargetIdle
             clip.SampleAnimation(source, sourceTime);
             Quaternion headingCorrection=Quaternion.identity;
             Quaternion upperBodyCorrection=Quaternion.identity;
-            if(childIndex==1)
+            if(preserveAuthoredWalk)
+            {
+                // Remove only locomotor steering and a constant alignment bias.
+                // Preserve the authored pelvis/shoulder sway, joint motion and height.
+                headingCorrection=Quaternion.AngleAxis(-walkingRollBias,Vector3.forward)*Quaternion.AngleAxis(-walkingYawBias-headingTurn*time/clip.length,Vector3.up);
+                upperBodyCorrection=headingCorrection;
+            }
+            else if(childIndex==1)
             {
                 Quaternion hipsDelta=src["Hips"].rotation*Quaternion.Inverse(srcRest[" Pelvis"]);
                 // Turning clips steer and bank the whole body. Keep only a small forward
@@ -139,7 +162,7 @@ public static class RetargetIdle
                 bool upperBody=p[0]!=" Pelvis"&&!p[0].EndsWith("Thigh")&&!p[0].EndsWith("Calf")&&!p[0].EndsWith("Foot")&&!p[0].EndsWith("Toe0");
                 Quaternion correction=childIndex==1&&upperBody?upperBodyCorrection:headingCorrection;
                 dst[p[0]].rotation = correction * src[p[1]].rotation * Quaternion.Inverse(srcRest[p[0]]) * alignment[p[0]] * dstRest[p[0]];
-                if(childIndex==1&&(p[0]==" Neck"||p[0]==" Head"))
+                if(childIndex==1&&!preserveAuthoredWalk&&(p[0]==" Neck"||p[0]==" Head"))
                 {
                     Quaternion delta=dst[p[0]].rotation*Quaternion.Inverse(dstRest[p[0]]);
                     dst[p[0]].rotation=StraightWalkingRotation(delta,4f)*dstRest[p[0]];
@@ -155,6 +178,12 @@ public static class RetargetIdle
                 // In-place locomotion: retain vertical body motion at its authored height,
                 // without residual forward/backward drift on top of CharacterController movement.
                 displacement=Vector3.up*(src["Hips"].position.y-sourceBindPelvisPosition.y);
+                if(preserveAuthoredWalk)
+                {
+                    float phase=time/clip.length;
+                    var residual=Vector3.ProjectOnPlane(src["Hips"].position-srcStart-travel*phase-walkingArch*(4*phase*(1-phase)),Vector3.up);
+                    displacement+=Quaternion.AngleAxis(-walkingYawBias-headingTurn*phase,Vector3.up)*residual;
+                }
                 if(jump)
                 {
                     // The CharacterController supplies the flight arc; retain the authored crouch,
@@ -165,7 +194,17 @@ public static class RetargetIdle
             }
             positions.Add(pelvisRest + dst[" Pelvis"].parent.InverseTransformVector(displacement * scale));
         }
-        var output = new AnimationClip { name = jump?"Pular_JumpEnviado":childIndex == 2 ? "Correr_FastRunEnviado" : childIndex == 1 ? "Andar_WalkingLeftTurnEnviado" : "Parado_IdleEnviado", frameRate = 60 };
+        if(preserveAuthoredWalk)
+        {
+            foreach(var pair in pairs)
+            {
+                var list=rotations[pair[0]];var drift=list[0]*Quaternion.Inverse(list[frames]);
+                for(int frame=0;frame<=frames;frame++)list[frame]=Quaternion.Slerp(Quaternion.identity,drift,frame/(float)frames)*list[frame];
+            }
+            var driftPosition=positions[frames]-positions[0];
+            for(int frame=0;frame<=frames;frame++)positions[frame]-=driftPosition*(frame/(float)frames);
+        }
+        var output = new AnimationClip { name = jump?"Pular_JumpEnviado":childIndex == 2 ? "Correr_FastRunEnviado" : childIndex == 1 ? preserveAuthoredWalk?"Andar_WalkingOriginal":"Andar_WalkingLeftTurnEnviado" : "Parado_IdleEnviado", frameRate = 60 };
         foreach (var p in pairs)
         {
             var curves = new[]{new AnimationCurve(), new AnimationCurve(), new AnimationCurve(), new AnimationCurve()};
@@ -277,7 +316,7 @@ public static class RetargetIdle
         PrototypePlayVerification.Start();
     }
 
-    static void SmoothPeriodic(AnimationCurve curve)
+    internal static void SmoothPeriodic(AnimationCurve curve)
     {
         var keys=curve.keys;
         int last=keys.Length-1;
@@ -317,7 +356,7 @@ public static class RetargetIdle
         PrototypeSetup.BuildWindows();
     }
 
-    static void RestoreBindPose(GameObject model)
+    internal static void RestoreBindPose(GameObject model)
     {
         var skin=model.GetComponentInChildren<SkinnedMeshRenderer>();
         if(!skin||!skin.sharedMesh)throw new Exception("Modelo sem bind poses: "+model.name);
@@ -355,6 +394,8 @@ public static class RetargetIdle
         foreach(var path in new[]{"Assets/Animations/WalkingRetarget.anim","Assets/Animations/FastRunRetarget.anim"})
         {
             var clip=AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
+            if(path.Contains("Walking")&&clip.name=="Andar_WalkingOriginal")
+            {AuthoredWalkSetup.Verify();lines.Add(path+" | validated against authored Walking.fbx");continue;}
             float maxYaw=0,maxDrift=0,maxTangentMismatch=0,maxTorsoYaw=0,maxTorsoRoll=0;
             Vector3? first=null;
             for(int frame=0;frame<=240;frame++)

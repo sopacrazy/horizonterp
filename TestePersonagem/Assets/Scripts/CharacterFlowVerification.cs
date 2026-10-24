@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -10,7 +11,7 @@ using UnityEngine.UIElements;
 public sealed class CharacterFlowVerification : MonoBehaviour
 {
     static bool LandingOnly=>Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-landing")>=0;
-    static string Folder=>LandingOnly?@"C:\SistemaAdr\gta\tools\landing-review":@"C:\SistemaAdr\gta\tools\character-review";
+    static string Folder=>Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-walk")>=0?@"C:\SistemaAdr\gta\tools\walk-runtime-review":LandingOnly?@"C:\SistemaAdr\gta\tools\landing-review":@"C:\SistemaAdr\gta\tools\character-review";
     readonly List<string> checks = new List<string>();
     readonly List<string> errors = new List<string>();
     readonly List<RequestRecord> requests = new List<RequestRecord>();
@@ -204,9 +205,64 @@ public sealed class CharacterFlowVerification : MonoBehaviour
         Check(requests.Exists(request=>request.path=="/v1/auth/login"),"Login de aterrissagem foi interceptado em memória");
         typeof(AccountSession).GetMethod("EnterCity",flags).Invoke(account,null);
         yield return WaitUntil(()=>!StartupLoader.IsLoading&&!CityEntryLoading.Active&&FindAnyObjectByType<ThirdPersonPlayer>(),50,"Cidade pronta para teste de aterrissagem");
-        yield return VerifyJump();
+        if(Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-walk")>=0)yield return VerifyWalkPlayback();
+        else yield return VerifyJump();
         Check(AccountSession.VerificationTransport!=null,"Teste de aterrissagem não usa a VPS");
         account.Logout();yield return WaitUntil(()=>!AccountSession.Authenticated,8,"Fixture de aterrissagem encerrada");
+    }
+
+    IEnumerator VerifyWalkPlayback()
+    {
+        var player=FindAnyObjectByType<ThirdPersonPlayer>();
+        var bones=player.animator.GetComponentsInChildren<Transform>().ToDictionary(t=>t.name,t=>t);
+        player.DemoMode=true;player.DemoRun=false;player.DemoInput=Vector2.zero;
+        yield return new WaitForSecondsRealtime(.3f);
+        float standingHip=player.transform.InverseTransformPoint(bones[" Pelvis"].position).y;
+        player.DemoInput=Vector2.up;
+        yield return new WaitForSecondsRealtime(.5f);
+        bool authored=player.animator.GetCurrentAnimatorClipInfo(0).Any(info=>info.clip.name=="Andar_WalkingOriginal");
+        Check(player.animator.GetCurrentAnimatorStateInfo(0).IsName("Locomocao")&&player.CurrentSpeed>1.5f,
+            "Caminhada é reproduzida no Animator enquanto o controlador anda");
+        float minGap=float.MaxValue,maxPlantedVelocity=0,minHip=float.MaxValue,maxHip=float.MinValue,minRoot=float.MaxValue,maxRoot=float.MinValue,sumHip=0;int plantedSamples=0,poseSamples=0;
+        var previous=new[]{bones[" L Foot"].position,bones[" R Foot"].position};
+        var previousLocalHeight=new[]{float.MaxValue,float.MaxValue};
+        float previousTime=Time.time;
+        for(float elapsed=0;elapsed<2.8f;elapsed+=Time.deltaTime)
+        {
+            yield return new WaitForEndOfFrame();
+            float dt=Time.time-previousTime;
+            var state=player.animator.GetCurrentAnimatorStateInfo(0);
+            var left=player.transform.InverseTransformPoint(bones[" L Foot"].position);
+            var right=player.transform.InverseTransformPoint(bones[" R Foot"].position);
+            float hip=player.transform.InverseTransformPoint(bones[" Pelvis"].position).y;
+            minHip=Mathf.Min(minHip,hip);maxHip=Mathf.Max(maxHip,hip);
+            sumHip+=hip;poseSamples++;
+            minRoot=Mathf.Min(minRoot,player.transform.position.y);maxRoot=Mathf.Max(maxRoot,player.transform.position.y);
+            minGap=Mathf.Min(minGap,right.x-left.x);
+            for(int side=0;side<2;side++)
+            {
+                var point=bones[side==0?" L Foot":" R Foot"].position;
+                float phase=Mathf.Repeat(state.normalizedTime+side*.5f,1);
+                float localHeight=player.animator.transform.InverseTransformPoint(point).y;
+                bool support=authored?localHeight<.09f&&previousLocalHeight[side]<.09f:phase>.1f&&phase<.42f;
+                if(dt>0&&support)
+                {maxPlantedVelocity=Mathf.Max(maxPlantedVelocity,Vector3.Distance(point,previous[side])/dt);plantedSamples++;}
+                previous[side]=point;
+                previousLocalHeight[side]=localHeight;
+            }
+            previousTime=Time.time;
+        }
+        Check(minGap>(authored?.03f:.18f),"Pés mantêm separação durante a caminhada real (distância mínima="+minGap.ToString("F3")+"m)");
+        Check(maxHip-minHip<(authored?.085f:.022f),"Movimento vertical acompanha o perfil da animação selecionada (medida="+(maxHip-minHip).ToString("F4")+"m)");
+        if(authored)Check(standingHip-sumHip/Mathf.Max(1,poseSamples)<.06f,"Altura natural de caminhada preservada, sem agachamento artificial (diferença média="+(standingHip-sumHip/Mathf.Max(1,poseSamples)).ToString("F3")+"m)");
+        Check(maxRoot-minRoot<.015f&&!player.IsJumping,"Controlador permanece no chão sem pequenos saltos durante a caminhada");
+        Check(plantedSamples>20&&maxPlantedVelocity<(authored?.85f:.35f),
+            "Pé de apoio acompanha o chão com movimento do controlador (amostras="+plantedSamples+", velocidade máxima="+maxPlantedVelocity.ToString("F3")+"m/s)");
+        player.DemoInput=Vector2.zero;yield return new WaitForSecondsRealtime(.4f);
+        Check(player.CurrentSpeed<.1f,"Soltar o controle retorna ao estado parado");
+        player.DemoInput=Vector2.up;player.DemoRun=true;yield return new WaitForSecondsRealtime(.5f);
+        Check(player.CurrentSpeed>4.2f,"Corrida mantém a animação e a velocidade existentes");
+        player.DemoInput=Vector2.zero;player.DemoRun=false;player.ResetPosition();
     }
 
     IEnumerator VerifyChatInterface()
