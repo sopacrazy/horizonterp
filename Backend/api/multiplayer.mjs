@@ -35,7 +35,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2}={}){
    messages:messages.filter(m=>m.id>(body.afterChat??0)).slice(-20).map(publicMessage),
    peers:[...members.values()].filter(m=>m.characterId!==identity.characterId).map(m=>({
     characterId:m.characterId,uid:m.uid,name:m.name,model:m.model,x:m.x,y:m.y,z:m.z,
-    yaw:m.yaw,speed:m.speed,jumping:m.jumping,jumpPhase:m.jumpPhase,sequence:m.sequence
+    yaw:m.yaw,speed:m.speed,jumping:m.jumping,jumpPhase:m.jumpPhase,sequence:m.sequence,updatedAt:m.seen
    }))};
  }
  function publicMessage({characterId,clientId,sessionId,...message}){return message;}

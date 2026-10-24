@@ -9,6 +9,7 @@ parser.add_argument('--chat',action='store_true')
 parser.add_argument('--updater',action='store_true')
 parser.add_argument('--stairs',action='store_true')
 parser.add_argument('--walk',action='store_true')
+parser.add_argument('--network',action='store_true')
 args=parser.parse_args()
 assert re.fullmatch(r'\d+\.\d+\.\d+',args.version)
 
@@ -45,6 +46,7 @@ with zipfile.ZipFile(apk) as archive:
     metadata=archive.read('assets/bin/Data/Managed/Metadata/global-metadata.dat')
     assert b'MultiplayerWorld' in metadata and b'MultiplayerPeer' in metadata and b'JumpPhase' in metadata
     if args.chat:assert b'InGameChat' in metadata and b'ChatMessage' in metadata and b'OpenKeyboard' in metadata
+    if args.network:assert b'RemoteAvatarAnimation' in metadata and b'RemoteMotionBuffer' in metadata and b'updatedAt' in metadata
     if args.updater:
         assert b'GameUpdater' in metadata and b'GameVersion' in metadata and b'FileHash' in metadata
         dex=b''.join(archive.read(name) for name in names if re.fullmatch(r'classes\d*\.dex',name))
@@ -79,6 +81,7 @@ report={'result':'ANDROID_RELEASE_VERIFIED','version':args.version,'versionCode'
     'updater_included':args.updater,
     'smooth_stair_collisions_included':args.stairs,
     'authored_walking_included':args.walk,
+    'remote_motion_and_animation_fix_included':args.network,
     'bytes':release.stat().st_size,'sha256':hashlib.sha256(release.read_bytes()).hexdigest(),
     'device_runtime_tested':False,'file':str(release)}
 (root/('tools/android-'+args.version.replace('.','')+'-validation.json')).write_text(json.dumps(report,indent=2),encoding='utf-8')

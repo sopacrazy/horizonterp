@@ -16,6 +16,7 @@ using UnityEngine.Networking;
 {
     public string characterId,uid,name,model;
     public int sequence;
+    public long updatedAt;
     public float x,y,z,yaw,speed,jumpPhase;
     public bool jumping;
 }
@@ -24,6 +25,7 @@ using UnityEngine.Networking;
 {
     public string room,error,code,chatEpoch;
     public int capacity,count,sequence;
+    public long serverTime;
     public MultiplayerPeer[] peers;
     public ChatMessage[] messages;
     public ChatMessage message;

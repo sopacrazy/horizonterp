@@ -3,6 +3,17 @@ import assert from 'node:assert/strict';
 import {createRoom} from '../multiplayer.mjs';
 const id=n=>({characterId:'character-'+n,uid:String(n),name:'Jogador '+n,model:'bybeyby',world:'centro_teste'});
 const frame=(sequence=1,extra={})=>({clientId:'11111111-1111-4111-8111-111111111111',sequence,x:0,y:0,z:0,yaw:0,speed:0,jumping:false,jumpPhase:0,...extra});
+test('peer timestamps belong to the source update rather than the observing poll',()=>{
+ let now=1000;const room=createRoom({clock:()=>now});
+ room.sync(id(2),'s2',frame(1,{x:1,speed:1.65}));
+ now=1250;const first=room.sync(id(1),'s1',frame());
+ assert.equal(first.serverTime,1250);assert.equal(first.peers[0].updatedAt,1000);
+ now=1500;const again=room.sync(id(1),'s1',frame(2));
+ assert.equal(again.peers[0].updatedAt,1000);
+ now=1600;room.sync(id(2),'s2',frame(2,{x:2,speed:1.65}));
+ now=1800;assert.equal(room.sync(id(1),'s1',frame(3)).peers[0].updatedAt,1600);
+ assert.throws(()=>room.sync(id(1),'s1',frame(4,{updatedAt:9999})),e=>e.code==='INVALID_FRAME');
+});
 test('two players share movement and jumping; identities come from authentication',()=>{
  const room=createRoom();
  assert.equal(room.sync(id(1),'session1',frame()).count,1);

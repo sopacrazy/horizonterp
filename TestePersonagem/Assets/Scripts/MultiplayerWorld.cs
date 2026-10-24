@@ -49,7 +49,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
             {
                 connectionFailures=0;Connected=true;PlayerCount=reply.count;ReceivedFrames++;
                 SetStatus("ONLINE "+reply.count+"/"+reply.capacity);
-                UpdatePeers(reply.peers);
+                UpdatePeers(reply.peers,reply.serverTime,Time.realtimeSinceStartup-started);
                 ReceiveChat(reply);
                 float remaining=.1f-(Time.realtimeSinceStartup-started);
                 if(remaining>0)yield return new WaitForSecondsRealtime(remaining);
@@ -93,7 +93,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
         // The next sync delivers all messages in order, including our own confirmed message.
         done(reply);
     }
-    void UpdatePeers(MultiplayerPeer[] peers)
+    void UpdatePeers(MultiplayerPeer[] peers,long serverTime,float roundTrip)
     {
         var live=new HashSet<string>();
         foreach(var peer in peers)
@@ -105,7 +105,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
                 remote=new Remote(player,peer);remotes.Add(peer.characterId,remote);
             }
             else RemoteTravel+=Vector3.Distance(remote.TargetPosition,new Vector3(peer.x,peer.y,peer.z));
-            SawRemoteJump|=peer.jumping;remote.Apply(peer);
+            SawRemoteJump|=peer.jumping;remote.Apply(peer,serverTime,roundTrip);
         }
         var stale=new List<string>();foreach(var id in remotes.Keys)if(!live.Contains(id))stale.Add(id);
         foreach(var id in stale){remotes[id].Destroy();remotes.Remove(id);}
@@ -130,11 +130,13 @@ public sealed class MultiplayerWorld : MonoBehaviour
     {
         readonly GameObject root;
         readonly Animator animator;
+        readonly RemoteAvatarAnimation animation;
         readonly TextMesh nameplate;
         readonly RemoteMotionBuffer motion=new RemoteMotionBuffer();
         int lastSequence=-1;
         Vector3 targetPosition;
-        bool jumping;
+        long sourceOrigin;
+        float localOrigin;
         public Vector3 TargetPosition=>targetPosition;
         public Remote(ThirdPersonPlayer local,MultiplayerPeer peer)
         {
@@ -144,7 +146,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
             if(local.animator.gameObject==local.gameObject)throw new InvalidOperationException("O visual precisa ser um filho separado do controlador.");
             var visual=UnityEngine.Object.Instantiate(local.animator.gameObject,root.transform,false);
             visual.name="ByBeyby remoto";animator=visual.GetComponent<Animator>();
-            animator.applyRootMotion=false;animator.cullingMode=AnimatorCullingMode.AlwaysAnimate;
+            animation=new RemoteAvatarAnimation(animator);
             foreach(var collider in visual.GetComponentsInChildren<Collider>())collider.enabled=false;
             foreach(var listener in visual.GetComponentsInChildren<AudioListener>())listener.enabled=false;
             foreach(var behaviour in visual.GetComponentsInChildren<MonoBehaviour>())behaviour.enabled=false;
@@ -157,13 +159,23 @@ public sealed class MultiplayerWorld : MonoBehaviour
             label.GetComponent<MeshRenderer>().sharedMaterial=nameplate.font.material;
             targetPosition=root.transform.position;
         }
-        public void Apply(MultiplayerPeer peer)
+        public void Apply(MultiplayerPeer peer,long serverTime,float roundTrip)
         {
             if(peer.sequence==lastSequence)return;
             // Sync requests are serialized. A lower sequence means that the other client restarted.
-            if(peer.sequence<lastSequence)motion.Reset();
+            if(peer.sequence<lastSequence){motion.Reset();sourceOrigin=0;}
             lastSequence=peer.sequence;targetPosition=new Vector3(peer.x,peer.y,peer.z);
-            motion.Push(Time.unscaledTime,targetPosition,Quaternion.Euler(0,peer.yaw,0),peer.speed,peer.jumping,peer.jumpPhase);
+            float arrival=Time.unscaledTime,sampleTime=arrival;
+            if(peer.updatedAt>0&&serverTime>=peer.updatedAt)
+            {
+                if(sourceOrigin==0)
+                {
+                    sourceOrigin=peer.updatedAt;
+                    localOrigin=arrival-Mathf.Clamp((serverTime-peer.updatedAt)*.001f,0,10)-Mathf.Clamp(roundTrip*.5f,0,.5f);
+                }
+                sampleTime=localOrigin+(peer.updatedAt-sourceOrigin)*.001f;
+            }
+            motion.Push(sampleTime,targetPosition,Quaternion.Euler(0,peer.yaw,0),peer.speed,peer.jumping,peer.jumpPhase,arrival);
             nameplate.text=peer.name;
         }
         public void Tick()
@@ -171,12 +183,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
             if(motion.Sample(Time.unscaledTime,out var position,out var rotation))
             {
                 root.transform.SetPositionAndRotation(position,rotation);
-                animator.SetFloat("Speed",motion.Speed,.1f,Time.unscaledDeltaTime);
-                if(motion.Jumping!=jumping)
-                {
-                    jumping=motion.Jumping;animator.SetBool("Jumping",jumping);
-                    if(jumping)animator.Play("Jump",0,Mathf.Clamp01(motion.JumpPhase));
-                }
+                animation.Apply(motion.Speed,motion.Jumping,motion.JumpPhase,Time.unscaledDeltaTime);
             }
             if(Camera.main)nameplate.transform.rotation=Camera.main.transform.rotation;
         }
