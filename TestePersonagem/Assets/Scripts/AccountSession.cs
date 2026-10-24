@@ -187,8 +187,11 @@ public sealed partial class AccountSession : MonoBehaviour
     IEnumerator Request(string method,string path,string body,bool authenticated,Action<ApiReply> done)
     {
         RequestCount++;LastError="";LastErrorCode="";
-        if(VerificationTransport!=null&&Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-character-flow")>=0)
+        if(VerificationTransport!=null)
         {
+            if(Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-character-flow")<0&&
+                Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-landing")<0)
+            {LastError="Modo de verificação local não autorizado.";done(null);yield break;}
             yield return VerificationTransport(method,path,body,authenticated,(reply,error)=>
             {LastError=error??"";LastErrorCode=reply?.code??"";done(string.IsNullOrEmpty(error)?reply:null);});
             yield break;

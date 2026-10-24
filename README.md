@@ -30,8 +30,11 @@ No Windows, `AbrirProjeto.bat` abre o projeto na instalação padrão do editor.
 - Sala experimental para dois jogadores, sincronização de movimento e chat.
 - Tipos de conta e nível administrativo. Os comandos administrativos são apenas placeholders: suas ações ainda não são executadas.
 - Chat com eco local imediato e destaque verde para comandos administrativos.
+- A partir da 0.5.0: versão no HUD/loading e atualização Android pelo GitHub Releases, com confirmação de instalação pelo Android.
 
 A rede ainda é um protótipo de sincronização por HTTPS; a suavização não elimina a latência da conexão.
+
+As versões são definidas em `TestePersonagem/Assets/Resources/GameVersion.json`. Veja [como publicar atualizações Android](releases/README.md). APKs anteriores à 0.5.0 precisam de uma instalação manual para receber o atualizador.
 
 ## Backend e testes
 

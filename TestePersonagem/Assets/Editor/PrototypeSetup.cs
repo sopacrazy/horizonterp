@@ -224,6 +224,7 @@ public static class PrototypeSetup
     [MenuItem("Teste/Gerar executavel Windows")]
     public static void BuildWindows()
     {
+        PlayerSettings.bundleVersion=GameVersion.Current.version;
         Directory.CreateDirectory("Builds/Windows");
         var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions {
             scenes = GameUpdateSetup.Scenes, locationPathName = "Builds/Windows/TestePersonagem.exe",

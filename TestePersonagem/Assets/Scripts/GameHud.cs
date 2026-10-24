@@ -66,6 +66,9 @@ public sealed class GameHud : MonoBehaviour
         root.AddToClassList("asset-hud");
         root.styleSheets.Add(Resources.Load<StyleSheet>("HudStyles"));
         CreateMapCameras();Build();InGameChat.Create(this);
+        var version=Text("v"+Application.version,"",root);version.name="game-version";
+        version.style.position=Position.Absolute;version.style.left=14;version.style.bottom=5;
+        version.style.fontSize=10;version.style.color=new Color(.8f,.82f,.85f,.8f);
     }
 
     VisualElement Element(string css,VisualElement parent=null)

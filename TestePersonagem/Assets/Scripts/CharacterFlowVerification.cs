@@ -9,7 +9,8 @@ using UnityEngine.UIElements;
 // Explicit offline verification: all account requests are intercepted in memory.
 public sealed class CharacterFlowVerification : MonoBehaviour
 {
-    const string Folder = @"C:\SistemaAdr\gta\tools\character-review";
+    static bool LandingOnly=>Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-landing")>=0;
+    static string Folder=>LandingOnly?@"C:\SistemaAdr\gta\tools\landing-review":@"C:\SistemaAdr\gta\tools\character-review";
     readonly List<string> checks = new List<string>();
     readonly List<string> errors = new List<string>();
     readonly List<RequestRecord> requests = new List<RequestRecord>();
@@ -42,7 +43,7 @@ public sealed class CharacterFlowVerification : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Bootstrap()
     {
-        if (Array.IndexOf(Environment.GetCommandLineArgs(), "--verify-character-flow") >= 0 &&
+        if ((Array.IndexOf(Environment.GetCommandLineArgs(), "--verify-character-flow") >= 0||LandingOnly) &&
             !FindAnyObjectByType<CharacterFlowVerification>())
             new GameObject("Offline Character Flow Verification").AddComponent<CharacterFlowVerification>();
     }
@@ -68,7 +69,7 @@ public sealed class CharacterFlowVerification : MonoBehaviour
     IEnumerator Start()
     {
         var pending = new Stack<IEnumerator>();
-        pending.Push(Verify());
+        pending.Push(LandingOnly?VerifyLanding():Verify());
         while (pending.Count > 0 && !finished)
         {
             object instruction = null;
@@ -189,6 +190,25 @@ public sealed class CharacterFlowVerification : MonoBehaviour
         Check(errors.Count == 0, "Execução sem erros, exceções ou asserts do Unity");
     }
 
+    IEnumerator VerifyLanding()
+    {
+        Screen.SetResolution(1280,720,FullScreenMode.Windowed);
+        savedState=MakeState(new CharacterBody {firstName="Ana-María",lastName="D'Ávila",gender="female"});
+        yield return WaitForLanding();
+        // This focused test exercises physics, not native window focus/navigation.
+        const System.Reflection.BindingFlags flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+        typeof(AccountSession).GetMethod("DisplayEmailForm",flags).Invoke(account,new object[]{false});
+        SetCredentials("offline-landing@example.invalid");
+        yield return (IEnumerator)typeof(AccountSession).GetMethod("Submit",flags).Invoke(account,null);
+        Check(AccountSession.HasCharacter,"Fixture local autenticada para teste de aterrissagem");
+        Check(requests.Exists(request=>request.path=="/v1/auth/login"),"Login de aterrissagem foi interceptado em memória");
+        typeof(AccountSession).GetMethod("EnterCity",flags).Invoke(account,null);
+        yield return WaitUntil(()=>!StartupLoader.IsLoading&&!CityEntryLoading.Active&&FindAnyObjectByType<ThirdPersonPlayer>(),50,"Cidade pronta para teste de aterrissagem");
+        yield return VerifyJump();
+        Check(AccountSession.VerificationTransport!=null,"Teste de aterrissagem não usa a VPS");
+        account.Logout();yield return WaitUntil(()=>!AccountSession.Authenticated,8,"Fixture de aterrissagem encerrada");
+    }
+
     IEnumerator VerifyChatInterface()
     {
         var hud=GameHud.Instance;var chat=InGameChat.Instance;
@@ -303,7 +323,7 @@ public sealed class CharacterFlowVerification : MonoBehaviour
         player.RequestJump(); // Repeated request in flight must not add another impulse.
         for(float elapsed=0;elapsed<.2f;elapsed+=Time.deltaTime)
         {maxY=Mathf.Max(maxY,player.transform.position.y);yield return null;}
-        yield return Capture("jump-apex");
+        if(!LandingOnly)yield return Capture("jump-apex");
         float landingDeadline=Time.realtimeSinceStartup+4;
         while(player.IsJumping&&Time.realtimeSinceStartup<landingDeadline)
         {maxY=Mathf.Max(maxY,player.transform.position.y);yield return null;}
@@ -317,6 +337,20 @@ public sealed class CharacterFlowVerification : MonoBehaviour
         yield return new WaitForSecondsRealtime(.37f);
         Check(player.IsJumping&&Vector3.ProjectOnPlane(player.transform.position-start,Vector3.up).magnitude>.8f,
             "Pulo durante a corrida mantém deslocamento horizontal");
+        yield return WaitUntil(()=>player.IsGrounded,3,"Corrida aterrissa sem aguardar o fim do clip");
+        yield return null;
+        Check(!player.IsJumping&&player.CurrentSpeed>4&& !player.animator.GetBool("Jumping"),
+            "Primeiro contato com o chão encerra o pulo mantendo a velocidade de corrida");
+        yield return new WaitForSecondsRealtime(.1f);
+        Check(player.animator.GetCurrentAnimatorStateInfo(0).IsName("Locomocao"),
+            "Corrida volta à locomoção em até 100 ms após aterrissar");
+        player.ResetPosition();player.DemoInput=Vector2.up;player.DemoRun=false;
+        yield return WaitUntil(()=>player.IsGrounded,3,"Preparação do pulo caminhando");
+        float walkingStartY=player.transform.position.y;
+        player.RequestJump();yield return WaitUntil(()=>player.IsJumping&&!player.IsGrounded&&player.transform.position.y>walkingStartY+.15f,3,"Caminhada sai do chão com impulso do pulo");
+        yield return WaitUntil(()=>player.IsGrounded,3,"Caminhada aterrissa");yield return null;
+        Check(!player.IsJumping&&player.CurrentSpeed>1.4f&&player.CurrentSpeed<2,
+            "Aterrissagem caminhando retoma a caminhada sem travar na pose de pulo (velocidade="+player.CurrentSpeed.ToString("F3")+", pulando="+player.IsJumping+")");
         player.DemoInput=Vector2.zero;player.DemoRun=false;
         player.ResetPosition();yield return new WaitForSecondsRealtime(.3f);
         Check(!player.IsJumping&&player.IsGrounded,"Respawn cancela o pulo e deixa o personagem apoiado");

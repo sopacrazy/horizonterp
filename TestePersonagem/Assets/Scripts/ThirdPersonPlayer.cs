@@ -88,10 +88,20 @@ public class ThirdPersonPlayer : MonoBehaviour
         Vector3 before = transform.position;
         var collisions=controller.Move((direction * speed + Vector3.up * verticalSpeed) * Time.deltaTime);
         if((collisions&CollisionFlags.Above)!=0&&verticalSpeed>0)verticalSpeed=0;
-        if(IsJumping&&jumpLaunched&&controller.isGrounded&&jumpElapsed>=JumpRecovery)
-        {IsJumping=false;animator.SetBool("Jumping",false);}
+        bool landed=IsJumping&&jumpLaunched&&verticalSpeed<=0&&
+            (controller.isGrounded||(collisions&CollisionFlags.Below)!=0);
+        if(landed)
+        {
+            IsJumping=false;jumpLaunched=false;verticalSpeed=-2f;
+            animator.SetBool("Jumping",false);
+        }
         CurrentSpeed = Vector3.ProjectOnPlane(transform.position - before, Vector3.up).magnitude / Mathf.Max(Time.deltaTime, .0001f);
-        animator.SetFloat("Speed", CurrentSpeed, .12f, Time.deltaTime);
+        if(landed)
+        {
+            animator.SetFloat("Speed",CurrentSpeed);
+            animator.CrossFadeInFixedTime("Locomocao",.06f,0);
+        }
+        else animator.SetFloat("Speed", CurrentSpeed, .12f, Time.deltaTime);
         if (transform.position.y < -10) ResetPosition();
         if (!DemoMode && Input.GetKeyDown(KeyCode.R) && !panelOpen) ResetPosition();
     }

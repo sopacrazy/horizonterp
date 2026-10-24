@@ -19,9 +19,9 @@ public static class AndroidSetup
         AndroidExternalToolsSettings.jdkRootPath=tools+"/OpenJDK";
         PlayerSettings.companyName="Adriano";
         PlayerSettings.productName="Horizonte";
-        PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android,"com.adriano.testepersonagem");
-        PlayerSettings.bundleVersion="0.4.1";
-        PlayerSettings.Android.bundleVersionCode=7;
+        PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android,GameVersion.Current.packageId);
+        PlayerSettings.bundleVersion=GameVersion.Current.version;
+        PlayerSettings.Android.bundleVersionCode=GameVersion.Current.versionCode;
         PlayerSettings.defaultInterfaceOrientation=UIOrientation.AutoRotation;
         PlayerSettings.allowedAutorotateToPortrait=false;
         PlayerSettings.allowedAutorotateToPortraitUpsideDown=false;

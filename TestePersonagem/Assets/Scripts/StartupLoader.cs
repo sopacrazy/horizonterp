@@ -34,6 +34,9 @@ public sealed class StartupLoader : MonoBehaviour
     {
         // Display the artwork before starting the asynchronous scene load.
         yield return null;
+        var updater=gameObject.AddComponent<GameUpdater>();
+        yield return updater.Check((message,value)=>{status=message;Progress=value;Music.volume=.6f;});
+        status="PREPARANDO A CIDADE";Progress=0;
         var load=SceneManager.LoadSceneAsync("TestePersonagem",LoadSceneMode.Single);
         if(load==null){status="NÃO FOI POSSÍVEL CARREGAR A CIDADE";yield break;}
         load.allowSceneActivation=false;
@@ -100,6 +103,7 @@ public sealed class StartupLoader : MonoBehaviour
         GUI.color=new Color(1,1,1,opacity);
         GUI.Label(new Rect(left,bottom-43*scale,width,25*scale),status,label);
         GUI.Label(new Rect(left,bottom-43*scale,width,25*scale),$"{Mathf.FloorToInt(Progress*100)}%",percent);
+        GUI.Label(new Rect(left,bottom-67*scale,width,22*scale),"HORIZONTE BRASIL · v"+Application.version,label);
         GUI.color=new Color(.17f,.18f,.19f,opacity);
         GUI.DrawTexture(new Rect(left,bottom-12*scale,width,5*scale),Texture2D.whiteTexture);
         GUI.color=new Color(1,.76f,.24f,opacity);
