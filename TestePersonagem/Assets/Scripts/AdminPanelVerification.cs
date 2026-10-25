@@ -58,6 +58,29 @@ internal static class AdminPanelVerification
                 yield return capture("admin-table-"+resolution.x+"x"+resolution.y,false);
             }
             Screen.SetResolution(1280,720,FullScreenMode.Windowed);yield return new WaitForSecondsRealtime(.3f);
+            Press(ui.Q<Button>("admin-player-42"));
+            yield return null;
+            check(ui.Q("admin-actions-card")!=null&&!ui.Q(className:"admin-modal").enabledInHierarchy,"Selecionar jogador abre outro modal e bloqueia a tabela ao fundo");
+            check(new[]{"inf","goto","mute","unmute","muterep","unmuterep","jail","unjail","re","kick"}.All(c=>ui.Q<Button>("admin-command-"+c)!=null),"Modal do jogador reúne todos os dez comandos com alvo");
+            foreach(var resolution in new[]{new Vector2Int(960,540),new Vector2Int(1280,720),new Vector2Int(1600,720)})
+            {
+                Screen.SetResolution(resolution.x,resolution.y,FullScreenMode.Windowed);yield return new WaitForSecondsRealtime(.3f);
+                var cardBounds=ui.Q("admin-actions-card").worldBound;var screenBounds=ui.worldBound;
+                check(cardBounds.xMin>=screenBounds.xMin&&cardBounds.xMax<=screenBounds.xMax&&cardBounds.yMin>=screenBounds.yMin&&cardBounds.yMax<=screenBounds.yMax,"Modal de ações dentro da tela em "+resolution.x+"x"+resolution.y);
+                yield return capture("admin-player-actions-"+resolution.x+"x"+resolution.y,false);
+            }
+            Screen.SetResolution(1280,720,FullScreenMode.Windowed);yield return new WaitForSecondsRealtime(.3f);
+            yield return capture("admin-player-actions",false);
+            Press(ui.Q<Button>("admin-command-mute"));yield return null;
+            check(ui.Q<Label>("admin-command-preview").text.Contains("/mute 42 [MINUTOS] [MOTIVO]")&&!ui.Q<Button>("admin-command-execute").enabledInHierarchy&&mutations==0,"Comando usa ID do alvo e informa indisponibilidade sem enviar ações falsas");
+            yield return capture("admin-command-details",false);
+            Press(ui.Q<Button>("admin-command-back"));yield return null;Press(ui.Q<Button>("admin-detail-general"));yield return null;
+            check(new[]{"a","ans","alist","myastats","reoff"}.All(c=>ui.Q<Button>("admin-command-"+c)!=null)&&ui.Q<Button>("admin-command-kick")==null,"Comandos gerais ficam separados das ações sobre o jogador");
+            Press(ui.Q<Button>("admin-actions-close"));yield return null;
+            Press(ui.Q<Button>("admin-player-44"));
+            yield return null;
+            check(!ui.Q<Button>("admin-detail-role").enabledInHierarchy&&!ui.Q<Button>("admin-detail-block").enabledInHierarchy,"Modal de nível protegido não permite alterar cargo ou bloquear");
+            Press(ui.Q<Button>("admin-actions-close"));yield return null;
             var search=ui.Q<TextField>("admin-search");search.value="43";yield return new WaitForSecondsRealtime(.55f);
             check(ui.Q("admin-row-43")!=null&&ui.Q("admin-row-42")==null,"Pesquisa por ID filtra o jogador correto");
             search.value="Lucas";yield return new WaitForSecondsRealtime(.55f);

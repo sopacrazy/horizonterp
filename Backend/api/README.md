@@ -188,3 +188,5 @@ Publicar `server.mjs`, `multiplayer.mjs`, `player-admin.mjs` e `verify_player_ad
 Executar `python3 /srv/hbrp/api/verify_player_admin.py` na VPS. O teste cria quatro contas temporárias, valida permissões, concorrência, bloqueio e desbloqueio, limpa suas próprias contas em `finally` e compara os registros reais. O relatório fica em `/srv/hbrp/api/player-admin-validation.json`.
 
 Validação local: `node --test test/characters.test.mjs test/multiplayer.test.mjs test/player-admin.test.mjs`. A interface usa primeiro nome; nome completo e sobrenome continuam preservados no banco. Esta atualização não gera APK: versões posteriores à 0.5.5 dependem de pedido explícito do usuário.
+
+Ao selecionar um jogador na tabela, o Unity abre um segundo modal com os atalhos de cargo e bloqueio e o catálogo dos dez comandos com alvo. Os cinco comandos gerais ficam em uma lista separada. Os 15 comandos continuam sem execução: os detalhes informam os requisitos pendentes e o botão de execução permanece desabilitado. Consultar o catálogo não envia comandos à API nem altera o jogador. A hierarquia também é respeitada pelos atalhos de cargo e bloqueio nesse modal.

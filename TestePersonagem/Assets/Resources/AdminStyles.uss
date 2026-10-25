@@ -44,4 +44,16 @@
 .admin-hint { font-size: 12px; color: rgb(159, 177, 203); white-space: normal; margin-bottom: 8px; }
 .admin-error { font-size: 12px; color: rgb(255, 151, 157); white-space: normal; margin: 9px 0; }
 .admin-error.admin-saving { color: rgb(255, 212, 90); }
+.admin-actions-card { width: 620px; max-height: 90%; }
+.admin-player-select { border-width: 0; margin: 0; padding: 8px 0; background-color: rgba(0, 0, 0, 0); font-size: 14px; -unity-font-style: bold; -unity-text-align: middle-left; overflow: hidden; text-overflow: ellipsis; }
+.admin-player-select:hover, .admin-player-select:focus { color: rgb(255, 213, 99); background-color: rgba(255, 213, 99, .06); }
+.admin-action-header { flex-direction: row; justify-content: space-between; align-items: center; }
+.admin-action-header .admin-confirm-title { flex-shrink: 1; white-space: normal; }
+.admin-actions-card > .admin-eyebrow { margin-top: 16px; margin-bottom: 7px; }
+.admin-command-list { min-height: 50px; flex-shrink: 1; margin-top: 8px; margin-bottom: 14px; }
+.admin-command-option { min-height: 44px; flex-shrink: 0; margin-bottom: 6px; padding: 10px 12px; border-radius: 8px; border-color: rgb(56, 68, 86); background-color: rgb(28, 38, 52); color: rgb(190, 202, 220); font-size: 12px; -unity-text-align: middle-left; white-space: normal; }
+.admin-command-option:hover { background-color: rgb(43, 55, 74); border-color: rgb(177, 149, 78); }
+.admin-command-option:focus { border-color: rgb(255, 212, 90); }
+.admin-command-preview { white-space: normal; color: rgb(255, 213, 99); font-size: 15px; padding: 15px 10px; margin: 12px 0; background-color: rgb(11, 17, 26); border-radius: 8px; }
+.admin-gold:disabled { opacity: .4; }
 .admin-confirm-buttons { flex-direction: row; justify-content: flex-end; margin-top: 12px; }

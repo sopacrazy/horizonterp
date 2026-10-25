@@ -373,7 +373,9 @@ public sealed class CharacterFlowVerification : MonoBehaviour
         Check(ui.Q("chat-feed").Query<Label>().ToList().Exists(label=>label.text.Contains("Falha simulada")&&label.ClassListContains("chat-error")),
             "Envio rejeitado é marcado como falha e não como mensagem entregue");
         chat.VerificationSend=null;SetFixtureRole(oldRole,oldAdmin);
-        yield return null;Check(!Visible(adminButton),"Botão de admin fica oculto para conta normal");
+        float roleDeadline=Time.realtimeSinceStartup+1;
+        while(Visible(adminButton)&&Time.realtimeSinceStartup<roleDeadline)yield return null;
+        Check(!Visible(adminButton),"Botão de admin fica oculto para conta normal");
         yield return Capture("chat-feed");
     }
 
