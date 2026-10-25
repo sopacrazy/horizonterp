@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 public sealed class GameHud : MonoBehaviour
 {
     public static GameHud Instance { get; private set; }
-    public bool IsPanelOpen => !string.IsNullOrEmpty(CurrentPanel);
+    public bool IsPanelOpen => !string.IsNullOrEmpty(CurrentPanel)||(AdminPlayerPanel.Instance&&AdminPlayerPanel.Instance.IsOpen);
     public bool SprintRequested { get; private set; }
     public string CurrentPanel { get; private set; }
     public VisualElement Root => root;
@@ -55,7 +55,7 @@ public sealed class GameHud : MonoBehaviour
         player=FindAnyObjectByType<ThirdPersonPlayer>();
         orbit=FindAnyObjectByType<ThirdPersonCamera>();
         dayNight=FindAnyObjectByType<CityDayNight>();
-        PlayerName=AccountSession.Authenticated?AccountSession.Instance.State.name:PlayerPrefs.GetString("hud.playerName","ADRIANO");
+        PlayerName=AccountSession.Authenticated?PlayerDisplayName.From(AccountSession.Instance.State):PlayerDisplayName.From(null,PlayerPrefs.GetString("hud.playerName","ADRIANO"));
         orbit.sensitivity=PlayerPrefs.GetFloat("hud.sensitivity",1);
         orbit.distance=PlayerPrefs.GetFloat("hud.distance",4.2f);
         lastPosition=player.transform.position;
@@ -97,7 +97,9 @@ public sealed class GameHud : MonoBehaviour
     Button AtlasButton(string asset,string css,string tooltip,Action action,VisualElement parent)
     {
         var button=new Button(action){tooltip=tooltip,name="atlas-"+asset};button.AddToClassList("atlas-button");button.AddToClassList(css);
-        button.Add(HudAtlas.Image(asset));parent.Add(button);return button;
+        var artwork=HudAtlas.Image(asset);
+        if(css=="h2-top-button"||css=="h2-nav-button"||css=="h2-microphone"||css=="h2-camera")artwork.scaleMode=ScaleMode.ScaleToFit;
+        button.Add(artwork);parent.Add(button);return button;
     }
 
     VisualElement AtlasStat(string icon,string css,string tooltip,out VisualElement fill,out Label value,VisualElement parent)
@@ -138,7 +140,7 @@ public sealed class GameHud : MonoBehaviour
         var inventory=AtlasButton("h2_inventory","h2-top-button","Inventário ainda indisponível",()=>{},top);inventory.name="atlas-inventory";inventory.SetEnabled(false);
         var store=AtlasButton("h2_store","h2-top-button","Loja ainda indisponível",()=>{},top);store.SetEnabled(false);
         var tools=Element("h2-tools");Block(tools);
-        adminButton=IconButton("admin","h2-admin","Administração · em breve",()=>{},tools);adminButton.name="action-admin";
+        adminButton=IconButton("admin","h2-admin","Administração de jogadores",()=>AdminPlayerPanel.Open(this),tools);adminButton.name="action-admin";
         ((HudIcon)adminButton[0]).SetInk(new Color(1,.8f,.22f));Text("ADMIN","h2-admin-caption",adminButton);
         adminButton.style.display=HasAdminAccess?DisplayStyle.Flex:DisplayStyle.None;
         var microphone=AtlasButton("h2_microphone","h2-microphone","Chat de voz ainda indisponível",()=>{},tools);microphone.SetEnabled(false);
@@ -173,6 +175,7 @@ public sealed class GameHud : MonoBehaviour
 
     public void OpenPanel(string panel)
     {
+        AdminPlayerPanel.Instance?.Close();
         if(InGameChat.Editing)InGameChat.Instance.Close();
         SetVisible(true);
         if(CurrentPanel==panel){ClosePanel();return;}
@@ -221,8 +224,8 @@ public sealed class GameHud : MonoBehaviour
             case "player":
                 drawerTitle.text="Personagem";
                 Text("Sua jornada começa aqui.","panel-description",content);
-                Text("NOME E SOBRENOME","field-label",content);
-                var nameInput=new TextField{value=PlayerName,maxLength=49};nameInput.name="player-name-input";nameInput.AddToClassList("name-input");content.Add(nameInput);
+                Text("PRIMEIRO NOME","field-label",content);
+                var nameInput=new TextField{value=PlayerName,maxLength=24};nameInput.name="player-name-input";nameInput.AddToClassList("name-input");content.Add(nameInput);
                 var save=new Button(()=>SaveName(nameInput.value)){text="SALVAR NOME"};save.name="save-name";save.AddToClassList("primary");content.Add(save);
                 Element("divider",content);
                 if(AccountSession.Authenticated){Text("UID "+AccountSession.Instance.State.uid,"muted",content);cloudSaveLabel=Text(AccountSession.Instance.SaveStatus,"muted",content);}
@@ -289,7 +292,7 @@ public sealed class GameHud : MonoBehaviour
     public void ApplyAccountIdentity()
     {
         if(!AccountSession.HasCharacter)return;
-        PlayerName=AccountSession.Instance.State.name;
+        PlayerName=PlayerDisplayName.From(AccountSession.Instance.State);
         if(playerNameLabel!=null)playerNameLabel.text=PlayerName.ToUpperInvariant();
         if(avatarLabel!=null)avatarLabel.text=PlayerName.Substring(0,1).ToUpperInvariant();
         if(uidLabel!=null)uidLabel.text="ID: "+AccountSession.Instance.State.uid;
@@ -297,6 +300,8 @@ public sealed class GameHud : MonoBehaviour
     public void ShowAccountMessage(string message)=>ShowToast(message);
     public void ClosePanel()
     {
+        if(AdminPlayerPanel.Instance&&AdminPlayerPanel.Instance.IsOpen&&AdminPlayerPanel.Instance.Busy)return;
+        AdminPlayerPanel.Instance?.Close();
         CurrentPanel=null;drawer.style.display=DisplayStyle.None;
         root.RemoveFromClassList("hud-panel-open");
         root.Q("hud-compass").style.display=DisplayStyle.Flex;

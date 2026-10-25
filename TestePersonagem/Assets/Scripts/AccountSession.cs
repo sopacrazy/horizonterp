@@ -21,7 +21,7 @@ using UnityEngine.UIElements;
 [Serializable] public class AuthBody {public string email,password;}
 [Serializable] public class LoginBody {public string email,password;}
 [Serializable] public class CharacterBody {public string firstName,lastName,gender;}
-[Serializable] public class ProfileBody {public string name;}
+[Serializable] public class ProfileBody {public string firstName,lastName;}
 [Serializable] public class CheckpointBody {public string requestId,version;public float x,y,z,yaw,cameraYaw,cameraPitch;}
 
 public sealed partial class AccountSession : MonoBehaviour
@@ -156,7 +156,7 @@ public sealed partial class AccountSession : MonoBehaviour
     IEnumerator RenameRoutine(string value)
     {
         busy=true;ApiReply reply=null;
-        yield return Request("PUT","/v1/player/profile",JsonUtility.ToJson(new ProfileBody{name=value}),true,r=>reply=r);
+        yield return Request("PUT","/v1/player/profile",JsonUtility.ToJson(new ProfileBody{firstName=value,lastName=State.lastName}),true,r=>reply=r);
         busy=false;
         if(reply?.state!=null){State=reply.state;GameHud.Instance.ApplyAccountIdentity();}
         if(GameHud.Instance)GameHud.Instance.ShowAccountMessage(reply?.state!=null?"Nome salvo na conta":LastError);
@@ -209,11 +209,13 @@ public sealed partial class AccountSession : MonoBehaviour
             if(request.result==UnityWebRequest.Result.Success){done(reply);yield break;}
             LastError=reply?.error??"Não foi possível conectar ao HBRP. Verifique sua internet e tente novamente.";
             LastErrorCode=reply?.code??"";
-            if(authenticated&&(request.responseCode==401||reply?.code=="SAVE_CONFLICT"))
+            if(authenticated&&(request.responseCode==401||reply?.code=="SAVE_CONFLICT"||reply?.code=="CHARACTER_BLOCKED"))
             {token=null;State=null;pending=null;ReadyToEnterCity=false;if(document)ShowLogin(LastError);}
             done(null);
         }
     }
+    internal void InvalidateSession(string message)
+    {token=null;State=null;pending=null;ReadyToEnterCity=false;if(document)ShowLogin(message);}
     sealed class PinnedCertificate:CertificateHandler
     {
         readonly string expected;

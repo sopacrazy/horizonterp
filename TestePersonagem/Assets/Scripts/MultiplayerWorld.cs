@@ -152,7 +152,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
             foreach(var behaviour in visual.GetComponentsInChildren<MonoBehaviour>())behaviour.enabled=false;
             var label=new GameObject("Nome",typeof(TextMesh));label.layer=2;label.transform.SetParent(root.transform,false);
             label.transform.localPosition=new Vector3(0,2.05f,0);
-            nameplate=label.GetComponent<TextMesh>();nameplate.text=peer.name;nameplate.richText=false;
+            nameplate=label.GetComponent<TextMesh>();nameplate.text=PlayerDisplayName.From(peer.firstName,peer.name);nameplate.richText=false;
             nameplate.anchor=TextAnchor.MiddleCenter;nameplate.alignment=TextAlignment.Center;
             nameplate.fontSize=36;nameplate.characterSize=.025f;nameplate.color=Color.white;
             nameplate.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
@@ -176,7 +176,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
                 sampleTime=localOrigin+(peer.updatedAt-sourceOrigin)*.001f;
             }
             motion.Push(sampleTime,targetPosition,Quaternion.Euler(0,peer.yaw,0),peer.speed,peer.jumping,peer.jumpPhase,arrival);
-            nameplate.text=peer.name;
+            nameplate.text=PlayerDisplayName.From(peer.firstName,peer.name);
         }
         public void Tick()
         {

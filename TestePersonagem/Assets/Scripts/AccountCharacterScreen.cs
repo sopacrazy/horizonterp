@@ -182,7 +182,7 @@ public sealed partial class AccountSession
         characterLobby.AddToClassList("character-existing-mode");
         characterLobby.RemoveFromClassList("character-create-mode");characterDock.style.display=DisplayStyle.None;
         characterExistingImage.image=state?.gender=="female"?characterFemaleArtwork:characterMaleArtwork;
-        string fullName=string.Join(" ",new[]{state?.firstName,state?.lastName}).Trim();
+        string fullName=PlayerDisplayName.From(state);
         characterExistingName.text=!string.IsNullOrWhiteSpace(fullName)?fullName:state?.name??"Seu personagem";
         ClearCharacterErrors();SetCharacterBusy(false);characterScroll.scrollOffset=Vector2.zero;
         characterLobby.schedule.Execute(()=>{if(characterLobbyShown&&characterExisting.resolvedStyle.display!=DisplayStyle.None)characterEnter.Focus();});
@@ -221,7 +221,7 @@ public sealed partial class AccountSession
     void RefreshPreviewName()
     {
         if(characterPreviewName==null)return;
-        string fullName=(CharacterFirstName+" "+CharacterLastName).Trim();
+        string fullName=CharacterFirstName;
         characterPreviewName.text=string.IsNullOrEmpty(fullName)?"SEU PERSONAGEM":fullName.ToUpperInvariant();
     }
 

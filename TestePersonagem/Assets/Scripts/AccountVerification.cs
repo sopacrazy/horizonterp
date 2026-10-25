@@ -74,7 +74,7 @@ public sealed class AccountVerification : MonoBehaviour
             Check(!IsVisible(root.Q("character-create")),"Personagem existente não abre novamente a criação");
             Check(root.Q<Image>("character-existing-image")?.image,"Prévia do personagem salvo carregada");
             var summary=root.Q<Label>("character-existing-name");
-            Check(summary!=null&&summary.text==fixture.name,"Apresentação recupera o nome completo do personagem");
+            Check(summary!=null&&summary.text==fixture.firstName,"Apresentação recupera o primeiro nome do personagem");
             yield return Capture("02-personagem-recuperado");
             Submit(root.Q<Button>("character-enter"));
         }
@@ -100,7 +100,7 @@ public sealed class AccountVerification : MonoBehaviour
         Check(player && GameHud.Instance,"Jogo carregado depois da autenticação");
         if(!player||!GameHud.Instance){Finish();yield break;}
         Check(GameHud.Instance.Root.Q(className:"atlas-id") is Label id&&id.text.Contains(account.State.uid),"HUD exibe UID real da conta");
-        Check(account.State.name==fixture.name&&GameHud.Instance.PlayerName==fixture.name,"Nome completo do personagem aparece no estado e no HUD");
+        Check(account.State.name==fixture.name&&GameHud.Instance.PlayerName==fixture.firstName,"Identidade completa salva; HUD mostra primeiro nome");
         if(!string.IsNullOrEmpty(fixture.firstName))
             Check(account.State.firstName==fixture.firstName&&account.State.lastName==fixture.lastName&&account.State.gender==fixture.gender,
                 "Nome, sobrenome e gênero persistidos pela API");
@@ -133,11 +133,11 @@ public sealed class AccountVerification : MonoBehaviour
             yield return account.Save();
             Check(account.SaveStatus=="Progresso salvo","Movimento enviado por HTTPS e confirmado pelo servidor");
             Check(Mathf.Abs(account.State.x-player.transform.position.x)<.05f,"Estado salvo coincide com o personagem");
-            fixture.firstName="Perfil";fixture.name=fixture.firstName+" "+fixture.lastName;GameHud.Instance.SaveName(fixture.name);
+            fixture.firstName="Perfil";fixture.name=fixture.firstName+" "+fixture.lastName;GameHud.Instance.SaveName(fixture.firstName);
             deadline=Time.realtimeSinceStartup+20;
             while(account.State.name!=fixture.name&&Time.realtimeSinceStartup<deadline)yield return null;
             Check(account.State.name==fixture.name&&account.State.firstName==fixture.firstName&&account.State.lastName==fixture.lastName&&
-                GameHud.Instance.PlayerName==fixture.name,"Nome humano completo alterado no perfil é salvo pela API");
+                GameHud.Instance.PlayerName==fixture.firstName,"Primeiro nome alterado preserva o sobrenome salvo");
             fixture.x=account.State.x;fixture.y=account.State.y;fixture.z=account.State.z;
             File.WriteAllText(fixturePath,JsonUtility.ToJson(fixture));
             yield return Capture("03-conta-no-jogo");

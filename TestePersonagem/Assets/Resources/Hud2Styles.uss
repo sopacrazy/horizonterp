@@ -21,14 +21,15 @@
 .h2-north { position: absolute; top: 7px; left: 73px; width: 33px; height: 23px; font-size: 20px; -unity-font-style: bold; -unity-text-align: middle-center; -unity-text-outline-width: 1px; -unity-text-outline-color: black; }
 .h2-unarmed { position: absolute; left: 85px; top: 184px; width: 56px; height: 49px; }
 .h2-nav { position: absolute; left: 29px; top: 245px; flex-direction: row; align-items: center; }
-.h2-nav-button { width: 53px; height: 58px; margin-right: 30px; }
+.h2-nav-button { width: 48px; height: 48px; margin-right: 26px; }
 .h2-top { position: absolute; right: 23px; top: 26px; flex-direction: row; align-items: center; }
-.h2-top-button { width: 65px; height: 71px; margin-left: 18px; }
+.h2-top-button { width: 52px; height: 52px; margin-left: 16px; }
+.h2-top-button > .atlas-image, .h2-nav-button > .atlas-image, .h2-microphone > .atlas-image, .h2-camera > .atlas-image { left: 2px; top: 2px; right: 2px; bottom: 2px; }
 .hub2-hud .atlas-button:disabled { opacity: .78; }
 .h2-tools { position: absolute; right: 24px; top: 140px; flex-direction: row; align-items: center; }
-.h2-microphone { width: 49px; height: 65px; margin-right: 27px; }
-.h2-camera { width: 63px; height: 58px; }
-.h2-admin { width: 54px; height: 58px; margin-right: 22px; border-radius: 15px; border-width: 1px; border-color: rgb(220, 170, 48); background-color: rgba(61, 43, 9, .25); align-items: center; justify-content: center; }
+.h2-microphone { width: 52px; height: 52px; margin-right: 18px; }
+.h2-camera { width: 52px; height: 52px; }
+.h2-admin { width: 52px; height: 52px; margin-right: 18px; border-radius: 15px; border-width: 1px; border-color: rgb(220, 170, 48); background-color: rgba(61, 43, 9, .25); align-items: center; justify-content: center; }
 .h2-admin:hover { border-color: rgb(255, 225, 126); background-color: rgba(154, 110, 20, .32); }
 .h2-admin .icon { width: 29px; height: 29px; }
 .h2-admin-caption { font-size: 8px; letter-spacing: 1px; color: rgb(255, 212, 90); -unity-text-align: middle-center; margin-top: 2px; }
@@ -48,5 +49,5 @@
 .hub2-hud .drawer { left: 395px; top: 24px; bottom: 24px; }
 .hub2-hud .toast { top: 221px; right: 27px; width: 290px; }
 .hub2-hud.narrow-hud .drawer { left: 340px; width: 340px; }
-.hub2-hud.narrow-hud .h2-top-button { width: 56px; height: 63px; margin-left: 12px; }
+.hub2-hud.narrow-hud .h2-top-button { width: 52px; height: 52px; margin-left: 12px; }
 .hub2-hud.narrow-hud .h2-mini { left: 184px; }

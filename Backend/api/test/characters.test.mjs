@@ -48,6 +48,7 @@ test('account -> character -> persisted state over local HTTP and real SQL',{tim
   const migration=await fs.readFile(new URL('../../database/004_character_creation.sql',import.meta.url),'utf8');
   await db.exec(migration);
   await db.exec(await fs.readFile(new URL('../../database/005_account_admin.sql',import.meta.url),'utf8'));
+  await db.exec(await fs.readFile(new URL('../../database/006_player_administration.sql',import.meta.url),'utf8'));
   const legacyToken='L'.repeat(43);
   await db.query("INSERT INTO hbrp.sessions(account_id,token_hash,expires_at) VALUES($1,sha256(convert_to($2,'UTF8')),now()+interval '1 day')",[legacyAccount,legacyToken]);
   await db.exec('SET ROLE hbrp_app');

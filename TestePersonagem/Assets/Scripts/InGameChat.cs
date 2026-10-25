@@ -98,8 +98,8 @@ public sealed class InGameChat : MonoBehaviour
         string id=Guid.NewGuid().ToString();bool command=text.StartsWith("/");
         bool admin=AccountSession.Instance.State.accountRole=="admin"&&AccountSession.Instance.State.adminLevel>0;
         var line=new ChatLine {id=id,uid=AccountSession.Instance.State.uid,
-            text=command?text:AccountSession.Instance.State.name+": "+text,kind=command&&admin?"admin":"normal",
-            isAdmin=admin,author=command?null:AccountSession.Instance.State.name,body=command?null:text};
+            text=command?text:PlayerDisplayName.From(AccountSession.Instance.State)+": "+text,kind=command&&admin?"admin":"normal",
+            isAdmin=admin,author=command?null:PlayerDisplayName.From(AccountSession.Instance.State),body=command?null:text};
         lines.Add(line);TrimLines();
         outgoing.Enqueue(new Outgoing {text=text,id=id,line=line});
         input.value="";Close(); // Local feedback never waits for the network.
@@ -144,10 +144,11 @@ public sealed class InGameChat : MonoBehaviour
         if(message==null)return;
         var existing=string.IsNullOrEmpty(message.messageId)?null:lines.Find(line=>line.id==message.messageId&&line.uid==message.uid);
         if(existing!=null&&existing.kind=="confirmed")return;
+        string display=PlayerDisplayName.From(message.firstName,message.name);
         ReceivedCount++;messageTexts.Add(message.text);if(messageTexts.Count>60)messageTexts.RemoveAt(0);
         if(existing!=null)
-        {existing.text=message.name+": "+message.text;existing.author=message.name;existing.body=message.text;existing.isAdmin=message.isAdmin;existing.kind="confirmed";Render();}
-        else {lines.Add(new ChatLine {text=message.name+": "+message.text,author=message.name,body=message.text,isAdmin=message.isAdmin,id=message.messageId,uid=message.uid,kind="confirmed"});TrimLines();Render();}
+        {existing.text=display+": "+message.text;existing.author=display;existing.body=message.text;existing.isAdmin=message.isAdmin;existing.kind="confirmed";Render();}
+        else {lines.Add(new ChatLine {text=display+": "+message.text,author=display,body=message.text,isAdmin=message.isAdmin,id=message.messageId,uid=message.uid,kind="confirmed"});TrimLines();Render();}
     }
     public bool HasMessage(string text)=>messageTexts.Contains(text);
     public void ResetHistory(){lines.RemoveAll(line=>!outgoingContains(line));messageTexts.Clear();ReceivedCount=0;SystemLine("Chat da sala · mensagens recentes");}

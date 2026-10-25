@@ -173,6 +173,18 @@ Unity; após ela, executar `--cleanup` e remover os arquivos locais das fixtures
 Nunca registrar tokens ou credenciais desses testes nos relatórios.
 
 ## Administração (preparação)
-A migração 005 adiciona `accounts.account_role` (`user`/`admin`) e `admin_level` (0 para usuário; positivo para administrador). Novas contas e contas antigas iniciam como usuário normal. Promoções são operações administrativas no banco; a identidade da API não tem permissão de INSERT/UPDATE nessas colunas.
+A migração 005 adiciona `accounts.account_role` (`user`/`admin`) e `admin_level` (0 para usuário; positivo para administrador). Novas contas iniciam como usuário normal. A migração 006 permite alterações dessas duas colunas pela API e acrescenta bloqueio reversível do personagem, sem alterar os dados existentes.
 
 O estado do personagem e o objeto `account` de login/player informam `accountRole` e `adminLevel`. Os 15 comandos solicitados são reconhecidos sem diferenciar maiúsculas/minúsculas. Todos permanecem sem implementação: não teleportam, punem, concedem imortalidade nem enviam mensagens administrativas. A resposta é privada em `command`, com `status: not_implemented`; comandos não são inseridos no histórico público. Jogadores normais recebem `ADMIN_ONLY`. Ainda não há hierarquia por comando.
+
+## Painel de jogadores
+
+O botão dourado do Unity abre uma lista paginada com pesquisa por primeiro nome ou UID. `GET /v1/admin/players?q=&offset=0` exige sessão administrativa; retorna apenas os campos necessários ao painel. `POST /v1/admin/players/:uid` recebe `characterId` e `action` (`set_admin`, `block`, `unblock`). `set_admin` recebe `adminLevel` entre zero e o nível do administrador; zero remove o cargo. Bloquear exige `reason` de 3 a 180 caracteres.
+
+As ações são autorizadas novamente no servidor e registradas em auditoria. A própria conta, administradores do mesmo nível e superiores são protegidos. Bloquear revoga as sessões do alvo e impede novo login; desbloquear mantém o personagem e seu progresso. As transações mantêm a hierarquia válida durante alterações concorrentes.
+
+Publicar `server.mjs`, `multiplayer.mjs`, `player-admin.mjs` e `verify_player_admin.py`. Fazer backup e aplicar `006_player_administration.sql` apenas se a versão 6 estiver ausente, como administrador PostgreSQL, com `ON_ERROR_STOP=1`. Reiniciar somente `hbrp-api`, preservando certificado, credenciais e demais serviços. Não há nova dependência de produção. O health continua na versão 0.3.0.
+
+Executar `python3 /srv/hbrp/api/verify_player_admin.py` na VPS. O teste cria quatro contas temporárias, valida permissões, concorrência, bloqueio e desbloqueio, limpa suas próprias contas em `finally` e compara os registros reais. O relatório fica em `/srv/hbrp/api/player-admin-validation.json`.
+
+Validação local: `node --test test/characters.test.mjs test/multiplayer.test.mjs test/player-admin.test.mjs`. A interface usa primeiro nome; nome completo e sobrenome continuam preservados no banco. Esta atualização não gera APK: versões posteriores à 0.5.5 dependem de pedido explícito do usuário.

@@ -30,11 +30,11 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2}={}){
    reject(409,'STALE_FRAME','Atualização de movimento antiga.');
   if(!previous&&members.size>=capacity)reject(409,'ROOM_FULL','A sala de teste já tem dois jogadores.');
   members.set(identity.characterId,{...body,lastChatAt:previous?.sessionId===sessionId?previous.lastChatAt:undefined,sessionId,seen:clock(),characterId:identity.characterId,
-   uid:identity.uid,name:identity.name,model:identity.model,world:identity.world});
+   uid:identity.uid,name:identity.name,firstName:identity.firstName||identity.name.split(/\s+/u)[0],model:identity.model,world:identity.world});
   return {room:'centro_teste',capacity,count:members.size,serverTime:clock(),sequence:body.sequence,chatEpoch,
    messages:messages.filter(m=>m.id>(body.afterChat??0)).slice(-20).map(publicMessage),
    peers:[...members.values()].filter(m=>m.characterId!==identity.characterId).map(m=>({
-    characterId:m.characterId,uid:m.uid,name:m.name,model:m.model,x:m.x,y:m.y,z:m.z,
+    characterId:m.characterId,uid:m.uid,name:m.name,firstName:m.firstName,model:m.model,x:m.x,y:m.y,z:m.z,
     yaw:m.yaw,speed:m.speed,jumping:m.jumping,jumpPhase:m.jumpPhase,sequence:m.sequence,updatedAt:m.seen
    }))};
  }
@@ -59,7 +59,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2}={}){
    return {chatEpoch,command:{name,status:'not_implemented',message:'/'+name+': comando reconhecido. A função ainda não está disponível.'}};
   }
   const isAdmin=identity.accountRole==='admin'&&Number.isInteger(identity.adminLevel)&&identity.adminLevel>0;
-  const message={id:++messageSequence,messageId:body.messageId,characterId:identity.characterId,sessionId,uid:identity.uid,name:identity.name,isAdmin,text,sentAt:clock()};
+  const message={id:++messageSequence,messageId:body.messageId,characterId:identity.characterId,sessionId,uid:identity.uid,name:identity.name,firstName:identity.firstName||identity.name.split(/\s+/u)[0],isAdmin,text,sentAt:clock()};
   messages.push(message);while(messages.length>60)messages.shift();
   return {chatEpoch,message:publicMessage(message)};
  }

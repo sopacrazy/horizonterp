@@ -14,7 +14,7 @@ using UnityEngine.Networking;
 }
 [Serializable] public class MultiplayerPeer
 {
-    public string characterId,uid,name,model;
+    public string characterId,uid,name,firstName,model;
     public int sequence;
     public long updatedAt;
     public float x,y,z,yaw,speed,jumpPhase;
@@ -34,7 +34,7 @@ using UnityEngine.Networking;
 [Serializable] public class ChatMessage
 {
     public int id;
-    public string messageId,uid,name,text;
+    public string messageId,uid,name,firstName,text;
     public bool isAdmin;
     public long sentAt;
 }
@@ -59,6 +59,7 @@ public sealed partial class AccountSession
             if(request.result!=UnityWebRequest.Result.Success&&string.IsNullOrEmpty(reply?.code))
                 reply=new MultiplayerReply {code="CONNECTION_LOST"};
             if(request.responseCode==401)reply=new MultiplayerReply {code="UNAUTHORIZED"};
+            if(request.responseCode==401||reply?.code=="CHARACTER_BLOCKED")InvalidateSession(reply?.error??"Sua sessão foi encerrada. Entre novamente.");
             done(reply);
         }
     }

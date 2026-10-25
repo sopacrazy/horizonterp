@@ -5,6 +5,7 @@ import { promisify } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import pg from 'pg';
 import {createRoom,RoomError} from './multiplayer.mjs';
+import {createPlayerAdmin,AdminError} from './player-admin.mjs';
 
 const scrypt=promisify(scryptCb);
 const hash=x=>createHash('sha256').update(x).digest();
@@ -29,6 +30,7 @@ export function characterIdentity(body){
 function password(value){if(typeof value!=='string'||value.length<10||value.length>128||!value.trim())fail(400,'A senha precisa ter entre 10 e 128 caracteres.');return value;}
 export function createApiHandler(pool,{log=console.log,errorLog=console.error}={}){
 const room=createRoom();
+const administration=createPlayerAdmin({pool,session,transaction,removeSession:id=>room.removeSession(id)});
 let cryptoJobs=0;
 async function derive(pass,salt){
  if(cryptoJobs>=2)fail(429,'Aguarde alguns segundos e tente novamente.','BUSY');
@@ -62,7 +64,7 @@ async function issueSession(client,accountId){
  await client.query('UPDATE hbrp.accounts SET last_login_at=now() WHERE id=$1',[accountId]);return token;
 }
 async function state(client,accountId){
- const result=await client.query(`SELECT a.id AS account_id,a.uid::text,a.account_role,a.admin_level,c.id AS character_id,c.name,c.first_name,c.last_name,c.gender,
+ const result=await client.query(`SELECT a.id AS account_id,a.uid::text,a.account_role,a.admin_level,c.id AS character_id,c.name,c.first_name,c.last_name,c.gender,c.blocked_at,c.blocked_reason,
  s.character_id AS stats_id,p.character_id AS position_id,v.character_id AS appearance_id,
  s.health::float,s.energy::float,s.hunger::float,s.thirst::float,s.level,s.xp::text,s.play_seconds::text,
  p.x,p.y,p.z,p.yaw,p.camera_yaw,p.camera_pitch,p.version::text,w.code AS world,
@@ -75,6 +77,7 @@ async function state(client,accountId){
  if(!result.rowCount)fail(401,'Entre novamente na sua conta.','UNAUTHORIZED');
  const r=result.rows[0];
  if(!r.character_id)return null;
+ if(r.blocked_at)fail(403,'Este personagem está bloqueado. Motivo: '+(r.blocked_reason||'Procure a administração.'),'CHARACTER_BLOCKED');
  if(!r.stats_id||!r.position_id||!r.appearance_id||!r.world)fail(409,'Dados do personagem incompletos. Procure o suporte.','CHARACTER_INCOMPLETE');
  return {accountId:r.account_id,uid:r.uid,accountRole:r.account_role,adminLevel:r.admin_level,characterId:r.character_id,name:r.name,firstName:r.first_name,lastName:r.last_name,gender:r.gender,health:r.health,energy:r.energy,hunger:r.hunger,thirst:r.thirst,level:r.level,xp:r.xp,playSeconds:r.play_seconds,cashCents:r.cash_cents,bankCents:r.bank_cents,hzCoins:r.hz_coins,model:r.model_code,world:r.world,version:r.version,x:r.x,y:r.y,z:r.z,yaw:r.yaw,cameraYaw:r.camera_yaw,cameraPitch:r.camera_pitch};
 }
@@ -177,6 +180,12 @@ return async(req,res)=>{
   rate(req.socket.remoteAddress,path==='/v1/multiplayer/sync'?'multiplayer':'all',path==='/v1/multiplayer/sync'?1800:240,60000);
   if(req.method==='GET'&&path==='/health'){await pool.query('SELECT 1');return send(200,{status:'ok',service:'hbrp-api',version:'0.3.0'});}
   const token=req.headers.authorization?.startsWith('Bearer ')?req.headers.authorization.substring(7):null;
+  if(req.method==='GET'&&path==='/v1/admin/players'){
+   const query=new URL(req.url,'https://hbrp.local').searchParams;
+   return send(200,await administration.list(token,query.get('q')??'',Number(query.get('offset')??0)));
+  }
+  const adminTarget=path.match(/^\/v1\/admin\/players\/([1-9][0-9]{0,18})$/);
+  if(req.method==='POST'&&adminTarget)return send(200,await administration.update(token,adminTarget[1],await readBody(req)));
   if(req.method==='POST'&&(path==='/v1/multiplayer/sync'||path==='/v1/multiplayer/leave'||path==='/v1/multiplayer/chat')){
    const auth=await session(pool,token);
    const body=await readBody(req);
@@ -197,7 +206,7 @@ return async(req,res)=>{
   fail(404,'Rota não encontrada.','NOT_FOUND');
  }catch(error){
   if(error.code==='23505')send(409,{error:'E-mail ou nome de personagem já cadastrado.',code:'ALREADY_EXISTS'});
-  else if(error instanceof ApiError||error instanceof RoomError)send(error.status,{error:error.message,code:error.code});
+  else if(error instanceof ApiError||error instanceof RoomError||error instanceof AdminError)send(error.status,{error:error.message,code:error.code});
   else{errorLog(JSON.stringify({event:'request_error',requestId,code:error.code||'INTERNAL'}));send(500,{error:'Não foi possível concluir. Tente novamente.',code:'INTERNAL'});}
  }finally{if(path!=='/v1/multiplayer/sync'||status!==200)log(JSON.stringify({requestId,method:req.method,path,status,ms:Date.now()-started}));}
 };
