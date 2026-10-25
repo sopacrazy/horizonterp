@@ -53,7 +53,11 @@ with zipfile.ZipFile(apk) as archive:
         assert b'Hud2Atlas' in metadata and b'h2_sprint' in metadata
         layout_meta=(root/'TestePersonagem/Assets/Resources/Hud2AtlasLayout.json.meta').read_text()
         layout_guid=re.search(r'^guid: ([a-f0-9]+)',layout_meta,re.MULTILINE).group(1)
-        packaged=json.loads(archive.read('assets/bin/Data/'+layout_guid))
+        # Unity stores TextAssets in a serialized object, not as a raw JSON file.
+        layout_asset=archive.read('assets/bin/Data/'+layout_guid)
+        start=re.search(rb'\{\s*"regions"\s*:',layout_asset)
+        assert start,'HUB2 layout TextAsset payload missing'
+        packaged,_=json.JSONDecoder().raw_decode(layout_asset[start.start():].decode('utf-8',errors='replace'))
         expected=json.loads((root/'TestePersonagem/Assets/Resources/Hud2AtlasLayout.json').read_text())
         assert packaged==expected,'HUB2 sprite regions differ from the verified layout'
     if args.updater:
