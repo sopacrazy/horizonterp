@@ -1,5 +1,9 @@
 # Atualizações Android
 
+## Autorização para versões posteriores à 0.5.5
+
+Por solicitação do responsável pelo projeto, novas versões do APK após a 0.5.5 só devem ser geradas ou publicadas mediante pedido explícito. Pedidos de ajustes no código, no HUD ou de testes no Windows não autorizam gerar ou publicar um novo APK.
+
 O cliente a partir da versão 0.5.0 lê `android.json` durante o loading. O arquivo é servido por HTTPS em `raw.githubusercontent.com`; o APK é hospedado no GitHub Releases deste repositório. Nenhuma senha ou token GitHub fica no aplicativo.
 
 O download é automático quando `versionCode` aumenta. Antes de instalar, o cliente valida origem, tamanho, SHA-256, pacote, versão e assinatura igual à instalação atual. O Android pede confirmação e, se necessário, permissão para instalar atualizações por este aplicativo. Instalação silenciosa não está implementada. O jogador pode cancelar e continuar na versão atual.
