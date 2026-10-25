@@ -27,6 +27,8 @@ public sealed class GameHud : MonoBehaviour
     Label avatarLabel,playerNameLabel,uidLabel,speedLabel,motionLabel,coordinates,clock,heading,drawerTitle,toastLabel,cloudSaveLabel;
     Label distanceMetric,timeMetric,topSpeedMetric;
     Button sprint;
+    Button adminButton;
+    bool HasAdminAccess=>AccountSession.HasCharacter&&AccountSession.Instance.State.accountRole=="admin"&&AccountSession.Instance.State.adminLevel>0;
     HudIcon miniMarker,mapMarker;
     Image sprintArtwork;
     Label levelLabel,cashLabel,dateLabel,healthLabel,energyLabel,waterLabel;
@@ -126,7 +128,6 @@ public sealed class GameHud : MonoBehaviour
         miniImage=new Image{image=miniTexture,pickingMode=PickingMode.Ignore};miniImage.AddToClassList("mini-image");miniViewport.Add(miniImage);
         miniMarker=new HudIcon("arrow");miniMarker.AddToClassList("marker");miniMarker.SetInk(Color.white);miniViewport.Add(miniMarker);
         Text("N","h2-north",miniButton);
-        var unarmed=Element("h2-unarmed");unarmed.pickingMode=PickingMode.Ignore;unarmed.Add(HudAtlas.Image("h2_unarmed"));
 
         var nav=Element("h2-nav");Block(nav);
         AtlasButton("h2_menu","h2-nav-button","Menu [Tab]",()=>OpenPanel("menu"),nav).name="nav-menu";
@@ -137,6 +138,9 @@ public sealed class GameHud : MonoBehaviour
         var inventory=AtlasButton("h2_inventory","h2-top-button","Inventário ainda indisponível",()=>{},top);inventory.name="atlas-inventory";inventory.SetEnabled(false);
         var store=AtlasButton("h2_store","h2-top-button","Loja ainda indisponível",()=>{},top);store.SetEnabled(false);
         var tools=Element("h2-tools");Block(tools);
+        adminButton=IconButton("admin","h2-admin","Administração · em breve",()=>{},tools);adminButton.name="action-admin";
+        ((HudIcon)adminButton[0]).SetInk(new Color(1,.8f,.22f));Text("ADMIN","h2-admin-caption",adminButton);
+        adminButton.style.display=HasAdminAccess?DisplayStyle.Flex:DisplayStyle.None;
         var microphone=AtlasButton("h2_microphone","h2-microphone","Chat de voz ainda indisponível",()=>{},tools);microphone.SetEnabled(false);
         AtlasButton("h2_camera","h2-camera","Centralizar câmera [C]",()=>TriggerAction("camera"),tools).name="action-camera";
 
@@ -360,6 +364,7 @@ public sealed class GameHud : MonoBehaviour
     void Update()
     {
         if(!player)return;
+        if(adminButton!=null)adminButton.style.display=HasAdminAccess?DisplayStyle.Flex:DisplayStyle.None;
         root.style.visibility=StartupLoader.IsLoading||CityEntryLoading.Active||
             (AccountSession.Instance&&AccountSession.Instance.AuthVisible)?Visibility.Hidden:Visibility.Visible;
         root.SetEnabled(!StartupLoader.IsLoading && !AccountSession.InputBlocked);

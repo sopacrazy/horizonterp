@@ -23,3 +23,10 @@
 .hub2-hud .chat-area { left: 404px; top: 27px; }
 .hub2-hud.chat-narrow .chat-area { left: 389px; }
 .hud-panel-open .chat-area { display: none; }
+.chat-editing .chat-area { padding: 8px; border-radius: 5px; background-color: rgba(0, 0, 0, .38); }
+.chat-editing .chat-feed { background-color: transparent; }
+.chat-editing .chat-composer { background-color: rgba(0, 0, 0, .45); border-color: rgba(220, 224, 230, .3); }
+.chat-message { width: 100%; flex-direction: row; flex-wrap: wrap; align-items: flex-start; margin: 1px 0; }
+.chat-message .chat-line { margin: 0; }
+.chat-author-admin { color: rgb(255, 212, 90); flex-shrink: 0; max-width: 100%; margin-right: 4px; }
+.chat-message-body { flex-grow: 1; flex-shrink: 1; flex-basis: 100px; min-width: 0; }

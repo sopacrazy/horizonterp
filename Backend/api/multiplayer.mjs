@@ -58,7 +58,8 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2}={}){
    if(!ADMIN_COMMANDS.includes(name))reject(400,'UNKNOWN_COMMAND','Comando administrativo desconhecido.');
    return {chatEpoch,command:{name,status:'not_implemented',message:'/'+name+': comando reconhecido. A função ainda não está disponível.'}};
   }
-  const message={id:++messageSequence,messageId:body.messageId,characterId:identity.characterId,sessionId,uid:identity.uid,name:identity.name,text,sentAt:clock()};
+  const isAdmin=identity.accountRole==='admin'&&Number.isInteger(identity.adminLevel)&&identity.adminLevel>0;
+  const message={id:++messageSequence,messageId:body.messageId,characterId:identity.characterId,sessionId,uid:identity.uid,name:identity.name,isAdmin,text,sentAt:clock()};
   messages.push(message);while(messages.length>60)messages.shift();
   return {chatEpoch,message:publicMessage(message)};
  }

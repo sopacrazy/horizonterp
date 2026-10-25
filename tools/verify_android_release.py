@@ -11,6 +11,7 @@ parser.add_argument('--stairs',action='store_true')
 parser.add_argument('--walk',action='store_true')
 parser.add_argument('--network',action='store_true')
 parser.add_argument('--hud2',action='store_true')
+parser.add_argument('--admin-chat',action='store_true')
 args=parser.parse_args()
 assert re.fullmatch(r'\d+\.\d+\.\d+',args.version)
 
@@ -49,6 +50,7 @@ with zipfile.ZipFile(apk) as archive:
     assert b'MultiplayerWorld' in metadata and b'MultiplayerPeer' in metadata and b'JumpPhase' in metadata
     if args.chat:assert b'InGameChat' in metadata and b'ChatMessage' in metadata and b'OpenKeyboard' in metadata
     if args.network:assert b'RemoteAvatarAnimation' in metadata and b'RemoteMotionBuffer' in metadata and b'updatedAt' in metadata
+    if args.admin_chat:assert b'isAdmin' in metadata and b'chat-author-admin' in metadata and b'action-admin' in metadata
     if args.hud2:
         assert b'Hud2Atlas' in metadata and b'h2_sprint' in metadata
         layout_meta=(root/'TestePersonagem/Assets/Resources/Hud2AtlasLayout.json.meta').read_text()
@@ -96,6 +98,7 @@ report={'result':'ANDROID_RELEASE_VERIFIED','version':args.version,'versionCode'
     'authored_walking_included':args.walk,
     'remote_motion_and_animation_fix_included':args.network,
     'transparent_hub2_layout_included':args.hud2,
+    'admin_identity_and_placeholder_button_included':args.admin_chat,
     'bytes':release.stat().st_size,'sha256':hashlib.sha256(release.read_bytes()).hexdigest(),
     'device_runtime_tested':False,'file':str(release)}
 (root/('tools/android-'+args.version.replace('.','')+'-validation.json')).write_text(json.dumps(report,indent=2),encoding='utf-8')

@@ -77,3 +77,18 @@ test('admin placeholders require server identity and never enter public chat',()
  now+=1300;assert.throws(()=>room.chat({...admin,adminLevel:0},'s1',body('/a teste')),e=>e.code==='ADMIN_ONLY');
  now+=1300;assert.throws(()=>room.chat(admin,'s1',body('/desconhecido')),e=>e.code==='UNKNOWN_COMMAND');
 });
+
+test('admin chat tags come from authenticated identity, never from message fields',()=>{
+ let now=1000;const room=createRoom({clock:()=>now});
+ const admin={...id(1),accountRole:'admin',adminLevel:2};
+ room.sync(admin,'s1',frame());room.sync(id(2),'s2',frame());
+ const body={clientId:frame().clientId,messageId:'22222222-2222-4222-8222-222222222222',text:'Mensagem da administração'};
+ const sent=room.chat(admin,'s1',body);assert.equal(sent.message.isAdmin,true);
+ assert.equal(room.sync(id(2),'s2',frame(2)).messages[0].isAdmin,true);
+ assert.throws(()=>room.chat(id(2),'s2',{...body,isAdmin:true}),e=>e.code==='INVALID_MESSAGE');
+ assert.throws(()=>room.chat(id(2),'s2',{...body,accountRole:'admin'}),e=>e.code==='INVALID_MESSAGE');
+ const normal=room.chat(id(2),'s2',{...body,text:'[ADMIN] texto não concede cargo'});
+ assert.equal(normal.message.isAdmin,false);
+ now+=1300;
+ assert.equal(room.chat({...admin,adminLevel:0},'s1',{...body,messageId:'33333333-3333-4333-8333-333333333333'}).message.isAdmin,false);
+});

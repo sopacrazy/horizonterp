@@ -10,7 +10,7 @@ public static class Hud2Setup
     {
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
         const string path="Assets/Resources/Hud2Atlas.png";
-        if(!File.ReadAllBytes(path).SequenceEqual(File.ReadAllBytes("../personagem/HUB2.png")))
+        if(!File.ReadAllBytes(path).SequenceEqual(File.ReadAllBytes("../personagem/hud novo.png")))
             throw new Exception("O atlas HUB2 deve preservar o PNG original.");
         var importer=(TextureImporter)AssetImporter.GetAtPath(path);
         importer.textureType=TextureImporterType.Default;importer.alphaIsTransparency=true;

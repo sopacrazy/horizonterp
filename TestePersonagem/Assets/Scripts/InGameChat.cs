@@ -11,7 +11,7 @@ public sealed class InGameChat : MonoBehaviour
     public bool IsOpen {get;private set;}
     public bool Sending {get;private set;}
     public int ReceivedCount {get;private set;}
-    sealed class ChatLine {public string text,id,uid,kind;}
+    sealed class ChatLine {public string text,id,uid,kind,author,body;public bool isAdmin;}
     sealed class Outgoing {public string text,id;public ChatLine line;}
     readonly List<ChatLine> lines=new List<ChatLine>();
     readonly Queue<Outgoing> outgoing=new Queue<Outgoing>();
@@ -98,7 +98,8 @@ public sealed class InGameChat : MonoBehaviour
         string id=Guid.NewGuid().ToString();bool command=text.StartsWith("/");
         bool admin=AccountSession.Instance.State.accountRole=="admin"&&AccountSession.Instance.State.adminLevel>0;
         var line=new ChatLine {id=id,uid=AccountSession.Instance.State.uid,
-            text=command?text:AccountSession.Instance.State.name+": "+text,kind=command&&admin?"admin":"normal"};
+            text=command?text:AccountSession.Instance.State.name+": "+text,kind=command&&admin?"admin":"normal",
+            isAdmin=admin,author=command?null:AccountSession.Instance.State.name,body=command?null:text};
         lines.Add(line);TrimLines();
         outgoing.Enqueue(new Outgoing {text=text,id=id,line=line});
         input.value="";Close(); // Local feedback never waits for the network.
@@ -120,12 +121,16 @@ public sealed class InGameChat : MonoBehaviour
             }
             if(string.IsNullOrEmpty(reply?.code)&&reply?.message!=null)Receive(reply.message);
             else if(string.IsNullOrEmpty(reply?.code)&&reply?.command!=null)
-            {item.line.text="[ADM] "+reply.command.message;item.line.kind="admin";Render();}
+            {item.line.text="[ADMIN] "+reply.command.message;item.line.kind="admin";Render();}
             else
             {
                 // A sync may already have confirmed a request whose HTTP response was lost.
                 if(item.line.kind!="confirmed")
-                {item.line.text+=" — não enviado: "+(reply?.error??"falha na conexão. Envie novamente.");item.line.kind="error";Render();}
+                {
+                    string failure=" — não enviado: "+(reply?.error??"falha na conexão. Envie novamente.");
+                    item.line.text+=failure;if(item.line.body!=null)item.line.body+=failure;
+                    item.line.kind="error";Render();
+                }
             }
             outgoing.Dequeue();
             float remaining=1.3f-(Time.realtimeSinceStartup-started);
@@ -140,8 +145,9 @@ public sealed class InGameChat : MonoBehaviour
         var existing=string.IsNullOrEmpty(message.messageId)?null:lines.Find(line=>line.id==message.messageId&&line.uid==message.uid);
         if(existing!=null&&existing.kind=="confirmed")return;
         ReceivedCount++;messageTexts.Add(message.text);if(messageTexts.Count>60)messageTexts.RemoveAt(0);
-        if(existing!=null){existing.text=message.name+": "+message.text;existing.kind="confirmed";Render();}
-        else {lines.Add(new ChatLine {text=message.name+": "+message.text,id=message.messageId,uid=message.uid,kind="confirmed"});TrimLines();Render();}
+        if(existing!=null)
+        {existing.text=message.name+": "+message.text;existing.author=message.name;existing.body=message.text;existing.isAdmin=message.isAdmin;existing.kind="confirmed";Render();}
+        else {lines.Add(new ChatLine {text=message.name+": "+message.text,author=message.name,body=message.text,isAdmin=message.isAdmin,id=message.messageId,uid=message.uid,kind="confirmed"});TrimLines();Render();}
     }
     public bool HasMessage(string text)=>messageTexts.Contains(text);
     public void ResetHistory(){lines.RemoveAll(line=>!outgoingContains(line));messageTexts.Clear();ReceivedCount=0;SystemLine("Chat da sala · mensagens recentes");}
@@ -153,13 +159,27 @@ public sealed class InGameChat : MonoBehaviour
     {
         if(feed==null)return;feed.Clear();feed.pickingMode=IsOpen?PickingMode.Position:PickingMode.Ignore;
         int start=IsOpen?0:Mathf.Max(0,lines.Count-6);
-        Label last=null;
+        VisualElement last=null;
         for(int i=start;i<lines.Count;i++)
         {
-            last=new Label(lines[i].text) {enableRichText=false,pickingMode=PickingMode.Ignore};last.AddToClassList("chat-line");
-            if(lines[i].kind=="system")last.AddToClassList("chat-system");
-            if(lines[i].kind=="admin")last.AddToClassList("chat-admin");
-            if(lines[i].kind=="error")last.AddToClassList("chat-error");
+            var line=lines[i];
+            if(line.isAdmin&&!string.IsNullOrEmpty(line.author))
+            {
+                var row=new VisualElement{pickingMode=PickingMode.Ignore};row.AddToClassList("chat-message");
+                var author=new Label("[ADMIN] "+line.author+":"){enableRichText=false,pickingMode=PickingMode.Ignore};
+                author.AddToClassList("chat-line");author.AddToClassList("chat-author-admin");row.Add(author);
+                var body=new Label(line.body){enableRichText=false,pickingMode=PickingMode.Ignore};
+                body.AddToClassList("chat-line");body.AddToClassList("chat-message-body");if(line.kind=="error")body.AddToClassList("chat-error");row.Add(body);
+                last=row;
+            }
+            else
+            {
+                var label=new Label(line.text){enableRichText=false,pickingMode=PickingMode.Ignore};label.AddToClassList("chat-line");
+                if(line.kind=="system")label.AddToClassList("chat-system");
+                if(line.kind=="admin")label.AddToClassList("chat-admin");
+                if(line.kind=="error")label.AddToClassList("chat-error");
+                last=label;
+            }
             feed.Add(last);
         }
         if(last!=null){var target=last;feed.schedule.Execute(()=>{if(feed.Contains(target))feed.ScrollTo(target);});}

@@ -32,6 +32,10 @@ public sealed class HudIcon : VisualElement
         void Box(float x,float y,float w,float h)=>Line(x,y,x+w,y,x+w,y+h,x,y+h,x,y);
         switch(Kind)
         {
+            case "admin":
+                p.BeginPath();p.MoveTo(Point(3,7));p.LineTo(Point(7,11));p.LineTo(Point(12,3));
+                p.LineTo(Point(17,11));p.LineTo(Point(21,7));p.LineTo(Point(19,18));p.LineTo(Point(5,18));p.ClosePath();p.Fill();p.Stroke();
+                Line(5,21,19,21);break;
             case "menu": Box(3,3,7,7);Box(14,3,7,7);Box(3,14,7,7);Box(14,14,7,7);break;
             case "person": Circle(12,7,3.5f);Line(4,21,4,18,7,14,17,14,20,18,20,21);break;
             case "map": Line(3,5,9,3,15,6,21,3,21,19,15,22,9,19,3,21,3,5);Line(9,3,9,19);Line(15,6,15,22);break;

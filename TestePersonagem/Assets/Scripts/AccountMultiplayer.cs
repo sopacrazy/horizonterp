@@ -35,6 +35,7 @@ using UnityEngine.Networking;
 {
     public int id;
     public string messageId,uid,name,text;
+    public bool isAdmin;
     public long sentAt;
 }
 [Serializable] public class ChatBody {public string clientId,messageId,text;}

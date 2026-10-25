@@ -276,12 +276,15 @@ public sealed class CharacterFlowVerification : MonoBehaviour
         Check(ui.Q<Label>(className:"h2-cash").text=="30.092"&&ui.Q<Label>("stat-heart-value").text=="75","Dinheiro e vida são dados reais, sem números fixos da arte");
         player.Cash=cash;player.Health=health;
         Check(ui.Q<Label>("game-version").text=="v"+Application.version,"Número exibido acompanha a versão instalada");
+        var identity=AccountSession.Instance.State;string layoutRole=identity.accountRole;int layoutLevel=identity.adminLevel;
+        identity.accountRole="admin";identity.adminLevel=1;yield return null;
         foreach(string name in new[]{"nav-menu","nav-session","nav-phone"})
         {
             var button=ui.Q<Button>(name);button.Focus();Dispatch(button);yield return null;
             Check(hud.IsPanelOpen,"Atalho do HUB2 abre painel: "+name);hud.ClosePanel();
         }
         yield return VerifyActionSpacing();
+        identity.accountRole=layoutRole;identity.adminLevel=layoutLevel;yield return null;
         var controls=FindAnyObjectByType<MobileControls>();
         var left=new Vector2(Screen.width*.36f,Screen.height*.2f);var right=new Vector2(Screen.width*.66f,Screen.height*.4f);
         controls.ProcessTouch(10,left,Vector2.zero,TouchPhase.Began);controls.ProcessTouch(10,left+Vector2.up*200,Vector2.up*200,TouchPhase.Moved);
@@ -303,6 +306,8 @@ public sealed class CharacterFlowVerification : MonoBehaviour
         using(var evt=NavigationSubmitEvent.GetPooled())area.SendEvent(evt);
         yield return null;
         Check(InGameChat.Editing&&Visible(ui.Q("chat-composer")),"Clicar no histórico abre o campo de mensagem");
+        var chatBackground=ui.Q("chat-area").resolvedStyle.backgroundColor;
+        Check(chatBackground.a>.25f&&chatBackground.a<.6f&&chatBackground.r<.05f,"Chat aberto tem fundo preto leve e transparente");
         Check(ui.Q("action-day-night")==null,"Botão de dia e noite removido do HUD");
         player.DemoInput=Vector2.up;Vector3 before=player.transform.position;
         player.RequestJump();yield return new WaitForSecondsRealtime(.3f);
@@ -331,6 +336,11 @@ public sealed class CharacterFlowVerification : MonoBehaviour
         Check(!InGameChat.Editing,"Fechar libera os controles novamente");
         var state=AccountSession.Instance.State;string oldRole=state.accountRole;int oldAdmin=state.adminLevel;
         state.accountRole="admin";state.adminLevel=1;
+        yield return null;
+        var adminButton=ui.Q<Button>("action-admin");
+        Check(Visible(adminButton)&&adminButton.Q<HudIcon>().Kind=="admin","Conta administrativa vê o botão dourado de admin");
+        string panelBefore=GameHud.Instance.CurrentPanel;adminButton.Focus();Dispatch(adminButton);yield return null;
+        Check(GameHud.Instance.CurrentPanel==panelBefore,"Botão de admin permanece sem função");
         chat.VerificationSend=DelayedChatReply;
         chat.Open();ui.Q<TextField>("chat-input").value="Mensagem instantânea";chat.Send();
         Check(!chat.IsOpen&&!InGameChat.Editing&&ui.Q<TextField>("chat-input").value=="",
@@ -340,17 +350,28 @@ public sealed class CharacterFlowVerification : MonoBehaviour
         yield return new WaitForSecondsRealtime(1.5f);
         Check(ui.Q("chat-feed").Query<Label>().ToList().FindAll(label=>label.text.Contains("Mensagem instantânea")).Count==1,
             "Confirmação e sincronização não duplicam o eco local");
+        Check(ui.Q("chat-feed").Query<Label>(className:"chat-author-admin").ToList().Exists(label=>label.text=="[ADMIN] "+state.name+":"),
+            "Mensagem de admin mantém tag e nome destacados após confirmação");
+        chat.Receive(new ChatMessage{id=51,messageId="verified-admin",uid="902",name="Admin Remoto",isAdmin=true,text="<b>Texto admin literal</b>"});
+        chat.Receive(new ChatMessage{id=52,messageId="normal-player",uid="903",name="Jogador Normal",isAdmin=false,text="Mensagem comum"});
+        yield return null;
+        var author=ui.Q("chat-feed").Query<Label>(className:"chat-author-admin").ToList().Find(label=>label.text=="[ADMIN] Admin Remoto:");
+        Check(author!=null&&author.resolvedStyle.color.r>.8f&&author.resolvedStyle.color.b<.6f,"Nome de admin recebido de outro jogador aparece dourado");
+        Check(ui.Q("chat-feed").Query<Label>().ToList().Exists(label=>label.text=="<b>Texto admin literal</b>"&&!label.enableRichText),"Texto de admin continua literal, sem executar marcação");
+        Check(ui.Q("chat-feed").Query<Label>().ToList().Exists(label=>label.text=="Jogador Normal: Mensagem comum"&&!label.ClassListContains("chat-author-admin")),"Usuário normal não recebe tag administrativa");
+        chat.Open();yield return null;yield return Capture("admin-chat");chat.Close();
         chat.Open();ui.Q<TextField>("chat-input").value="/goto 2";chat.Send();
         Check(ui.Q("chat-feed").Query<Label>().ToList().Exists(label=>label.text=="/goto 2"&&label.ClassListContains("chat-admin")),
             "Comando administrativo aparece imediatamente em verde neon");
         yield return new WaitForSecondsRealtime(1.5f);
-        Check(ui.Q("chat-feed").Query<Label>().ToList().Exists(label=>label.text.StartsWith("[ADM]")&&label.ClassListContains("chat-admin")),
+        Check(ui.Q("chat-feed").Query<Label>().ToList().Exists(label=>label.text.StartsWith("[ADMIN]")&&label.ClassListContains("chat-admin")),
             "Resposta administrativa mantém estilo verde neon");
         chat.Open();ui.Q<TextField>("chat-input").value="Falha simulada";chat.Send();
         yield return new WaitForSecondsRealtime(1.5f);
         Check(ui.Q("chat-feed").Query<Label>().ToList().Exists(label=>label.text.Contains("Falha simulada")&&label.ClassListContains("chat-error")),
             "Envio rejeitado é marcado como falha e não como mensagem entregue");
         chat.VerificationSend=null;state.accountRole=oldRole;state.adminLevel=oldAdmin;
+        yield return null;Check(!Visible(adminButton),"Botão de admin fica oculto para conta normal");
         yield return Capture("chat-feed");
     }
 
@@ -359,7 +380,8 @@ public sealed class CharacterFlowVerification : MonoBehaviour
         yield return new WaitForSecondsRealtime(.5f);
         if(text.StartsWith("/")){done(new MultiplayerReply {command=new AdminCommandReply {name="goto",status="not_implemented",message="/goto: função ainda não disponível."}});yield break;}
         if(text=="Falha simulada"){done(new MultiplayerReply {code="INVALID_MESSAGE",error="Rejeição simulada."});yield break;}
-        var message=new ChatMessage {id=50,messageId=id,uid=AccountSession.Instance.State.uid,name=AccountSession.Instance.State.name,text=text};
+        var message=new ChatMessage {id=50,messageId=id,uid=AccountSession.Instance.State.uid,name=AccountSession.Instance.State.name,
+            isAdmin=AccountSession.Instance.State.accountRole=="admin"&&AccountSession.Instance.State.adminLevel>0,text=text};
         InGameChat.Instance.Receive(message);done(new MultiplayerReply {message=message});
         InGameChat.Instance.Receive(message);
     }
