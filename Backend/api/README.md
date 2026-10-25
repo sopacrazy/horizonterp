@@ -190,3 +190,13 @@ Executar `python3 /srv/hbrp/api/verify_player_admin.py` na VPS. O teste cria qua
 Validação local: `node --test test/characters.test.mjs test/multiplayer.test.mjs test/player-admin.test.mjs`. A interface usa primeiro nome; nome completo e sobrenome continuam preservados no banco. Esta atualização não gera APK: versões posteriores à 0.5.5 dependem de pedido explícito do usuário.
 
 Ao selecionar um jogador na tabela, o Unity abre um segundo modal com os atalhos de cargo e bloqueio e o catálogo dos dez comandos com alvo. Os cinco comandos gerais ficam em uma lista separada. Os 15 comandos continuam sem execução: os detalhes informam os requisitos pendentes e o botão de execução permanece desabilitado. Consultar o catálogo não envia comandos à API nem altera o jogador. A hierarquia também é respeitada pelos atalhos de cargo e bloqueio nesse modal.
+
+## Cinco bots de teste persistentes
+
+`test_bots.py --provision` cria ou verifica exatamente cinco contas normais com personagens BotLucas, BotMarina, BotRafael, BotJulia e BotPedro. Usa o cadastro e a criação de personagem oficiais da API; não injeta identidades no multiplayer nem concede admin. Credenciais aleatórias ficam somente em `/srv/hbrp/bots/accounts.json` (root:hbrp-api, 0640), fora do Git. Não executar o provisionamento repetidamente: os limites normais de login/cadastro se aplicam.
+
+`hbrp-bots.service` mantém cinco clientes autenticados na cidade. Cada cliente envia movimento a 10 Hz e salva a posição a cada minuto. Eles variam entre parar, andar, correr e pular em percursos limitados à faixa livre da rua (sem navegação por prédios ou escadas e sem física de colisão entre personagens). A sala da API comporta dez jogadores; o limite de sync por IP permite a carga dos cinco clientes locais sem remover a limitação de requisições.
+
+Para parar/iniciar: `systemctl stop hbrp-bots` / `systemctl start hbrp-bots`. Para trazer de volta um bot após revogação de sessão e posterior liberação: `systemctl restart hbrp-bots`. Sessões revogadas ou bloqueadas interrompem o cliente, sem login automático para contornar a moderação. As contas são persistentes e não devem ser apagadas na limpeza dos testes temporários. No cliente 0.5.6, os bots já aparecem como jogadores remotos e no painel, sem APK novo. Os comandos ainda não implementados continuam sem efeito; cargo e bloqueio/desbloqueio funcionam normalmente.
+
+Validação de movimento: `python test/bots_test.py`. O teste cobre dez minutos simulados por bot, limites do trajeto, deslocamento por frame, os três modos e o pulo.

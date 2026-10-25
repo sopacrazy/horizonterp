@@ -1,0 +1,23 @@
+[Unit]
+Description=HBRP five authenticated test bots
+After=network-online.target hbrp-api.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=hbrp-api
+Group=hbrp-api
+WorkingDirectory=/srv/hbrp/api
+ExecStart=/usr/bin/python3 /srv/hbrp/api/test_bots.py
+Restart=on-failure
+RestartSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+MemoryMax=192M
+CPUQuota=35%
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

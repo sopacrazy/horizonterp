@@ -3,6 +3,14 @@ import assert from 'node:assert/strict';
 import {createRoom} from '../multiplayer.mjs';
 const id=n=>({characterId:'character-'+n,uid:String(n),name:'Jogador '+n,model:'bybeyby',world:'centro_teste'});
 const frame=(sequence=1,extra={})=>({clientId:'11111111-1111-4111-8111-111111111111',sequence,x:0,y:0,z:0,yaw:0,speed:0,jumping:false,jumpPhase:0,...extra});
+test('ten-slot room accepts five test bots alongside five authenticated humans',()=>{
+ const room=createRoom({capacity:10});
+ for(let n=1;n<=10;n++)assert.equal(room.sync(id(n),'session'+n,frame()).count,n);
+ const observer=room.sync(id(10),'session10',frame(2));
+ assert.equal(observer.capacity,10);assert.equal(observer.peers.length,9);
+ assert.throws(()=>room.sync(id(11),'session11',frame()),e=>e.code==='ROOM_FULL');
+ room.removeSession('session1');assert.equal(room.sync(id(11),'session11',frame()).count,10);
+});
 test('peer timestamps belong to the source update rather than the observing poll',()=>{
  let now=1000;const room=createRoom({clock:()=>now});
  room.sync(id(2),'s2',frame(1,{x:1,speed:1.65}));

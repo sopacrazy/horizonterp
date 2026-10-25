@@ -29,7 +29,7 @@ export function characterIdentity(body){
 }
 function password(value){if(typeof value!=='string'||value.length<10||value.length>128||!value.trim())fail(400,'A senha precisa ter entre 10 e 128 caracteres.');return value;}
 export function createApiHandler(pool,{log=console.log,errorLog=console.error}={}){
-const room=createRoom();
+const room=createRoom({capacity:10});
 const administration=createPlayerAdmin({pool,session,transaction,removeSession:id=>room.removeSession(id)});
 let cryptoJobs=0;
 async function derive(pass,salt){
@@ -177,7 +177,7 @@ return async(req,res)=>{
  try{
   path=new URL(req.url,'https://hbrp.local').pathname;
   if(limits.size>10000)fail(503,'Serviço ocupado. Tente novamente.');
-  rate(req.socket.remoteAddress,path==='/v1/multiplayer/sync'?'multiplayer':'all',path==='/v1/multiplayer/sync'?1800:240,60000);
+  rate(req.socket.remoteAddress,path==='/v1/multiplayer/sync'?'multiplayer':'all',path==='/v1/multiplayer/sync'?6000:240,60000);
   if(req.method==='GET'&&path==='/health'){await pool.query('SELECT 1');return send(200,{status:'ok',service:'hbrp-api',version:'0.3.0'});}
   const token=req.headers.authorization?.startsWith('Bearer ')?req.headers.authorization.substring(7):null;
   if(req.method==='GET'&&path==='/v1/admin/players'){
