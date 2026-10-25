@@ -15,13 +15,19 @@ public static class HudAtlas
     {
         if(texture&&sprites!=null)return;
         texture=Resources.Load<Texture2D>("HudAtlas");
-        var layout=JsonUtility.FromJson<Layout>(Resources.Load<TextAsset>("HudAtlasLayout").text);
         sprites=new Dictionary<string,Sprite>();
+        AddRegions(texture,Resources.Load<TextAsset>("HudAtlasLayout"));
+        var clean=Resources.Load<Texture2D>("Hud2Atlas");
+        if(clean)AddRegions(clean,Resources.Load<TextAsset>("Hud2AtlasLayout"));
+    }
+    static void AddRegions(Texture2D source,TextAsset description)
+    {
+        var layout=JsonUtility.FromJson<Layout>(description.text);
         foreach(var r in layout.regions)
         {
-            if(r.x<0||r.y<0||r.x+r.width>texture.width||r.y+r.height>texture.height)
+            if(r.x<0||r.y<0||r.x+r.width>source.width||r.y+r.height>source.height)
                 throw new InvalidOperationException("Recorte do HUD fora da imagem: "+r.name);
-            var sprite=Sprite.Create(texture,new Rect(r.x,texture.height-r.y-r.height,r.width,r.height),new Vector2(.5f,.5f),100,0,SpriteMeshType.FullRect);
+            var sprite=Sprite.Create(source,new Rect(r.x,source.height-r.y-r.height,r.width,r.height),new Vector2(.5f,.5f),100,0,SpriteMeshType.FullRect);
             sprite.name="HUD_"+r.name;sprites.Add(r.name,sprite);
         }
     }

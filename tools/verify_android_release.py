@@ -10,6 +10,7 @@ parser.add_argument('--updater',action='store_true')
 parser.add_argument('--stairs',action='store_true')
 parser.add_argument('--walk',action='store_true')
 parser.add_argument('--network',action='store_true')
+parser.add_argument('--hud2',action='store_true')
 args=parser.parse_args()
 assert re.fullmatch(r'\d+\.\d+\.\d+',args.version)
 
@@ -24,6 +25,7 @@ def run(args):
 build=(root/'tools'/args.log).read_text(encoding='utf-8',errors='replace')
 assert 'ANDROID_APK_OK' in build and 'PROTOTYPE_BUILD_FAILED' not in build
 assert f'GAME_VERSION_APPLIED version={args.version} code={args.version_code}' in build,'Build must use the shared version configuration'
+if args.hud2:assert 'HUD2_ATLAS_VERIFIED' in build,'HUB2 atlas must be prepared for the build'
 signer=[java,'-jar',sdk/'lib/apksigner.jar','verify','--verbose','--print-certs']
 previous=run(signer+[old]);current=run(signer+[apk])
 digest=lambda output:re.search(r'Signer #1 certificate SHA-256 digest: ([0-9a-f]+)',output).group(1)
@@ -47,6 +49,13 @@ with zipfile.ZipFile(apk) as archive:
     assert b'MultiplayerWorld' in metadata and b'MultiplayerPeer' in metadata and b'JumpPhase' in metadata
     if args.chat:assert b'InGameChat' in metadata and b'ChatMessage' in metadata and b'OpenKeyboard' in metadata
     if args.network:assert b'RemoteAvatarAnimation' in metadata and b'RemoteMotionBuffer' in metadata and b'updatedAt' in metadata
+    if args.hud2:
+        assert b'Hud2Atlas' in metadata and b'h2_sprint' in metadata
+        layout_meta=(root/'TestePersonagem/Assets/Resources/Hud2AtlasLayout.json.meta').read_text()
+        layout_guid=re.search(r'^guid: ([a-f0-9]+)',layout_meta,re.MULTILINE).group(1)
+        packaged=json.loads(archive.read('assets/bin/Data/'+layout_guid))
+        expected=json.loads((root/'TestePersonagem/Assets/Resources/Hud2AtlasLayout.json').read_text())
+        assert packaged==expected,'HUB2 sprite regions differ from the verified layout'
     if args.updater:
         assert b'GameUpdater' in metadata and b'GameVersion' in metadata and b'FileHash' in metadata
         dex=b''.join(archive.read(name) for name in names if re.fullmatch(r'classes\d*\.dex',name))
@@ -82,6 +91,7 @@ report={'result':'ANDROID_RELEASE_VERIFIED','version':args.version,'versionCode'
     'smooth_stair_collisions_included':args.stairs,
     'authored_walking_included':args.walk,
     'remote_motion_and_animation_fix_included':args.network,
+    'transparent_hub2_layout_included':args.hud2,
     'bytes':release.stat().st_size,'sha256':hashlib.sha256(release.read_bytes()).hexdigest(),
     'device_runtime_tested':False,'file':str(release)}
 (root/('tools/android-'+args.version.replace('.','')+'-validation.json')).write_text(json.dumps(report,indent=2),encoding='utf-8')

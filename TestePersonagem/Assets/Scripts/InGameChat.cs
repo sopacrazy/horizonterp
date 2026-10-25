@@ -62,7 +62,8 @@ public sealed class InGameChat : MonoBehaviour
         root.RegisterCallback<GeometryChangedEvent>(_=>
         {
             root.EnableInClassList("chat-narrow",root.resolvedStyle.width<1000);
-            area.style.width=Mathf.Clamp(root.resolvedStyle.width-798,240,430);
+            bool clean=root.ClassListContains("hub2-hud");
+            area.style.width=Mathf.Clamp(root.resolvedStyle.width-(clean?700:798),220,430);
         });
         SystemLine("Bem-vindo ao Horizonte! Toque no chat para escrever.");Close();
     }

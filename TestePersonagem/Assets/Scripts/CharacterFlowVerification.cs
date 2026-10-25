@@ -11,7 +11,7 @@ using UnityEngine.UIElements;
 public sealed class CharacterFlowVerification : MonoBehaviour
 {
     static bool LandingOnly=>Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-landing")>=0;
-    static string Folder=>Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-walk")>=0?@"C:\SistemaAdr\gta\tools\walk-runtime-review":LandingOnly?@"C:\SistemaAdr\gta\tools\landing-review":@"C:\SistemaAdr\gta\tools\character-review";
+    static string Folder=>Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-hud2")>=0?@"C:\SistemaAdr\gta\tools\hub2-review":Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-walk")>=0?@"C:\SistemaAdr\gta\tools\walk-runtime-review":LandingOnly?@"C:\SistemaAdr\gta\tools\landing-review":@"C:\SistemaAdr\gta\tools\character-review";
     readonly List<string> checks = new List<string>();
     readonly List<string> errors = new List<string>();
     readonly List<RequestRecord> requests = new List<RequestRecord>();
@@ -205,7 +205,8 @@ public sealed class CharacterFlowVerification : MonoBehaviour
         Check(requests.Exists(request=>request.path=="/v1/auth/login"),"Login de aterrissagem foi interceptado em memória");
         typeof(AccountSession).GetMethod("EnterCity",flags).Invoke(account,null);
         yield return WaitUntil(()=>!StartupLoader.IsLoading&&!CityEntryLoading.Active&&FindAnyObjectByType<ThirdPersonPlayer>(),50,"Cidade pronta para teste de aterrissagem");
-        if(Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-walk")>=0)yield return VerifyWalkPlayback();
+        if(Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-hud2")>=0)yield return VerifyHud2();
+        else if(Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-walk")>=0)yield return VerifyWalkPlayback();
         else yield return VerifyJump();
         Check(AccountSession.VerificationTransport!=null,"Teste de aterrissagem não usa a VPS");
         account.Logout();yield return WaitUntil(()=>!AccountSession.Authenticated,8,"Fixture de aterrissagem encerrada");
@@ -263,6 +264,34 @@ public sealed class CharacterFlowVerification : MonoBehaviour
         player.DemoInput=Vector2.up;player.DemoRun=true;yield return new WaitForSecondsRealtime(.5f);
         Check(player.CurrentSpeed>4.2f,"Corrida mantém a animação e a velocidade existentes");
         player.DemoInput=Vector2.zero;player.DemoRun=false;player.ResetPosition();
+    }
+
+    IEnumerator VerifyHud2()
+    {
+        var hud=GameHud.Instance;var ui=hud.Root;var player=hud.Player;
+        ui.Q<Label>("multiplayer-status").text="TESTE LOCAL";
+        Check(ui.ClassListContains("hub2-hud")&&HudAtlas.Get("h2_fist").texture==Resources.Load<Texture2D>("Hud2Atlas"),"HUD usa os recortes do HUB2 original");
+        Check(ui.Q(className:"profile")==null&&ui.Q(className:"atlas-banners")==null,"Cartão de perfil e banners antigos removidos");
+        long cash=player.Cash;float health=player.Health;player.Cash=30092;player.Health=75;yield return null;
+        Check(ui.Q<Label>(className:"h2-cash").text=="30.092"&&ui.Q<Label>("stat-heart-value").text=="75","Dinheiro e vida são dados reais, sem números fixos da arte");
+        player.Cash=cash;player.Health=health;
+        Check(ui.Q<Label>("game-version").text=="v"+Application.version,"Número exibido acompanha a versão instalada");
+        foreach(string name in new[]{"nav-menu","nav-session","nav-phone"})
+        {
+            var button=ui.Q<Button>(name);button.Focus();Dispatch(button);yield return null;
+            Check(hud.IsPanelOpen,"Atalho do HUB2 abre painel: "+name);hud.ClosePanel();
+        }
+        yield return VerifyActionSpacing();
+        var controls=FindAnyObjectByType<MobileControls>();
+        var left=new Vector2(Screen.width*.36f,Screen.height*.2f);var right=new Vector2(Screen.width*.66f,Screen.height*.4f);
+        controls.ProcessTouch(10,left,Vector2.zero,TouchPhase.Began);controls.ProcessTouch(10,left+Vector2.up*200,Vector2.up*200,TouchPhase.Moved);
+        controls.ProcessTouch(11,right,Vector2.zero,TouchPhase.Began);controls.ProcessTouch(11,right+Vector2.right*30,Vector2.right*30,TouchPhase.Moved);
+        Check(MobileControls.Movement.y>.99f&&MobileControls.Look.x>0,"Área livre permite joystick e câmera com dois dedos");
+        controls.ProcessTouch(10,left,Vector2.zero,TouchPhase.Ended);controls.ProcessTouch(11,right,Vector2.zero,TouchPhase.Ended);
+        var run=ui.Q<Button>("action-sprint");run.Focus();Dispatch(run);yield return null;Check(hud.SprintRequested,"Botão HUB2 ativa corrida");
+        run.Focus();Dispatch(run);yield return null;Check(!hud.SprintRequested,"Botão HUB2 desativa corrida");
+        yield return VerifyChatInterface();
+        yield return Capture("hud2-final");
     }
 
     IEnumerator VerifyChatInterface()
@@ -348,10 +377,11 @@ public sealed class CharacterFlowVerification : MonoBehaviour
             var sprint=hud.Q<Button>("action-sprint").worldBound;
             var camera=hud.Q<Button>("action-camera").worldBound;
             var jump=hud.Q<Button>("action-jump").worldBound;
-            Check(actions.yMax+10<=sprint.yMin&&!actions.Overlaps(sprint)&&
-                camera.yMax+10<=actions.yMin&&sprint.yMax+10<=jump.yMin,
+            var buttons=new[]{actions,sprint,camera,jump};
+            bool separated=true;for(int i=0;i<buttons.Length;i++)for(int j=i+1;j<buttons.Length;j++)separated&=!buttons[i].Overlaps(buttons[j]);
+            Check(actions.yMax+10<=sprint.yMin&&separated,
                 "Ações, corrida, câmera e pulo mantêm espaçamento em "+size.x+"x"+size.y);
-            Check(camera.yMin>=bounds.yMin&&jump.yMax<=bounds.yMax,
+            Check(buttons.All(rect=>rect.xMin>=bounds.xMin&&rect.yMin>=bounds.yMin&&rect.xMax<=bounds.xMax&&rect.yMax<=bounds.yMax),
                 "Controles laterais ficam dentro da tela em "+size.x+"x"+size.y);
             yield return Capture("hud-spacing-"+size.x+"x"+size.y);
         }

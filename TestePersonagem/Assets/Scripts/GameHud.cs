@@ -64,7 +64,9 @@ public sealed class GameHud : MonoBehaviour
         root=document.rootVisualElement;
         root.name="game-hud";root.AddToClassList("hud-root");root.pickingMode=PickingMode.Ignore;root.focusable=true;root.tabIndex=-1;
         root.AddToClassList("asset-hud");
+        root.AddToClassList("hub2-hud");
         root.styleSheets.Add(Resources.Load<StyleSheet>("HudStyles"));
+        root.styleSheets.Add(Resources.Load<StyleSheet>("Hud2Styles"));
         CreateMapCameras();Build();InGameChat.Create(this);
         var version=Text("v"+Application.version,"",root);version.name="game-version";
         version.style.position=Position.Absolute;version.style.left=14;version.style.bottom=5;
@@ -106,85 +108,54 @@ public sealed class GameHud : MonoBehaviour
 
     void Build()
     {
-        var profile=Element("card profile");Block(profile);
-        profile.style.backgroundImage=new StyleBackground(HudAtlas.Get("panel_fill"));
-        var row=Element("profile-row",profile);
-        var avatar=Element("avatar",row);avatar.Add(HudAtlas.Image("portrait","atlas-portrait"));
-        avatarLabel=Text("","",avatar);avatarLabel.style.display=DisplayStyle.None;
-        var info=Element("profile-info",row);
-        playerNameLabel=Text(PlayerName.ToUpperInvariant(),"player-name",info);
-        var levelRow=Element("atlas-level-row",info);
-        Text("LVL","atlas-level-caption",levelRow);levelLabel=Text(player.Level.ToString(),"atlas-level",levelRow);uidLabel=Text(AccountSession.Authenticated?"ID: "+AccountSession.Instance.State.uid:"TESTE LOCAL","atlas-id",levelRow);
-        var xp=Element("atlas-xp-track",info);xpFill=Element("atlas-xp-fill",xp);
+        var identity=Element("h2-identity");identity.style.display=DisplayStyle.None;
+        playerNameLabel=Text(PlayerName.ToUpperInvariant(),"",identity);avatarLabel=Text("","",identity);
+        var wallet=Element("h2-wallet");Block(wallet);
+        wallet.Add(HudAtlas.Image("h2_cash","h2-currency"));cashLabel=Text("0","h2-cash",wallet);
+        var level=Element("h2-level");Block(level);level.Add(HudAtlas.Image("h2_trophy","h2-trophy"));
+        levelLabel=Text("LVL 1 | EXP 0/100","h2-level-text",level);
+        xpFill=Element("h2-xp-hidden",level);xpFill.style.display=DisplayStyle.None;
+        var stats=Element("h2-stats");Block(stats);
+        AtlasStat("h2_heart","health","Vida",out healthFill,out healthLabel,stats);healthLabel.name="stat-heart-value";
+        AtlasStat("h2_water","water","Hidratação",out waterFill,out waterLabel,stats);
+        AtlasStat("h2_hunger","energy","Fome",out energyFill,out energyLabel,stats);
 
-        var wallet=Element("atlas-wallet");Block(wallet);wallet.Add(HudAtlas.Image("wallet","atlas-wallet-icon"));
-        cashLabel=Text("R$ 0","atlas-cash",wallet);
-        AtlasButton("plus","atlas-plus","Carteira",()=>OpenPanel("wallet"),wallet);
-        var stats=Element("atlas-stats");Block(stats);
-        AtlasStat("heart","health","Vida",out healthFill,out healthLabel,stats);
-        AtlasStat("star","energy","Energia",out energyFill,out energyLabel,stats);
-        AtlasStat("water","water","Hidratação",out waterFill,out waterLabel,stats);
-
-        var mini=Element("mini-wrap");mini.name="minimap-card";Block(mini);
-        var miniButton=new Button(()=>OpenPanel("map")){name="nav-map",tooltip="Mapa da área [M]"};miniButton.AddToClassList("atlas-mini-button");mini.Add(miniButton);
-        miniButton.Add(HudAtlas.Image("minimap_frame","atlas-map-frame"));
+        var mini=Element("h2-mini");mini.name="minimap-card";Block(mini);
+        var miniButton=new Button(()=>OpenPanel("map")){name="nav-map",tooltip="Mapa da área [M]"};miniButton.AddToClassList("h2-mini-button");mini.Add(miniButton);
         miniViewport=Element("mini-viewport",miniButton);
         miniImage=new Image{image=miniTexture,pickingMode=PickingMode.Ignore};miniImage.AddToClassList("mini-image");miniViewport.Add(miniImage);
         miniMarker=new HudIcon("arrow");miniMarker.AddToClassList("marker");miniMarker.SetInk(Color.white);miniViewport.Add(miniMarker);
-        miniButton.Add(HudAtlas.Image("north","atlas-north"));
+        Text("N","h2-north",miniButton);
+        var unarmed=Element("h2-unarmed");unarmed.pickingMode=PickingMode.Ignore;unarmed.Add(HudAtlas.Image("h2_unarmed"));
 
-        var social=Element("atlas-social");Block(social);
-        AtlasButton("social","atlas-social-button","Personagem [P]",()=>OpenPanel("player"),social).name="nav-player";
-        var microphone=AtlasButton("microphone","atlas-social-button","Microfone indisponível no modo offline",()=>{},social);microphone.SetEnabled(false);
-        AtlasButton("speaker","atlas-social-button","Ativar ou silenciar o áudio",()=>TriggerAction("audio"),social).name="action-audio";
+        var nav=Element("h2-nav");Block(nav);
+        AtlasButton("h2_menu","h2-nav-button","Menu [Tab]",()=>OpenPanel("menu"),nav).name="nav-menu";
+        AtlasButton("h2_tasks","h2-nav-button","Dados da sessão",()=>OpenPanel("session"),nav).name="nav-session";
+        AtlasButton("h2_phone","h2-nav-button","Celular",()=>OpenPanel("phone"),nav).name="nav-phone";
+        var top=Element("h2-top");Block(top);
+        var rewards=AtlasButton("h2_rewards","h2-top-button","Recompensas ainda indisponíveis",()=>{},top);rewards.SetEnabled(false);
+        var inventory=AtlasButton("h2_inventory","h2-top-button","Inventário ainda indisponível",()=>{},top);inventory.name="atlas-inventory";inventory.SetEnabled(false);
+        var store=AtlasButton("h2_store","h2-top-button","Loja ainda indisponível",()=>{},top);store.SetEnabled(false);
+        var tools=Element("h2-tools");Block(tools);
+        var microphone=AtlasButton("h2_microphone","h2-microphone","Chat de voz ainda indisponível",()=>{},tools);microphone.SetEnabled(false);
+        AtlasButton("h2_camera","h2-camera","Centralizar câmera [C]",()=>TriggerAction("camera"),tools).name="action-camera";
 
-        var nav=Element("nav-row");Block(nav);
-        AtlasButton("menu","nav-button","Menu [Tab]",()=>OpenPanel("menu"),nav).name="nav-menu";
-        AtlasButton("tasks","nav-button","Dados da sessão",()=>OpenPanel("session"),nav).name="nav-session";
-        AtlasButton("phone","nav-button","Celular",()=>OpenPanel("phone"),nav).name="nav-phone";
-        AtlasButton("car","nav-button","Veículos",()=>OpenPanel("vehicles"),nav).name="nav-vehicles";
+        var actions=Element("h2-actions");Block(actions);
+        AtlasButton("h2_fist","h2-fist","Ações do personagem",()=>OpenPanel("actions"),actions).name="action-list";
+        sprint=AtlasButton("h2_sprint","h2-sprint","Ativar/desativar corrida [Shift]",()=>TriggerAction("sprint"),actions);
+        sprint.AddToClassList("sprint-button");sprint.name="action-sprint";sprintArtwork=(Image)sprint[0];
+        var jump=IconButton("jump","h2-jump","Pular [Espaço]",()=>TriggerAction("jump"),root);jump.name="action-jump";Block(jump);
 
-        var top=Element("atlas-top-nav");Block(top);
-        var rewards=AtlasButton("rewards","atlas-rewards","Recompensas ainda indisponíveis",()=>{},top);rewards.SetEnabled(false);
-        var store=AtlasButton("store","atlas-top-button","Loja ainda indisponível",()=>{},top);store.SetEnabled(false);
-        var inventory=AtlasButton("inventory","atlas-inventory","Inventário ainda indisponível",()=>{},top);inventory.SetEnabled(false);
-        var factions=AtlasButton("factions","atlas-top-button","Facções indisponíveis no modo offline",()=>{},top);factions.SetEnabled(false);
-        AtlasButton("config","atlas-top-button","Configurações",()=>OpenPanel("settings"),top).name="nav-settings";
-        var guides=Element("atlas-guides-wrap",top);
-        var signal=Element("atlas-signal",guides);signal.Add(HudAtlas.Image("signal","atlas-signal-icon"));
-        Text(AccountSession.Authenticated?"CONECTANDO":"LOCAL","",signal).name="multiplayer-status";
-        AtlasButton("guides","atlas-guides","Como jogar",()=>OpenPanel("help"),guides).name="nav-guides";
-
-
-        var banners=Element("atlas-banners");Block(banners);
-        var explore=new Button(()=>OpenPanel("map")){tooltip="Abrir mapa"};explore.AddToClassList("atlas-banner");banners.Add(explore);
-        explore.Add(HudAtlas.Image("event_car","atlas-banner-art"));
-        var bannerText=Element("atlas-banner-text",explore);Text("EXPLORAÇÃO","atlas-banner-small",bannerText);Text("MODO LIVRE","atlas-banner-title",bannerText);Text("ABRIR MAPA","atlas-banner-small",bannerText);
-        var journey=new Button(()=>OpenPanel("session")){tooltip="Dados da sessão"};journey.AddToClassList("atlas-banner");banners.Add(journey);
-        journey.Add(HudAtlas.Image("pass_person","atlas-banner-person"));
-        var journeyText=Element("atlas-banner-text",journey);Text("SUA SESSÃO","atlas-banner-small",journeyText);Text("EXPLORAR","atlas-banner-title",journeyText);Text("PROGRESSO LOCAL","atlas-banner-small",journeyText);
-
-        // The original atlas has no live compass. Preserve the optional element for menu transitions.
+        var safe=Element("h2-safe");safe.tooltip="Área de testes";safe.pickingMode=PickingMode.Ignore;safe.Add(HudAtlas.Image("h2_safe"));
+        var footer=Element("h2-footer");Block(footer);
+        var room=Element("h2-chip h2-room",footer);room.tooltip="Sala de testes";
+        Text(AccountSession.Authenticated?"CONECTANDO":"LOCAL","",room).name="multiplayer-status";
+        var id=Element("h2-chip h2-id",footer);uidLabel=Text(AccountSession.Authenticated?"ID: "+AccountSession.Instance.State.uid:"TESTE","",id);
+        var time=Element("h2-chip h2-time",footer);clock=Text(DateTime.Now.ToString("HH:mm"),"",time);
+        // These existing hooks remain available to menus without occupying the HUD.
         var compass=Element("compass");compass.name="hud-compass";heading=Text("","",compass);
-        var actions=Element("actions");Block(actions);
-        var cameraActions=Element("camera-actions",actions);
-        AtlasButton("camera","atlas-camera","Centralizar câmera [C]",()=>TriggerAction("camera"),cameraActions).name="action-camera";
-        AtlasButton("back","atlas-reset","Voltar ao início [R]",()=>TriggerAction("reset"),cameraActions).name="action-reset";
-        AtlasButton("fist","atlas-fist","Ações do personagem",()=>OpenPanel("actions"),actions).name="action-list";
-        var sprintWrap=Element("sprint-wrap",actions);
-        sprint=AtlasButton("sprint","sprint-button","Ativar/desativar corrida [Shift]",()=>TriggerAction("sprint"),sprintWrap);sprint.name="action-sprint";
-        sprintArtwork=(Image)sprint[0];
-        var lowerActions=Element("atlas-lower-actions");Block(lowerActions);
-        IconButton("jump","jump-button","Pular [Espaço]",()=>TriggerAction("jump"),lowerActions).name="action-jump";
-        var crouch=AtlasButton("crouch","atlas-crouch","Agachar ainda indisponível",()=>{},lowerActions);crouch.SetEnabled(false);
-        AtlasButton("aim","atlas-aim","Aproximar ou afastar a câmera",()=>TriggerAction("zoom"),lowerActions).name="action-zoom";
-
-
-
-        var motion=Element("locomotion");motion.name="hud-motion";motion.pickingMode=PickingMode.Ignore;
-        var speedRow=Element("speed-row",motion);speedLabel=Text("0.0","speed",speedRow);Text("m/s","speed-unit",speedRow);
-        motionLabel=Text("PARADO","motion-label",motion);var track=Element("speed-track",motion);speedFill=Element("speed-fill",track);
-        if(!Application.isMobilePlatform)Text("H  OCULTAR INTERFACE","hide-hint",root);
+        var motion=Element("locomotion");motion.name="hud-motion";motion.style.display=DisplayStyle.None;
+        speedLabel=Text("0.0","",motion);motionLabel=Text("PARADO","",motion);speedFill=Element("speed-fill",motion);
 
         drawer=Element("drawer");drawer.name="hud-drawer";Block(drawer);drawer.style.display=DisplayStyle.None;
         var header=Element("drawer-header",drawer);var titleGroup=Element("drawer-titles",header);
@@ -202,6 +173,7 @@ public sealed class GameHud : MonoBehaviour
         SetVisible(true);
         if(CurrentPanel==panel){ClosePanel();return;}
         CurrentPanel=panel;drawer.style.display=DisplayStyle.Flex;
+        root.AddToClassList("hud-panel-open");
         root.Q("hud-compass").style.display=DisplayStyle.None;
         root.Q("hud-motion").style.display=DisplayStyle.None;
         content.Clear();distanceMetric=timeMetric=topSpeedMetric=null;mapArea=null;mapMarker=null;mapImage=null;
@@ -322,8 +294,9 @@ public sealed class GameHud : MonoBehaviour
     public void ClosePanel()
     {
         CurrentPanel=null;drawer.style.display=DisplayStyle.None;
+        root.RemoveFromClassList("hud-panel-open");
         root.Q("hud-compass").style.display=DisplayStyle.Flex;
-        root.Q("hud-motion").style.display=DisplayStyle.Flex;
+        root.Q("hud-motion").style.display=DisplayStyle.None;
         root.Focus();PlayerPrefs.Save();
     }
     public void TriggerAction(string action)
@@ -411,11 +384,12 @@ public sealed class GameHud : MonoBehaviour
         speedFill.style.width=Length.Percent(Mathf.Clamp01(player.CurrentSpeed/player.runSpeed)*100);
         bool running=player.CurrentSpeed>2.4f||SprintRequested||Input.GetKey(KeyCode.LeftShift)||Input.GetKey(KeyCode.RightShift);
         sprint.EnableInClassList("active",running);sprintArtwork.style.opacity=running?1:.9f;
-        levelLabel.text=player.Level.ToString();cashLabel.text="R$ "+player.Cash.ToString("N0");
+        levelLabel.text="LVL "+player.Level+" | EXP "+Mathf.RoundToInt(player.Experience)+"/100";
+        cashLabel.text=player.Cash.ToString("N0",System.Globalization.CultureInfo.GetCultureInfo("pt-BR"));
         xpFill.style.width=Length.Percent(Mathf.Clamp01(player.Experience/100f)*100);
         healthFill.style.width=Length.Percent(Mathf.Clamp(player.Health,0,100));healthLabel.text=Mathf.RoundToInt(player.Health).ToString();
         if(cloudSaveLabel!=null && AccountSession.Instance)cloudSaveLabel.text=AccountSession.Instance.SaveStatus;
-        energyFill.style.width=Length.Percent(Mathf.Clamp(player.Energy,0,100));energyLabel.text=Mathf.RoundToInt(player.Energy).ToString();
+        energyFill.style.width=Length.Percent(Mathf.Clamp(player.Hunger,0,100));energyLabel.text=Mathf.RoundToInt(player.Hunger).ToString();
         waterFill.style.width=Length.Percent(Mathf.Clamp(player.Hydration,0,100));waterLabel.text=Mathf.RoundToInt(player.Hydration).ToString();
         var pos=player.transform.position;if(coordinates!=null)coordinates.text=$"X {pos.x:0.0}    /    Z {pos.z:0.0}";
         if(clock!=null)clock.text=DateTime.Now.ToString("HH:mm");if(dateLabel!=null)dateLabel.text=DateTime.Now.ToString("dd/MM/yyyy");
