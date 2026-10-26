@@ -16,6 +16,8 @@ public sealed class MultiplayerWorld : MonoBehaviour
     public bool SawRemoteJump {get;private set;}
     public float RemoteTravel {get;private set;}
     public int LastChatId {get;private set;}
+    public int ServerHour {get;private set;}=-1;
+    int lastTeleportId;
     string chatEpoch;
     readonly Dictionary<string,Remote> remotes=new Dictionary<string,Remote>();
     readonly string clientId=Guid.NewGuid().ToString();
@@ -24,6 +26,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
     int sequence;
     bool paused;
     int connectionFailures;
+    string lastFailure;
 
     public static void Create(ThirdPersonPlayer player)
     {
@@ -41,7 +44,8 @@ public sealed class MultiplayerWorld : MonoBehaviour
             var position=player.transform.position;
             var frame=new MultiplayerFrame {clientId=clientId,sequence=++sequence,
                 x=position.x,y=position.y,z=position.z,yaw=Mathf.Repeat(player.transform.eulerAngles.y,360),
-                speed=Mathf.Clamp(player.CurrentSpeed,0,8),jumping=player.IsJumping,jumpPhase=player.JumpPhase,afterChat=LastChatId};
+                speed=Mathf.Clamp(player.CurrentSpeed,0,8),jumping=player.IsJumping,jumpPhase=player.JumpPhase,
+                afterChat=LastChatId};
             MultiplayerReply reply=null;
             yield return AccountSession.Instance.MultiplayerRequest("/v1/multiplayer/sync",JsonUtility.ToJson(frame),r=>reply=r);
             if(!AccountSession.HasCharacter)break;
@@ -51,12 +55,33 @@ public sealed class MultiplayerWorld : MonoBehaviour
                 SetStatus("ONLINE "+reply.count+"/"+reply.capacity);
                 UpdatePeers(reply.peers,reply.serverTime,Time.realtimeSinceStartup-started);
                 ReceiveChat(reply);
+                if(reply.teleport!=null&&reply.teleport.id>lastTeleportId)
+                {
+                    lastTeleportId=reply.teleport.id;
+                    player.TeleportTo(new Vector3(reply.teleport.x,reply.teleport.y,reply.teleport.z));
+                }
+                int hour=reply.hourOverride?reply.serverHour:-1;
+                if(hour!=ServerHour)
+                {
+                    ServerHour=hour;
+                    if(hour>=0)
+                    {
+                        var dayNight=FindAnyObjectByType<CityDayNight>();
+                        if(dayNight)dayNight.SetNight(hour<6||hour>=18);
+                    }
+                }
                 float remaining=.1f-(Time.realtimeSinceStartup-started);
                 if(remaining>0)yield return new WaitForSecondsRealtime(remaining);
             }
             else
             {
                 Connected=false;
+                string failure=(reply?.code??"NO_REPLY")+": "+(reply?.error??"sem detalhes");
+                if(failure!=lastFailure)
+                {
+                    lastFailure=failure;
+                    Debug.LogWarning("MULTIPLAYER_SYNC_FAILURE "+failure);
+                }
                 // A single dropped request must not destroy and respawn every remote avatar.
                 if(++connectionFailures>=3||reply?.code=="UNAUTHORIZED"||reply?.code=="SESSION_IN_USE")
                 {PlayerCount=0;ClearRemotes();}
@@ -110,6 +135,12 @@ public sealed class MultiplayerWorld : MonoBehaviour
         var stale=new List<string>();foreach(var id in remotes.Keys)if(!live.Contains(id))stale.Add(id);
         foreach(var id in stale){remotes[id].Destroy();remotes.Remove(id);}
     }
+    public bool TryGetRemoteByUid(string uid,out Transform transform)
+    {
+        foreach(var remote in remotes.Values)
+            if(remote.Uid==uid){transform=remote.Transform;return true;}
+        transform=null;return false;
+    }
     void LateUpdate(){foreach(var remote in remotes.Values)remote.Tick();}
     void OnApplicationPause(bool value)
     {
@@ -138,8 +169,11 @@ public sealed class MultiplayerWorld : MonoBehaviour
         long sourceOrigin;
         float localOrigin;
         public Vector3 TargetPosition=>targetPosition;
+        public string Uid {get;private set;}
+        public Transform Transform=>root?root.transform:null;
         public Remote(ThirdPersonPlayer local,MultiplayerPeer peer)
         {
+            Uid=peer.uid;
             root=new GameObject("Jogador online "+peer.uid);root.layer=2;
             root.transform.SetPositionAndRotation(new Vector3(peer.x,peer.y,peer.z),Quaternion.Euler(0,peer.yaw,0));
             // Clone only the visual child: never clone the local controller, camera or save scripts.
@@ -161,6 +195,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
         }
         public void Apply(MultiplayerPeer peer,long serverTime,float roundTrip)
         {
+            Uid=peer.uid;
             if(peer.sequence==lastSequence)return;
             // Sync requests are serialized. A lower sequence means that the other client restarted.
             if(peer.sequence<lastSequence){motion.Reset();sourceOrigin=0;}

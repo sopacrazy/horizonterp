@@ -225,6 +225,7 @@ public static class PrototypeSetup
     public static void BuildWindows()
     {
         GameVersionBuildSetup.Apply();
+        FighterCombatSetup.Apply();
         Directory.CreateDirectory("Builds/Windows");
         var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions {
             scenes = GameUpdateSetup.Scenes, locationPathName = "Builds/Windows/TestePersonagem.exe",

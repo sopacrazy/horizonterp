@@ -16,11 +16,11 @@ test('admin player management is authenticated, hierarchical, audited and revers
  const db=new PGlite();let server;
  try{
   await db.exec('CREATE ROLE hbrp_owner NOLOGIN; CREATE ROLE hbrp_app LOGIN; GRANT CREATE ON DATABASE postgres TO hbrp_owner; SET ROLE hbrp_owner;');
-  for(const name of ['001_initial.sql','002_transfer_locking.sql','003_api.sql','004_character_creation.sql','005_account_admin.sql','006_player_administration.sql'])
+  for(const name of ['001_initial.sql','002_transfer_locking.sql','003_api.sql','004_character_creation.sql','005_account_admin.sql','006_player_administration.sql','007_admin_chat.sql'])
    await db.exec(await fs.readFile(new URL('../../database/'+name,import.meta.url),'utf8'));
   await db.exec('RESET ROLE');
   const players=[];
-  for(const [index,firstName,level] of [[1,'Adriano',2],[2,'João',0],[3,'Carla',2],[4,'Rafael',3],[5,'Bianca',1],[6,'Joana',0]]){
+  for(const [index,firstName,level] of [[1,'Adriano',3],[2,'João',0],[3,'Carla',3],[4,'Rafael',3],[5,'Bianca',1],[6,'Joana',0]]){
    const account=(await db.query('INSERT INTO hbrp.accounts(email,account_role,admin_level) VALUES($1,$2,$3) RETURNING id,uid::text',['admin-test-'+index+'@example.invalid',level?'admin':'user',level])).rows[0];
    const char=(await db.query("INSERT INTO hbrp.characters(account_id,name,first_name,last_name,gender) VALUES($1,$2,$3,'Silva','male') RETURNING id",[account.id,firstName+' Silva',firstName])).rows[0];
    await db.query('INSERT INTO hbrp.character_stats(character_id,health,xp) VALUES($1,76,1234)',[char.id]);
@@ -62,11 +62,11 @@ test('admin player management is authenticated, hierarchical, audited and revers
    assert.equal((await update(actor,'set_admin',{adminLevel:0})).code,'SELF_MODIFICATION');
    assert.equal((await update(actor,'block',{reason:'Teste local'})).code,'SELF_MODIFICATION');
    for(const p of [peer,higher])assert.equal((await update(p,'block',{reason:'Teste local'})).code,'ADMIN_HIERARCHY');
-   assert.equal((await update(normal,'set_admin',{adminLevel:3})).status,400);
+   assert.equal((await update(normal,'set_admin',{adminLevel:4})).status,400);
    assert.equal((await update(normal,'set_admin',{adminLevel:1,actorAccountId:higher.id})).status,400);
    const promoted=await update(normal,'set_admin',{adminLevel:1});assert.equal(promoted.player.adminLevel,1);
    assert.equal((await request('GET','/v1/admin/players',null,normal.token)).status,200);
-   assert.equal((await update(actor,'block',{reason:'Teste local'},normal)).code,'ADMIN_HIERARCHY');
+   assert.equal((await update(actor,'block',{reason:'Teste local'},normal)).code,'ADMIN_LEVEL_REQUIRED');
    assert.equal((await update(lower,'set_admin',{adminLevel:0})).player.accountRole,'user');
    assert.equal((await pool.query("SELECT count(*)::int AS total FROM hbrp.audit_events WHERE action='admin.set_admin'")).rows[0].total,2);
   });

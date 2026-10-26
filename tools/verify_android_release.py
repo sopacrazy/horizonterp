@@ -5,6 +5,7 @@ parser=argparse.ArgumentParser()
 parser.add_argument('--version',default='0.4.0')
 parser.add_argument('--version-code',type=int,default=6)
 parser.add_argument('--log',default='horizonte-online-040-android.log')
+parser.add_argument('--apk',type=Path,default=None)
 parser.add_argument('--chat',action='store_true')
 parser.add_argument('--updater',action='store_true')
 parser.add_argument('--stairs',action='store_true')
@@ -19,10 +20,13 @@ args=parser.parse_args()
 assert re.fullmatch(r'\d+\.\d+\.\d+',args.version)
 
 root=Path(__file__).resolve().parents[1]
-apk=root/'TestePersonagem/Builds/Android/TestePersonagem.apk'
-old=apk.parent/'HorizonteBrasil-0.1.1.apk'
-sdk=root/'tools/android/SDK/build-tools/36.0.0'
-java=root/'tools/android/OpenJDK/bin/java.exe'
+apk=args.apk.resolve() if args.apk else root/'TestePersonagem/Builds/Android/TestePersonagem.apk'
+old=apk.parent/'HorizonteBrasil-0.5.7.apk'
+android_tools=root/'tools/android'
+if not (android_tools/'SDK').is_dir():
+    android_tools=Path(r'C:\Program Files\Unity\Hub\Editor\6000.6.7f1-x86_64\Editor\Data\PlaybackEngines\AndroidPlayer')
+sdk=android_tools/'SDK/build-tools/36.0.0'
+java=android_tools/'OpenJDK/bin/java.exe'
 def run(args):
     return subprocess.run([str(a) for a in args],check=True,capture_output=True,text=True).stdout
 
@@ -104,7 +108,7 @@ with zipfile.ZipFile(apk) as archive:
     assert b'3a0a59cc28b5b2a5aab7acae6546ed91f861b41086e8a1312da8b4550c149c42' in resources
 
 release=apk.parent/f'HorizonteBrasil-{args.version}.apk'
-shutil.copy2(apk,release)
+if apk.resolve()!=release.resolve():shutil.copy2(apk,release)
 report={'result':'ANDROID_RELEASE_VERIFIED','version':args.version,'versionCode':args.version_code,
     'package':'com.adriano.testepersonagem','label':'Horizonte','architecture':'arm64-v8a',
     'minimum_android':'8.0 (API 26)','internet_permission':True,'signature_verified':True,

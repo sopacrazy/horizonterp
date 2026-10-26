@@ -213,24 +213,13 @@ contas descartáveis e remove somente essas contas em `finally`.
 Unity; após ela, executar `--cleanup` e remover os arquivos locais das fixtures.
 Nunca registrar tokens ou credenciais desses testes nos relatórios.
 
-## Administração (preparação)
-A migração 005 adiciona `accounts.account_role` (`user`/`admin`) e `admin_level` (0 para usuário; positivo para administrador). Novas contas iniciam como usuário normal. A migração 006 permite alterações dessas duas colunas pela API e acrescenta bloqueio reversível do personagem, sem alterar os dados existentes.
+## Administração pelo chat
 
-O estado do personagem e o objeto `account` de login/player informam `accountRole` e `adminLevel`. Os 15 comandos solicitados são reconhecidos sem diferenciar maiúsculas/minúsculas. Todos permanecem sem implementação: não teleportam, punem, concedem imortalidade nem enviam mensagens administrativas. A resposta é privada em `command`, com `status: not_implemented`; comandos não são inseridos no histórico público. Jogadores normais recebem `ADMIN_ONLY`. Ainda não há hierarquia por comando.
+Os comandos são digitados no chat e exigem a identidade administrativa fornecida pelo servidor. Use `/ahelp` para listar os comandos liberados ao seu nível. O catálogo completo está em `admin-command-catalog.mjs`. O painel `/apanel` (nível 2) mostra apenas a lista pesquisável de jogadores; não executa ações.
 
-## Painel de jogadores
+Já funcionam: `/coords`, `/mystats`, `/astats`, `/alist`, `/a` (privado entre administradores), `/aad`, `/goto`, `/gethere`, `/spawn`, `/re`, `/reoff`, `/mute`, `/unmute`, `/kick`, `/ban`, `/unban`, `/makeadmin`, `/inviz`, `/removeinviz`, `/returninviz`, `/t`, `/apanel` e `/speed 1|2|4|6|8|10|12`. Estatísticas e mutes da sala ficam em memória e reiniciam com o serviço. A hora definida por `/t` vale para a sala atual. O painel e os atalhos de comando antigos foram removidos do HUD.
 
-O botão dourado do Unity abre uma lista paginada com pesquisa por primeiro nome ou UID. `GET /v1/admin/players?q=&offset=0` exige sessão administrativa; retorna apenas os campos necessários ao painel. `POST /v1/admin/players/:uid` recebe `characterId` e `action` (`set_admin`, `block`, `unblock`). `set_admin` recebe `adminLevel` entre zero e o nível do administrador; zero remove o cargo. Bloquear exige `reason` de 3 a 180 caracteres.
-
-As ações são autorizadas novamente no servidor e registradas em auditoria. A própria conta, administradores do mesmo nível e superiores são protegidos. Bloquear revoga as sessões do alvo e impede novo login; desbloquear mantém o personagem e seu progresso. As transações mantêm a hierarquia válida durante alterações concorrentes.
-
-Publicar `server.mjs`, `multiplayer.mjs`, `player-admin.mjs` e `verify_player_admin.py`. Fazer backup e aplicar `006_player_administration.sql` apenas se a versão 6 estiver ausente, como administrador PostgreSQL, com `ON_ERROR_STOP=1`. Reiniciar somente `hbrp-api`, preservando certificado, credenciais e demais serviços. Não há nova dependência de produção. O health continua na versão 0.3.0.
-
-Executar `python3 /srv/hbrp/api/verify_player_admin.py` na VPS. O teste cria quatro contas temporárias, valida permissões, concorrência, bloqueio e desbloqueio, limpa suas próprias contas em `finally` e compara os registros reais. O relatório fica em `/srv/hbrp/api/player-admin-validation.json`.
-
-Validação local: `node --test test/characters.test.mjs test/multiplayer.test.mjs test/player-admin.test.mjs`. A interface usa primeiro nome; nome completo e sobrenome continuam preservados no banco. Esta atualização não gera APK: versões posteriores à 0.5.5 dependem de pedido explícito do usuário.
-
-Ao selecionar um jogador na tabela, o Unity abre um segundo modal com os atalhos de cargo e bloqueio e o catálogo dos dez comandos com alvo. Os cinco comandos gerais ficam em uma lista separada. Os 15 comandos continuam sem execução: os detalhes informam os requisitos pendentes e o botão de execução permanece desabilitado. Consultar o catálogo não envia comandos à API nem altera o jogador. A hierarquia também é respeitada pelos atalhos de cargo e bloqueio nesse modal.
+Comandos que dependem de sistemas ainda ausentes, como veículos, facções, armas, prisões, denúncias e guerras, são aceitos apenas para informar qual sistema falta. Eles não executam efeitos simulados. A API valida níveis e hierarquia. Banimentos com prazo exigem a migração `007_admin_chat.sql`, que acrescenta `characters.blocked_until`. Aplique a migração antes de publicar o backend atualizado. As migrações 005 e 006 continuam pré-requisitos. `npm test` valida o backend com banco local em memória.
 
 ## Cinco bots de teste persistentes
 

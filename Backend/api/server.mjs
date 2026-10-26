@@ -65,7 +65,7 @@ async function issueSession(client,accountId){
  await client.query('UPDATE hbrp.accounts SET last_login_at=now() WHERE id=$1',[accountId]);return token;
 }
 async function state(client,accountId){
- const result=await client.query(`SELECT a.id AS account_id,a.uid::text,a.account_role,a.admin_level,c.id AS character_id,c.name,c.first_name,c.last_name,c.gender,c.blocked_at,c.blocked_reason,
+ const result=await client.query(`SELECT a.id AS account_id,a.uid::text,a.account_role,a.admin_level,c.id AS character_id,c.name,c.first_name,c.last_name,c.gender,c.blocked_at,c.blocked_until,c.blocked_reason,
  s.character_id AS stats_id,p.character_id AS position_id,v.character_id AS appearance_id,
  s.health::float,s.energy::float,s.hunger::float,s.thirst::float,s.level,s.xp::text,s.play_seconds::text,
  p.x,p.y,p.z,p.yaw,p.camera_yaw,p.camera_pitch,p.version::text,w.code AS world,
@@ -78,7 +78,8 @@ async function state(client,accountId){
  if(!result.rowCount)fail(401,'Entre novamente na sua conta.','UNAUTHORIZED');
  const r=result.rows[0];
  if(!r.character_id)return null;
- if(r.blocked_at)fail(403,'Este personagem está bloqueado. Motivo: '+(r.blocked_reason||'Procure a administração.'),'CHARACTER_BLOCKED');
+ if(r.blocked_at&&(!r.blocked_until||new Date(r.blocked_until).getTime()>Date.now()))
+  fail(403,'Este personagem está bloqueado. Motivo: '+(r.blocked_reason||'Procure a administração.'),'CHARACTER_BLOCKED');
  if(!r.stats_id||!r.position_id||!r.appearance_id||!r.world)fail(409,'Dados do personagem incompletos. Procure o suporte.','CHARACTER_INCOMPLETE');
  return {accountId:r.account_id,uid:r.uid,accountRole:r.account_role,adminLevel:r.admin_level,characterId:r.character_id,name:r.name,firstName:r.first_name,lastName:r.last_name,gender:r.gender,health:r.health,energy:r.energy,hunger:r.hunger,thirst:r.thirst,level:r.level,xp:r.xp,playSeconds:r.play_seconds,cashCents:r.cash_cents,bankCents:r.bank_cents,hzCoins:r.hz_coins,model:r.model_code,world:r.world,version:r.version,x:r.x,y:r.y,z:r.z,yaw:r.yaw,cameraYaw:r.camera_yaw,cameraPitch:r.camera_pitch};
 }
@@ -193,7 +194,8 @@ return async(req,res)=>{
    const auth=await session(pool,token);
    const body=await readBody(req);
    const identity=await requireCharacter(pool,auth.account_id);
-   if(path.endsWith('/chat'))return send(200,room.chat(identity,auth.id,body));
+   if(path.endsWith('/chat'))return send(200,await room.chat(identity,auth.id,body,
+    request=>administration.command(token,request,room)));
    if(path.endsWith('/leave')){exact(body,['clientId']);return send(200,room.leave(identity.characterId,auth.id,body.clientId));}
    return send(200,room.sync(identity,auth.id,body));
   }

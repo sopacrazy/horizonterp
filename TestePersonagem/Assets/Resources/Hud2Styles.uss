@@ -51,3 +51,45 @@
 .hub2-hud.narrow-hud .drawer { left: 340px; width: 340px; }
 .hub2-hud.narrow-hud .h2-top-button { width: 52px; height: 52px; margin-left: 12px; }
 .hub2-hud.narrow-hud .h2-mini { left: 184px; }
+
+/* Full-screen hub opened from the four-square button. The world remains visible behind it. */
+.hub2-hud .drawer.menu-home {
+    left: 0; right: 0; top: 0; bottom: 0; width: auto;
+    padding: 27px 48px 20px 48px; border-width: 0; border-radius: 0;
+    background-color: rgba(8, 16, 25, .88);
+}
+.hub2-hud .menu-home .drawer-header { max-width: 1110px; width: 100%; align-self: center; margin-bottom: 8px; }
+.hub2-hud .menu-home .drawer-title { font-size: 20px; letter-spacing: 1px; color: rgb(248, 250, 251); }
+.hub2-hud .menu-home .eyebrow { color: rgb(91, 202, 218); letter-spacing: 3px; }
+.hub2-hud .menu-home .close { width: 39px; height: 39px; border-radius: 10px; border-color: rgba(139, 216, 226, .42); background-color: rgba(19, 43, 56, .85); }
+.hub2-hud .menu-home .drawer-content { max-width: 1110px; width: 100%; align-self: center; min-height: 0; }
+.home-intro { margin-bottom: 13px; }
+.home-kicker { color: rgb(91, 202, 218); font-size: 9px; -unity-font-style: bold; letter-spacing: 3px; }
+.home-headline { color: white; font-size: 29px; -unity-font-style: bold; margin-top: 3px; }
+.home-subtitle { color: rgb(175, 201, 211); font-size: 12px; margin-top: 3px; }
+.home-scroll { flex-grow: 1; min-height: 0; }
+.home-grid { flex-direction: row; flex-wrap: wrap; justify-content: space-between; padding-right: 5px; }
+.home-tile {
+    width: 32%; height: 108px; flex-shrink: 0; margin-bottom: 11px;
+    padding: 12px 17px; border-radius: 12px; border-width: 1px;
+    border-color: rgba(110, 172, 190, .42); background-color: rgba(12, 27, 39, .93);
+    align-items: stretch; justify-content: space-between;
+}
+.home-tile:hover { background-color: rgba(24, 52, 65, .98); border-color: rgb(105, 226, 235); }
+.home-tile:active { background-color: rgba(37, 77, 87, .98); }
+.home-tile-top { flex-direction: row; align-items: center; justify-content: space-between; }
+.home-tile-badge { width: 42px; height: 42px; align-items: center; justify-content: center; border-radius: 10px; background-color: rgba(47, 123, 143, .23); }
+.home-tile-badge .icon { width: 27px; height: 27px; }
+.home-tile-category { color: rgb(108, 182, 198); font-size: 9px; -unity-font-style: bold; letter-spacing: 1.6px; }
+.home-tile-title { color: rgb(250, 252, 253); font-size: 17px; -unity-font-style: bold; }
+.home-tile-accent { height: 2px; background-color: rgb(40, 178, 199); width: 100%; }
+.home-footer { flex-direction: row; justify-content: space-between; max-width: 1110px; width: 100%; align-self: center; margin-top: 4px; margin-bottom: 8px; }
+.home-footer-brand { color: rgb(91, 202, 218); font-size: 10px; -unity-font-style: bold; letter-spacing: 2px; }
+.home-footer-copy { color: rgb(140, 171, 184); font-size: 9px; letter-spacing: 2px; }
+.hub2-hud .menu-home > .primary { max-width: 1110px; width: 100%; height: 38px; align-self: center; margin-top: 3px; border-radius: 8px; background-color: rgba(27, 76, 90, .66); border-color: rgba(89, 195, 210, .58); color: rgb(231, 249, 250); }
+.hub2-hud .menu-home > .primary:hover { background-color: rgba(40, 111, 126, .84); }
+.hub2-hud.narrow-hud .drawer.menu-home { left: 0; right: 0; top: 0; bottom: 0; width: auto; padding: 20px 24px 12px 24px; }
+.hub2-hud.narrow-hud .home-tile { width: 48.5%; height: 95px; }
+.hub2-hud.narrow-hud .home-headline { font-size: 23px; }
+.hub2-hud.narrow-hud .home-tile-title { font-size: 15px; }
+.inventory-empty { padding: 25px; border-radius: 12px; background-color: rgba(34, 52, 62, .75); color: rgb(163, 193, 205); -unity-text-align: middle-center; letter-spacing: 2px; }

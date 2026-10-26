@@ -24,6 +24,8 @@ public sealed class InGameChat : MonoBehaviour
     Label hint;
     Button send;
     TouchScreenKeyboard keyboard;
+    string spectateUid;
+    int spectateGeneration;
 
 
     public static void Create(GameHud hud)
@@ -121,7 +123,10 @@ public sealed class InGameChat : MonoBehaviour
             }
             if(string.IsNullOrEmpty(reply?.code)&&reply?.message!=null)Receive(reply.message);
             else if(string.IsNullOrEmpty(reply?.code)&&reply?.command!=null)
-            {item.line.text="[ADMIN] "+reply.command.message;item.line.kind="admin";Render();}
+            {
+                item.line.text="[ADMIN] "+reply.command.message;item.line.kind="admin";Render();
+                HandleCommand(reply.command);
+            }
             else
             {
                 // A sync may already have confirmed a request whose HTTP response was lost.
@@ -139,16 +144,63 @@ public sealed class InGameChat : MonoBehaviour
         Sending=false;
     }
     void ShowHint(string value){hint.text=value;hint.style.display=string.IsNullOrEmpty(value)?DisplayStyle.None:DisplayStyle.Flex;}
+    void HandleCommand(AdminCommandReply command)
+    {
+        if(command.lines!=null)foreach(string line in command.lines)AdminLine(line);
+        var player=GameHud.Instance?GameHud.Instance.Player:null;
+        if(command.status=="teleport"&&player)
+            player.TeleportTo(new Vector3(command.x,command.y,command.z));
+        else if(command.status=="speed"&&player)
+            player.SetAdminSpeedMultiplier(command.value);
+        else if(command.status=="open_panel"&&GameHud.Instance)
+            AdminPlayerPanel.Open(GameHud.Instance);
+        else if(command.status=="spectate"&&player)
+            StartCoroutine(BeginSpectate(command.uid,++spectateGeneration));
+        else if(command.status=="spectate_off")StopSpectating();
+    }
+    IEnumerator BeginSpectate(string uid,int generation)
+    {
+        float deadline=Time.realtimeSinceStartup+5f;
+        while(generation==spectateGeneration&&Time.realtimeSinceStartup<deadline)
+        {
+            if(MultiplayerWorld.Instance&&MultiplayerWorld.Instance.TryGetRemoteByUid(uid,out var target))
+            {
+                var camera=FindAnyObjectByType<ThirdPersonCamera>();
+                if(camera&&GameHud.Instance&&GameHud.Instance.Player)
+                {
+                    spectateUid=uid;camera.target=target;GameHud.Instance.Player.SetSpectating(true);
+                    yield break;
+                }
+            }
+            yield return null;
+        }
+        if(generation==spectateGeneration)
+            AdminLine("Não foi possível localizar o jogador para observar.");
+    }
+    void StopSpectating()
+    {
+        spectateGeneration++;
+        if(string.IsNullOrEmpty(spectateUid))return;
+        spectateUid=null;
+        var player=GameHud.Instance?GameHud.Instance.Player:null;
+        if(player)player.SetSpectating(false);
+        var camera=FindAnyObjectByType<ThirdPersonCamera>();
+        if(camera&&player){camera.target=player.transform;camera.ResetView();}
+    }
+    void AdminLine(string text)
+    {lines.Add(new ChatLine{text="[ADMIN] "+text,kind="admin"});TrimLines();Render();}
     public void Receive(ChatMessage message)
     {
         if(message==null)return;
         var existing=string.IsNullOrEmpty(message.messageId)?null:lines.Find(line=>line.id==message.messageId&&line.uid==message.uid);
         if(existing!=null&&existing.kind=="confirmed")return;
         string display=PlayerDisplayName.From(message.firstName,message.name);
+        string body=message.channel=="admin"?"[A] "+message.text:
+            message.channel=="announcement"?"[AVISO] "+message.text:message.text;
         ReceivedCount++;messageTexts.Add(message.text);if(messageTexts.Count>60)messageTexts.RemoveAt(0);
         if(existing!=null)
-        {existing.text=display+": "+message.text;existing.author=display;existing.body=message.text;existing.isAdmin=message.isAdmin;existing.kind="confirmed";Render();}
-        else {lines.Add(new ChatLine {text=display+": "+message.text,author=display,body=message.text,isAdmin=message.isAdmin,id=message.messageId,uid=message.uid,kind="confirmed"});TrimLines();Render();}
+        {existing.text=display+": "+body;existing.author=display;existing.body=body;existing.isAdmin=message.isAdmin;existing.kind="confirmed";Render();}
+        else {lines.Add(new ChatLine {text=display+": "+body,author=display,body=body,isAdmin=message.isAdmin,id=message.messageId,uid=message.uid,kind="confirmed"});TrimLines();Render();}
     }
     public bool HasMessage(string text)=>messageTexts.Contains(text);
     public void ResetHistory(){lines.RemoveAll(line=>!outgoingContains(line));messageTexts.Clear();ReceivedCount=0;SystemLine("Chat da sala · mensagens recentes");}
@@ -203,6 +255,8 @@ public sealed class InGameChat : MonoBehaviour
     void Update()
     {
         if(root==null)return;
+        if(!string.IsNullOrEmpty(spectateUid)&&(!MultiplayerWorld.Instance||
+            !MultiplayerWorld.Instance.TryGetRemoteByUid(spectateUid,out _)))StopSpectating();
         if(StartupLoader.IsLoading||AccountSession.InputBlocked){if(IsOpen)Close();return;}
         if(!IsOpen&&!GameHud.Instance.IsPanelOpen&&(Input.GetKeyDown(KeyCode.T)||Input.GetKeyDown(KeyCode.Return)))Open();
         else if(IsOpen&&Input.GetKeyDown(KeyCode.Escape))Close();
@@ -216,5 +270,5 @@ public sealed class InGameChat : MonoBehaviour
         if(IsOpen)SetKeyboardInset(TouchScreenKeyboard.visible?
             (TouchScreenKeyboard.area.height>0?TouchScreenKeyboard.area.height:Screen.height*.42f):0);
     }
-    void OnDestroy(){CloseKeyboard();if(Instance==this)Instance=null;}
+    void OnDestroy(){StopSpectating();CloseKeyboard();if(Instance==this)Instance=null;}
 }

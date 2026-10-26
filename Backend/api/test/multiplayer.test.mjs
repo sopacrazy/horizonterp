@@ -86,21 +86,53 @@ test('room chat is authenticated, Unicode bounded, ordered, deduplicated and rat
  now+=900001;assert.equal(room.sync(id(1),'s1',frame(101)).messages.length,0);
 });
 
-test('admin placeholders require server identity and never enter public chat',()=>{
- let now=1000;const room=createRoom({clock:()=>now});const admin={...id(1),accountRole:'admin',adminLevel:2};
+test('admin commands enforce levels, stay private and report missing systems',async()=>{
+ let now=1000;const room=createRoom({clock:()=>now,capacity:4});
+ const admin={...id(1),accountRole:'admin',adminLevel:3};
  room.sync(admin,'s1',frame());room.sync(id(2),'s2',frame());
- const body=text=>({clientId:frame().clientId,messageId:'22222222-2222-4222-8222-222222222222',text});
+ let number=0;
+ const body=text=>({clientId:frame().clientId,messageId:`00000000-0000-4000-8000-${String(++number).padStart(12,'0')}`,text});
  assert.throws(()=>room.chat(id(2),'s2',body('/goto 1')),e=>e.code==='ADMIN_ONLY');
- for(const cmd of ['a mensagem','ans','alist','inf 2','myastats','goto 2','mute 2 5 motivo','unmute 2','Muterep 2 5 motivo','Unmuterep 2','jail Nome 5 motivo','unjail Nome','re 2','reoff','kick 2 motivo']){
-  now+=1300;room.sync(admin,'s1',frame(now));
-  const result=room.chat(admin,'s1',body('/'+cmd));assert.equal(result.command.status,'not_implemented');assert.equal(result.message,undefined);
- }
+ now+=1300;
+ let reply=await room.chat(admin,'s1',body('/a segredo'));
+ assert.equal(reply.command.status,'ok');
  assert.equal(room.sync(id(2),'s2',frame(2)).messages.length,0);
- now+=1300;assert.throws(()=>room.chat({...admin,adminLevel:0},'s1',body('/a teste')),e=>e.code==='ADMIN_ONLY');
- now+=1300;assert.throws(()=>room.chat(admin,'s1',body('/desconhecido')),e=>e.code==='UNKNOWN_COMMAND');
+ const secondAdmin={...id(3),accountRole:'admin',adminLevel:1};
+ assert.equal(room.sync(secondAdmin,'s3',frame()).messages[0].text,'segredo');
+ now+=1300;
+ reply=await room.chat(admin,'s1',body('/goto 2'));
+ assert.equal(reply.command.status,'teleport');
+ assert.deepEqual([reply.command.x,reply.command.y,reply.command.z],[0,0,0]);
+ now+=1300;
+ reply=await room.chat(admin,'s1',body('/jail 2 5 motivo'));
+ assert.equal(reply.command.status,'not_implemented');
+ assert.match(reply.command.message,/Prisões/);
+ now+=1300;
+ reply=await room.chat(admin,'s1',body('/ahelp'));
+ assert.ok(reply.command.lines.some(line=>line.includes('/makeadmin')));
+ assert.ok(reply.command.lines.some(line=>line.includes('/speed')));
+ now+=1300;
+ assert.throws(()=>room.chat(secondAdmin,'s3',body('/ban 2 1 motivo')),e=>e.code==='ADMIN_LEVEL_REQUIRED');
 });
-
-test('admin chat tags come from authenticated identity, never from message fields',()=>{
+test('mute, teleport and invisibility affect only authorized room state',async()=>{
+ let now=1000;const room=createRoom({clock:()=>now,capacity:4});
+ const admin={...id(1),accountRole:'admin',adminLevel:3};
+ room.sync(admin,'s1',frame());room.sync(id(2),'s2',frame());
+ let number=0;const body=text=>({clientId:frame().clientId,messageId:`00000000-0000-4000-8000-${String(++number).padStart(12,'0')}`,text});
+ let reply=await room.chat(admin,'s1',body('/mute 2 5 comportamento'));
+ assert.equal(reply.command.status,'ok');
+ assert.throws(()=>room.chat(id(2),'s2',body('mensagem')),e=>e.code==='PLAYER_MUTED');
+ now+=1300;
+ reply=await room.chat(admin,'s1',body('/gethere 2'));
+ assert.equal(reply.command.status,'ok');
+ const incoming=room.sync(id(2),'s2',frame(2));
+ assert.ok(incoming.teleport.id>0);
+ assert.equal(room.sync(id(2),'s2',frame(3,{afterTeleport:incoming.teleport.id})).teleport,null);
+ now+=1300;
+ reply=await room.chat(admin,'s1',body('/inviz'));
+ assert.equal(reply.command.status,'ok');
+ assert.equal(room.sync(id(2),'s2',frame(4)).peers.length,0);
+});test('admin chat tags come from authenticated identity, never from message fields',()=>{
  let now=1000;const room=createRoom({clock:()=>now});
  const admin={...id(1),accountRole:'admin',adminLevel:2};
  room.sync(admin,'s1',frame());room.sync(id(2),'s2',frame());

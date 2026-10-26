@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
@@ -29,6 +30,22 @@ public class ThirdPersonPlayer : MonoBehaviour
     CharacterController controller;
     float verticalSpeed;
     public float CurrentSpeed { get; private set; }
+    public bool CombatLocked { get; set; }
+    int adminSpeedMultiplier = 1;
+    Coroutine teleportRoutine;
+    bool teleporting;
+    public bool IsTeleporting => teleporting;
+    public bool IsSpectating {get;private set;}
+    public int AdminSpeedMultiplier => HasAdminAccess ? adminSpeedMultiplier : 1;
+    bool HasAdminAccess => AccountSession.HasCharacter &&
+        AccountSession.Instance.State.accountRole == "admin" && AccountSession.Instance.State.adminLevel > 0;
+    public bool SetAdminSpeedMultiplier(int multiplier)
+    {
+        if (!HasAdminAccess || (multiplier != 1 && multiplier != 2 && multiplier != 4 &&
+            multiplier != 6 && multiplier != 8 && multiplier != 10 && multiplier != 12)) return false;
+        adminSpeedMultiplier = multiplier;
+        return true;
+    }
     public bool DemoMode { get; set; }
     public Vector2 DemoInput { get; set; }
     public bool DemoRun { get; set; }
@@ -45,6 +62,8 @@ public class ThirdPersonPlayer : MonoBehaviour
     {
         if(AccountSession.Instance)AccountSession.Instance.AttachPlayer(this);
         GameHud.Bootstrap();
+        HousePortal.Create(this);
+        TutorialJourney.Create(this);
         MobileControls.Create();
         MobilePerformance.Configure();
         MultiplayerWorld.Create(this);
@@ -52,9 +71,12 @@ public class ThirdPersonPlayer : MonoBehaviour
 
     void Update()
     {
-        if(StartupLoader.IsLoading || AccountSession.InputBlocked){jumpRequested=false;CurrentSpeed=0;animator.SetFloat("Speed",0);return;}
+        if (!HasAdminAccess) adminSpeedMultiplier = 1;
+        if(StartupLoader.IsLoading || AccountSession.InputBlocked || teleporting || IsSpectating)
+        {jumpRequested=false;CurrentSpeed=0;animator.SetFloat("Speed",0);return;}
         bool panelOpen=InGameChat.Editing||(GameHud.Instance && GameHud.Instance.IsPanelOpen);
         if(!DemoMode&&!panelOpen&&Input.GetKeyDown(KeyCode.Space))jumpRequested=true;
+        if(CombatLocked)jumpRequested=false;
         if(jumpRequested)
         {
             if(!panelOpen&&controller.isGrounded&&!IsJumping)
@@ -69,11 +91,12 @@ public class ThirdPersonPlayer : MonoBehaviour
         if(!DemoMode && MobileControls.HasTouches)input=MobileControls.Movement;
         input = Vector2.ClampMagnitude(input, 1);
         if (InGameChat.Editing||(!DemoMode && GameHud.Instance && GameHud.Instance.IsPanelOpen)) input=Vector2.zero;
-        bool run = DemoMode ? DemoRun : Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) || (GameHud.Instance && GameHud.Instance.SprintRequested);
+        if(CombatLocked)input=Vector2.zero;
+        bool run = DemoMode ? DemoRun : AdminSpeedMultiplier > 1 || Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift) || (GameHud.Instance && GameHud.Instance.SprintRequested);
         Vector3 forward = Vector3.ProjectOnPlane(cameraTransform.forward, Vector3.up).normalized;
         Vector3 right = Vector3.ProjectOnPlane(cameraTransform.right, Vector3.up).normalized;
         Vector3 direction = forward * input.y + right * input.x;
-        float speed = input.magnitude * (run ? runSpeed : walkSpeed);
+        float speed = input.magnitude * (run ? runSpeed * (DemoMode ? 1 : AdminSpeedMultiplier) : walkSpeed);
         if (direction.sqrMagnitude > .001f)
             transform.rotation = Quaternion.RotateTowards(transform.rotation,
                 Quaternion.LookRotation(direction), turnSpeed * Time.deltaTime);
@@ -119,9 +142,42 @@ public class ThirdPersonPlayer : MonoBehaviour
         if(GameHud.Instance)GameHud.Instance.NotifyRespawn();
     }
 
+    public void TeleportTo(Vector3 destination)
+    {
+        if(teleportRoutine!=null)StopCoroutine(teleportRoutine);
+        teleportRoutine=StartCoroutine(TeleportRoutine(destination,null));
+    }
+    public void TeleportTo(Vector3 destination,float yaw)
+    {
+        if(teleportRoutine!=null)StopCoroutine(teleportRoutine);
+        teleportRoutine=StartCoroutine(TeleportRoutine(destination,yaw));
+    }
+    IEnumerator TeleportRoutine(Vector3 destination,float? yaw)
+    {
+        teleporting=true;controller.enabled=false;
+        transform.position=destination;
+        if(yaw.HasValue)transform.rotation=Quaternion.Euler(0,yaw.Value,0);
+        verticalSpeed=0;IsJumping=false;jumpRequested=false;jumpLaunched=false;
+        animator.SetBool("Jumping",false);animator.SetFloat("Speed",0);
+        var streaming=FindAnyObjectByType<CitySectorStreaming>();
+        if(streaming)
+        {
+            streaming.RefreshNow();
+            float deadline=Time.realtimeSinceStartup+15f;
+            while(!streaming.Ready&&Time.realtimeSinceStartup<deadline)yield return null;
+        }
+        controller.enabled=true;verticalSpeed=-2f;teleporting=false;teleportRoutine=null;
+        if(GameHud.Instance)GameHud.Instance.NotifyRespawn();
+    }
+    public void SetSpectating(bool value)
+    {
+        IsSpectating=value;
+        if(!value)verticalSpeed=0;
+    }
+
     public void RequestJump()
     {
-        if(StartupLoader.IsLoading||AccountSession.InputBlocked||InGameChat.Editing||IsJumping||!IsGrounded||
+        if(StartupLoader.IsLoading||AccountSession.InputBlocked||InGameChat.Editing||CombatLocked||IsJumping||!IsGrounded||
             (GameHud.Instance&&GameHud.Instance.IsPanelOpen))return;
         jumpRequested=true;
     }

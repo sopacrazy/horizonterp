@@ -13,10 +13,14 @@ public static class AndroidSetup
     {
         HudSetup.Prepare();
         BrandingSetup.Prepare();
+#if UNITY_ANDROID
         string tools=Path.GetFullPath("../tools/android");
-        AndroidExternalToolsSettings.sdkRootPath=tools+"/SDK";
-        AndroidExternalToolsSettings.ndkRootPath=tools+"/NDK";
-        AndroidExternalToolsSettings.jdkRootPath=tools+"/OpenJDK";
+        string bundled=Path.Combine(Path.GetDirectoryName(EditorApplication.applicationPath),"Data/PlaybackEngines/AndroidPlayer");
+        string androidTools=Directory.Exists(Path.Combine(tools,"SDK")) ? tools : bundled;
+        AndroidExternalToolsSettings.sdkRootPath=Path.Combine(androidTools,"SDK");
+        AndroidExternalToolsSettings.ndkRootPath=Path.Combine(androidTools,"NDK");
+        AndroidExternalToolsSettings.jdkRootPath=Path.Combine(androidTools,"OpenJDK");
+#endif
         PlayerSettings.companyName="Adriano";
         PlayerSettings.productName="Horizonte";
         GameVersionBuildSetup.Apply();

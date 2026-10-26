@@ -46,7 +46,9 @@ public static class BrandingSetup
         PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android,AndroidIdentifier);
         SetApplicationIcons(NamedBuildTarget.Unknown,icon);
         // Unity 6.6 supports adaptive Android icons; launchers apply their own round/square mask.
+#if UNITY_ANDROID
         SetAndroidIcons(AndroidPlatformIconKind.Adaptive,adaptiveIcon);
+#endif
         AssetDatabase.SaveAssets();
         VerifyConfiguration();
         Debug.Log("HORIZONTE_BRANDING_READY");
@@ -118,7 +120,9 @@ public static class BrandingSetup
         Require(defaults.Length>0&&defaults.All(texture=>texture==icon),"Icones padrao usam o logo ("+defaults.Length+" slots)");
         var adaptiveIcon=AssetDatabase.LoadAssetAtPath<Texture2D>(AdaptiveIconAssetPath);
         Require(adaptiveIcon&&adaptiveIcon.width==1024&&adaptiveIcon.height==1024,"Adaptive preserva a arte original centralizada em 66% da tela para a area segura");
+#if UNITY_ANDROID
         VerifyAndroidIcons(AndroidPlatformIconKind.Adaptive,"Adaptive",adaptiveIcon,Require,report);
+#endif
         report.Add("Resultado: HORIZONTE_BRANDING_VERIFIED");
         string reportPath=Path.GetFullPath(Path.Combine(ProjectRoot,"../tools/branding-validation.txt"));
         Directory.CreateDirectory(Path.GetDirectoryName(reportPath));File.WriteAllLines(reportPath,report);

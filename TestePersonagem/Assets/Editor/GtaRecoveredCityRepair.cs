@@ -30,13 +30,19 @@ public static class GtaRecoveredCityRepair
         var removed = 0; var replaced = 0; var cloned = 0; var colliderCount = 0;
         foreach (var renderer in root.GetComponentsInChildren<MeshRenderer>().ToArray())
         {
-            var name = renderer.name.ToLowerInvariant();
-            // The exported demo also contains abandoned car parts, UI planes and display props.
-            if (!name.StartsWith("sc1") && !name.StartsWith("sc11") && !name.StartsWith("sc12"))
-            { Object.DestroyImmediate(renderer.gameObject); removed++; continue; }
             var filter = renderer.GetComponent<MeshFilter>();
             if (!filter || !filter.sharedMesh) { Object.DestroyImmediate(renderer.gameObject); removed++; continue; }
             var mesh = filter.sharedMesh;
+            var name = renderer.name.ToLowerInvariant();
+            // The exported demo also contains abandoned car parts, UI planes and display props.
+            // Some genuine city meshes were exported as Build, Church and Apartment.
+            if (!name.StartsWith("sc1") && !mesh.name.StartsWith("sc1", StringComparison.OrdinalIgnoreCase))
+            { Object.DestroyImmediate(renderer.gameObject); removed++; continue; }
+            if (!name.StartsWith("sc1"))
+            {
+                renderer.gameObject.name = mesh.name;
+                name = mesh.name.ToLowerInvariant();
+            }
             var original = renderer.sharedMaterials;
             var result = new Material[mesh.subMeshCount];
             for (int slot = 0; slot < result.Length; slot++)

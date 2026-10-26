@@ -37,6 +37,10 @@ public sealed class HudIcon : VisualElement
                 p.LineTo(Point(17,11));p.LineTo(Point(21,7));p.LineTo(Point(19,18));p.LineTo(Point(5,18));p.ClosePath();p.Fill();p.Stroke();
                 Line(5,21,19,21);break;
             case "menu": Box(3,3,7,7);Box(14,3,7,7);Box(3,14,7,7);Box(14,14,7,7);break;
+            case "bag": Box(4,8,16,13);Line(8,8,8,5,10,3,14,3,16,5,16,8);Line(8,12,8,15);Line(16,12,16,15);break;
+            case "wallet": Box(3,6,18,14);Line(3,10,21,10);Box(14,12,7,5);Circle(17,14.5f,.5f);break;
+            case "phone": Box(7,2,10,20);Line(10,5,14,5);Circle(12,19,.6f);break;
+            case "list": Box(4,3,16,18);Line(8,8,17,8);Line(8,12,17,12);Line(8,16,15,16);break;
             case "person": Circle(12,7,3.5f);Line(4,21,4,18,7,14,17,14,20,18,20,21);break;
             case "map": Line(3,5,9,3,15,6,21,3,21,19,15,22,9,19,3,21,3,5);Line(9,3,9,19);Line(15,6,15,22);break;
             case "run": Circle(16,4,2);Line(4,10,9,8,14,10,17,14,21,14);Line(14,10,11,15,15,20,18,21);Line(11,15,7,20,3,20);break;

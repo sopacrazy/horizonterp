@@ -28,8 +28,6 @@ public sealed class GameHud : MonoBehaviour
     Label avatarLabel,playerNameLabel,uidLabel,speedLabel,motionLabel,coordinates,clock,heading,drawerTitle,toastLabel,cloudSaveLabel;
     Label distanceMetric,timeMetric,topSpeedMetric;
     Button sprint;
-    Button adminButton;
-    bool HasAdminAccess=>AccountSession.HasCharacter&&AccountSession.Instance.State.accountRole=="admin"&&AccountSession.Instance.State.adminLevel>0;
     HudIcon miniMarker,mapMarker;
     Image sprintArtwork;
     Label levelLabel,cashLabel,dateLabel,healthLabel,energyLabel,waterLabel;
@@ -94,6 +92,10 @@ public sealed class GameHud : MonoBehaviour
         button.Add(new HudIcon(icon));return button;
     }
     void Block(VisualElement e)=>pointerBlockers.Add(e);
+    public void RegisterPointerBlocker(VisualElement element)
+    {
+        if(element!=null&&!pointerBlockers.Contains(element))pointerBlockers.Add(element);
+    }
 
     Button AtlasButton(string asset,string css,string tooltip,Action action,VisualElement parent)
     {
@@ -138,17 +140,14 @@ public sealed class GameHud : MonoBehaviour
         AtlasButton("h2_phone","h2-nav-button","Celular",()=>OpenPanel("phone"),nav).name="nav-phone";
         var top=Element("h2-top");Block(top);
         var rewards=AtlasButton("h2_rewards","h2-top-button","Recompensas ainda indisponíveis",()=>{},top);rewards.SetEnabled(false);
-        var inventory=AtlasButton("h2_inventory","h2-top-button","Inventário ainda indisponível",()=>{},top);inventory.name="atlas-inventory";inventory.SetEnabled(false);
+        var inventory=AtlasButton("h2_inventory","h2-top-button","Inventário",()=>OpenPanel("inventory"),top);inventory.name="atlas-inventory";
         var store=AtlasButton("h2_store","h2-top-button","Loja ainda indisponível",()=>{},top);store.SetEnabled(false);
         var tools=Element("h2-tools");Block(tools);
-        adminButton=IconButton("admin","h2-admin","Administração de jogadores",()=>AdminPlayerPanel.Open(this),tools);adminButton.name="action-admin";
-        ((HudIcon)adminButton[0]).SetInk(new Color(1,.8f,.22f));Text("ADMIN","h2-admin-caption",adminButton);
-        adminButton.style.display=HasAdminAccess?DisplayStyle.Flex:DisplayStyle.None;
         var microphone=AtlasButton("h2_microphone","h2-microphone","Chat de voz ainda indisponível",()=>{},tools);microphone.SetEnabled(false);
         AtlasButton("h2_camera","h2-camera","Centralizar câmera [C]",()=>TriggerAction("camera"),tools).name="action-camera";
 
         var actions=Element("h2-actions");Block(actions);
-        AtlasButton("h2_fist","h2-fist","Ações do personagem",()=>OpenPanel("actions"),actions).name="action-list";
+        AtlasButton("h2_fist","h2-fist","Soco [F]",()=>TriggerAction("attack"),actions).name="action-list";
         sprint=AtlasButton("h2_sprint","h2-sprint","Ativar/desativar corrida [Shift]",()=>TriggerAction("sprint"),actions);
         sprint.AddToClassList("sprint-button");sprint.name="action-sprint";sprintArtwork=(Image)sprint[0];
         var jump=IconButton("jump","h2-jump","Pular [Espaço]",()=>TriggerAction("jump"),root);jump.name="action-jump";Block(jump);
@@ -181,6 +180,8 @@ public sealed class GameHud : MonoBehaviour
         SetVisible(true);
         if(CurrentPanel==panel){ClosePanel();return;}
         CurrentPanel=panel;drawer.style.display=DisplayStyle.Flex;
+        drawer.EnableInClassList("menu-home",panel=="menu");
+        root.EnableInClassList("menu-home-open",panel=="menu");
         root.AddToClassList("hud-panel-open");
         root.Q("hud-compass").style.display=DisplayStyle.None;
         root.Q("hud-motion").style.display=DisplayStyle.None;
@@ -188,13 +189,16 @@ public sealed class GameHud : MonoBehaviour
         switch(panel)
         {
             case "menu":
-                drawerTitle.text="Menu";
-                Text("Seu espaço para explorar.","panel-description",content);
-                MenuItem("person","Personagem","Seu nome e dados da sessão",()=>OpenPanel("player"));
-                MenuItem("map","Mapa da área","Veja sua posição no cenário",()=>OpenPanel("map"));
-                MenuItem("settings","Configurações","Ajuste a câmera do seu jeito",()=>OpenPanel("settings"));
-                MenuItem("help","Como jogar","Teclas e ações disponíveis",()=>OpenPanel("help"));
-                if(AccountSession.Authenticated)MenuItem("close","Salvar e sair","Guardar progresso e voltar ao login",()=>AccountSession.Instance.Logout());
+                drawerTitle.text="Central Horizonte";
+                BuildHomeMenu();
+                break;
+            case "inventory":
+                drawerTitle.text="Inventário";
+                Text("Documentos de teste conquistados no tutorial.","panel-description",content);
+                var documents=TutorialJourney.Instance;
+                if(documents&&documents.HasRG)Metric("RG","Emitido na Prefeitura (teste)");
+                if(documents&&documents.HasCNH)Metric("CNH","Emitida na Autoescola (teste)");
+                if(!documents||!documents.HasRG)Text("NENHUM DOCUMENTO AINDA","inventory-empty",content);
                 break;
             case "session":
                 drawerTitle.text="Sua sessão";
@@ -203,8 +207,10 @@ public sealed class GameHud : MonoBehaviour
                 break;
             case "wallet":
                 drawerTitle.text="Carteira";
-                Text("Seus ganhos aparecerão aqui.","panel-description",content);
-                Metric("Saldo disponível","R$ "+player.Cash.ToString("N0"));
+                Text("Moedas e doações do tutorial valem apenas nesta sessão de teste.","panel-description",content);
+                Metric("Saldo da conta","R$ "+player.Cash.ToString("N0"));
+                Metric("HZ Coins de teste",(TutorialJourney.Instance?TutorialJourney.Instance.DemoCoins:0).ToString("N0"));
+                Metric("Doações de teste","R$ "+(TutorialJourney.Instance?TutorialJourney.Instance.DemoDonations:0).ToString("N0"));
                 break;
             case "phone":
                 drawerTitle.text="Celular";
@@ -218,6 +224,7 @@ public sealed class GameHud : MonoBehaviour
                 break;
             case "actions":
                 drawerTitle.text="Ações";
+                MenuItem("help","Soco","Um soco por clique",()=>{ClosePanel();TriggerAction("attack");});
                 MenuItem("camera","Centralizar câmera","Olhar na direção do personagem",()=>{TriggerAction("camera");ClosePanel();});
                 MenuItem("reset","Voltar ao início","Retornar ao ponto de partida",()=>TriggerAction("reset"));
                 MenuItem("help","Controles","Ver todas as teclas",()=>OpenPanel("help"));
@@ -255,7 +262,7 @@ public sealed class GameHud : MonoBehaviour
                 drawerTitle.text="Como jogar";
                 Help("ESPAÇO","Pular (também disponível no botão de pulo)");
                 Text("Explore no seu ritmo.","panel-description",content);
-                Help("W A S D","Andar pelo cenário");Help("SHIFT","Correr enquanto segura");Help("MOUSE","Arrastar para girar a câmera");Help("RODA","Aproximar ou afastar");Help("C / R","Câmera / voltar ao início");Help("N","Alternar dia e noite");Help("TAB / M","Menu / mapa");Help("P / H","Perfil / ocultar interface");Help("ESC","Fechar um menu");
+                Help("W A S D","Andar pelo cenário");Help("SHIFT","Correr enquanto segura");Help("F / PUNHO","Um soco por clique");Help("MOUSE","Arrastar para girar a câmera");Help("RODA","Aproximar ou afastar");Help("C / R","Câmera / voltar ao início");Help("N","Alternar dia e noite");Help("TAB / M","Menu / mapa");Help("P / H","Perfil / ocultar interface");Help("ESC","Fechar um menu");
                 break;
             default: ClosePanel();break;
         }
@@ -266,6 +273,36 @@ public sealed class GameHud : MonoBehaviour
         var button=IconButton(icon,"menu-item",title,action,content);
         var text=new VisualElement{pickingMode=PickingMode.Ignore};button.Add(text);
         Text(title,"item-title",text);Text(description,"item-description",text);
+    }
+    void BuildHomeMenu()
+    {
+        var introduction=Element("home-intro",content);
+        Text("PAINEL DE ACESSO","home-kicker",introduction);
+        Text("Para onde vamos agora?","home-headline",introduction);
+        Text("Escolha uma área para continuar sua jornada.","home-subtitle",introduction);
+        var scroll=new ScrollView(ScrollViewMode.Vertical);scroll.AddToClassList("home-scroll");content.Add(scroll);
+        var grid=Element("home-grid",scroll);
+        HomeTile(grid,"person","Personagem","PERFIL",()=>OpenPanel("player"));
+        HomeTile(grid,"bag","Inventário","ITENS",()=>OpenPanel("inventory"));
+        HomeTile(grid,"map","Mapa e GPS","EXPLORAR",()=>OpenPanel("map"));
+        HomeTile(grid,"run","Ações","PERSONAGEM",()=>OpenPanel("actions"));
+        HomeTile(grid,"list","Minha sessão","PROGRESSO",()=>OpenPanel("session"));
+        HomeTile(grid,"wallet","Carteira","SALDO",()=>OpenPanel("wallet"));
+        HomeTile(grid,"phone","Celular","ATALHOS",()=>OpenPanel("phone"));
+        HomeTile(grid,"settings","Configurações","AJUSTES",()=>OpenPanel("settings"));
+        HomeTile(grid,"help","Como jogar","CONTROLES",()=>OpenPanel("help"));
+        var footer=Element("home-footer",content);
+        Text("HORIZONTE 02","home-footer-brand",footer);
+        Text("EXPLORE  •  DESCUBRA  •  EVOLUA","home-footer-copy",footer);
+    }
+    void HomeTile(VisualElement parent,string icon,string title,string category,Action action)
+    {
+        var tile=new Button(action){name="home-"+icon,tooltip=title};tile.AddToClassList("home-tile");parent.Add(tile);
+        var top=Element("home-tile-top",tile);
+        var badge=Element("home-tile-badge",top);badge.Add(new HudIcon(icon));
+        Text(category,"home-tile-category",top);
+        Text(title,"home-tile-title",tile);
+        Element("home-tile-accent",tile);
     }
     Label Metric(string title,string value)
     {
@@ -304,6 +341,8 @@ public sealed class GameHud : MonoBehaviour
         if(AdminPlayerPanel.Instance&&AdminPlayerPanel.Instance.IsOpen&&AdminPlayerPanel.Instance.Busy)return;
         AdminPlayerPanel.Instance?.Close();
         CurrentPanel=null;drawer.style.display=DisplayStyle.None;
+        drawer.RemoveFromClassList("menu-home");
+        root.RemoveFromClassList("menu-home-open");
         root.RemoveFromClassList("hud-panel-open");
         root.Q("hud-compass").style.display=DisplayStyle.Flex;
         root.Q("hud-motion").style.display=DisplayStyle.None;
@@ -313,6 +352,7 @@ public sealed class GameHud : MonoBehaviour
     {
         switch(action)
         {
+            case "attack": player.GetComponent<FighterCombo>()?.Trigger();break;
             case "sprint": SprintRequested=!SprintRequested;ShowToast(SprintRequested?"Corrida ativada · mova-se para correr":"Modo caminhada ativado");break;
             case "jump": player.RequestJump();break;
             case "camera": orbit.ResetView();ShowToast("Câmera centralizada");break;
@@ -344,6 +384,7 @@ public sealed class GameHud : MonoBehaviour
     public bool BlocksPointer(Vector2 screen)
     {
         if(InGameChat.BlocksPointer(screen))return true;
+        if(TutorialJourney.Instance&&TutorialJourney.Instance.BlocksPointer(screen))return true;
         if(!visible||root.panel==null)return false;
         Vector2 point=RuntimePanelUtils.ScreenToPanel(root.panel,new Vector2(screen.x,Screen.height-screen.y));
         foreach(var e in pointerBlockers)
@@ -370,7 +411,6 @@ public sealed class GameHud : MonoBehaviour
     void Update()
     {
         if(!player)return;
-        if(adminButton!=null)adminButton.style.display=HasAdminAccess?DisplayStyle.Flex:DisplayStyle.None;
         root.style.visibility=StartupLoader.IsLoading||CityEntryLoading.Active||
             (AccountSession.Instance&&AccountSession.Instance.AuthVisible)?Visibility.Hidden:Visibility.Visible;
         root.SetEnabled(!StartupLoader.IsLoading && !AccountSession.InputBlocked);
@@ -392,18 +432,21 @@ public sealed class GameHud : MonoBehaviour
         lastPosition=player.transform.position;TopSpeed=Mathf.Max(TopSpeed,player.CurrentSpeed);
         speedLabel.text=player.CurrentSpeed.ToString("0.0");
         motionLabel.text=player.IsJumping?"PULANDO":player.CurrentSpeed<.15f?"PARADO":player.CurrentSpeed<2.4f?"CAMINHANDO":"CORRENDO";
-        speedFill.style.width=Length.Percent(Mathf.Clamp01(player.CurrentSpeed/player.runSpeed)*100);
+        speedFill.style.width=Length.Percent(Mathf.Clamp01(player.CurrentSpeed/(player.runSpeed*player.AdminSpeedMultiplier))*100);
         bool running=player.CurrentSpeed>2.4f||SprintRequested||Input.GetKey(KeyCode.LeftShift)||Input.GetKey(KeyCode.RightShift);
         sprint.EnableInClassList("active",running);sprintArtwork.style.opacity=running?1:.9f;
         levelLabel.text="LVL "+player.Level+" | EXP "+Mathf.RoundToInt(player.Experience)+"/100";
-        cashLabel.text=player.Cash.ToString("N0",System.Globalization.CultureInfo.GetCultureInfo("pt-BR"));
+        cashLabel.text=(player.Cash+(TutorialJourney.Instance?TutorialJourney.Instance.DemoDonations:0))
+            .ToString("N0",System.Globalization.CultureInfo.GetCultureInfo("pt-BR"));
         xpFill.style.width=Length.Percent(Mathf.Clamp01(player.Experience/100f)*100);
         healthFill.style.width=Length.Percent(Mathf.Clamp(player.Health,0,100));healthLabel.text=Mathf.RoundToInt(player.Health).ToString();
         if(cloudSaveLabel!=null && AccountSession.Instance)cloudSaveLabel.text=AccountSession.Instance.SaveStatus;
         energyFill.style.width=Length.Percent(Mathf.Clamp(player.Hunger,0,100));energyLabel.text=Mathf.RoundToInt(player.Hunger).ToString();
         waterFill.style.width=Length.Percent(Mathf.Clamp(player.Hydration,0,100));waterLabel.text=Mathf.RoundToInt(player.Hydration).ToString();
         var pos=player.transform.position;if(coordinates!=null)coordinates.text=$"X {pos.x:0.0}    /    Z {pos.z:0.0}";
-        if(clock!=null)clock.text=DateTime.Now.ToString("HH:mm");if(dateLabel!=null)dateLabel.text=DateTime.Now.ToString("dd/MM/yyyy");
+        int serverHour=MultiplayerWorld.Instance?MultiplayerWorld.Instance.ServerHour:-1;
+        if(clock!=null)clock.text=serverHour>=0?serverHour.ToString("D2")+":00":DateTime.Now.ToString("HH:mm");
+        if(dateLabel!=null)dateLabel.text=DateTime.Now.ToString("dd/MM/yyyy");
         float yaw=Mathf.Repeat(orbit.yaw,360);
         string direction=yaw<22.5f||yaw>=337.5f?"N":yaw<67.5f?"NE":yaw<112.5f?"L":yaw<157.5f?"SE":yaw<202.5f?"S":yaw<247.5f?"SO":yaw<292.5f?"O":"NO";
         heading.text=direction+"  ·  "+Mathf.RoundToInt(yaw).ToString("D3")+"°";

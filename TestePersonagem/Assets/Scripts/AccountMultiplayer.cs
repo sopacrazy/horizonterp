@@ -20,21 +20,30 @@ using UnityEngine.Networking;
     public float x,y,z,yaw,speed,jumpPhase;
     public bool jumping;
 }
-[Serializable] public class AdminCommandReply { public string name,status,message; }
+[Serializable] public class AdminCommandReply
+{
+    public string name,status,message,uid;
+    public string[] lines;
+    public int value;
+    public float x,y,z;
+}
+[Serializable] public class AdminTeleport {public int id;public float x,y,z;}
 [Serializable] public class MultiplayerReply
 {
     public string room,error,code,chatEpoch;
-    public int capacity,count,sequence;
+    public int capacity,count,sequence,serverHour;
+    public bool hourOverride;
     public long serverTime;
     public MultiplayerPeer[] peers;
     public ChatMessage[] messages;
     public ChatMessage message;
     public AdminCommandReply command;
+    public AdminTeleport teleport;
 }
 [Serializable] public class ChatMessage
 {
     public int id;
-    public string messageId,uid,name,firstName,text;
+    public string messageId,uid,name,firstName,text,channel;
     public bool isAdmin;
     public long sentAt;
 }
@@ -57,7 +66,7 @@ public sealed partial class AccountSession
             MultiplayerReply reply=null;
             try{reply=JsonUtility.FromJson<MultiplayerReply>(request.downloadHandler.text);}catch{}
             if(request.result!=UnityWebRequest.Result.Success&&string.IsNullOrEmpty(reply?.code))
-                reply=new MultiplayerReply {code="CONNECTION_LOST"};
+                reply=new MultiplayerReply {code="CONNECTION_LOST",error=request.error};
             if(request.responseCode==401)reply=new MultiplayerReply {code="UNAUTHORIZED"};
             if(request.responseCode==401||reply?.code=="CHARACTER_BLOCKED")InvalidateSession(reply?.error??"Sua sessão foi encerrada. Entre novamente.");
             done(reply);

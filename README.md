@@ -30,6 +30,7 @@ No Windows, `AbrirProjeto.bat` abre o projeto na instalação padrão do editor.
 - Cadastro e login, separação entre conta e personagem e salvamento de progresso.
 - Sala experimental com dez vagas, sincronização de movimento e chat. Bots automáticos desativados.
 - Tipos de conta e nível administrativo. Os comandos administrativos são apenas placeholders: suas ações ainda não são executadas.
+- Modo de velocidade para administradores: no painel ADMIN, toque em **Velocidade** e escolha x2, x4, x6, x8, x10 ou x12. A opção x1 volta à velocidade normal; o modo rápido é desativado ao perder o acesso de administrador.
 - Chat com eco local imediato e destaque verde para comandos administrativos.
 - A partir da 0.5.0: versão no HUD/loading e atualização Android pelo GitHub Releases, com confirmação de instalação pelo Android.
 

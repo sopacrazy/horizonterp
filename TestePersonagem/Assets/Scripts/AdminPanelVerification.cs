@@ -5,102 +5,83 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-// Explicit offline fixture only; no real player is promoted or blocked by these tests.
+// Offline fixture checks the read-only roster opened by /apanel.
 internal static class AdminPanelVerification
 {
-    static readonly List<AdminPlayer> rows=new List<AdminPlayer>();
+    static readonly List<AdminPlayer> rows = new List<AdminPlayer>();
     static int mutations;
-    static IEnumerator Settle(Func<bool> ready)
-    {float deadline=Time.realtimeSinceStartup+3;while(!ready()&&Time.realtimeSinceStartup<deadline)yield return null;}
-    static void Press(Button button){button.Focus();using(var evt=NavigationSubmitEvent.GetPooled())button.SendEvent(evt);}
-    static IEnumerator Reply(string method,string path,string json,Action<AdminReply> done)
+    static IEnumerator Reply(string method, string path, string json, Action<AdminReply> done)
     {
         yield return new WaitForSecondsRealtime(.05f);
-        var state=AccountSession.Instance.State;
-        if(state.accountRole!="admin"){done(new AdminReply{code="ADMIN_REQUIRED",error="Acesso exclusivo da administração."});yield break;}
-        if(method=="GET")
-        {
-            string q="";foreach(var part in new Uri("https://fixture.invalid"+path).Query.TrimStart('?').Split('&'))
-                if(part.StartsWith("q="))q=Uri.UnescapeDataString(part.Substring(2));
-            var found=rows.Where(p=>string.IsNullOrEmpty(q)||p.uid==q||p.firstName.IndexOf(q,StringComparison.OrdinalIgnoreCase)>=0).ToArray();
-            foreach(var player in found)player.canManage=!player.isSelf&&player.adminLevel<state.adminLevel;
-            done(new AdminReply{players=found.Select(p=>JsonUtility.FromJson<AdminPlayer>(JsonUtility.ToJson(p))).ToArray(),total=found.Length,pageSize=25,viewerAdminLevel=state.adminLevel});
-        }
-        else
-        {
-            var player=rows.First(p=>path.EndsWith("/"+p.uid));var action=JsonUtility.FromJson<AdminAction>(json);
-            if(player.isSelf||player.adminLevel>=state.adminLevel){done(new AdminReply{code="ADMIN_HIERARCHY",error="Nível protegido."});yield break;}
-            mutations++;
-            if(action.action=="set_admin"){player.adminLevel=action.adminLevel;player.accountRole=player.adminLevel>0?"admin":"user";}
-            else player.blocked=action.action=="block";
-            done(new AdminReply{player=player});
-        }
+        if (method != "GET") { mutations++; done(new AdminReply { code = "READ_ONLY", error = "Use o chat." }); yield break; }
+        string query = "";
+        foreach (var part in new Uri("https://fixture.invalid" + path).Query.TrimStart('?').Split('&'))
+            if (part.StartsWith("q=")) query = Uri.UnescapeDataString(part.Substring(2));
+        var found = rows.Where(p => string.IsNullOrEmpty(query) || p.uid == query ||
+            p.firstName.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0).ToArray();
+        done(new AdminReply { players = found, total = found.Length, pageSize = 25,
+            viewerAdminLevel = AccountSession.Instance.State.adminLevel });
     }
-    internal static IEnumerator Run(Func<bool,string,bool> check,Func<string,bool,IEnumerator> capture,Action<string,int> setRole)
+    static void Press(Button button)
     {
-        var state=AccountSession.Instance.State;string oldRole=state.accountRole;int oldLevel=state.adminLevel;
-        setRole("admin",2);rows.Clear();mutations=0;
-        rows.Add(new AdminPlayer{uid=state.uid,characterId=state.characterId,firstName=state.firstName,adminLevel=2,accountRole="admin",isSelf=true});
-        foreach(var value in new[]{("42","Lucas",0),("43","Marina",0),("44","Ribeiro",2),("45","Helena",3)})
-            rows.Add(new AdminPlayer{uid=value.Item1,characterId=Guid.NewGuid().ToString(),firstName=value.Item2,adminLevel=value.Item3,accountRole=value.Item3>0?"admin":"user"});
-        AccountSession.AdminVerificationTransport=Reply;
+        button.Focus();
+        using (var evt = NavigationSubmitEvent.GetPooled()) button.SendEvent(evt);
+    }
+    internal static IEnumerator Run(Func<bool, string, bool> check,
+        Func<string, bool, IEnumerator> capture, Action<string, int> setRole)
+    {
+        var state = AccountSession.Instance.State;
+        string oldRole = state.accountRole;
+        int oldLevel = state.adminLevel;
+        setRole("admin", 2);
+        rows.Clear();
+        mutations = 0;
+        rows.Add(new AdminPlayer { uid = state.uid, firstName = state.firstName,
+            adminLevel = 2, accountRole = "admin", isSelf = true });
+        rows.Add(new AdminPlayer { uid = "42", firstName = "Lucas" });
+        rows.Add(new AdminPlayer { uid = "43", firstName = "Marina" });
+        AccountSession.AdminVerificationTransport = Reply;
         try
         {
-            yield return null;var ui=GameHud.Instance.Root;Press(ui.Q<Button>("action-admin"));yield return new WaitForSecondsRealtime(.3f);
-            check(AdminPlayerPanel.Instance&&AdminPlayerPanel.Instance.IsOpen&&GameHud.Instance.IsPanelOpen,"Coroa abre modal administrativo e bloqueia controles do jogo");
-            check(ui.Q("admin-row-42")!=null&&ui.Q("admin-row-43")!=null,"Tabela administrativa carrega jogadores da API simulada");
-            check(!ui.Q<Button>("admin-role-"+state.uid).enabledInHierarchy&&!ui.Q<Button>("admin-role-44").enabledInHierarchy&&!ui.Q<Button>("admin-role-45").enabledInHierarchy,"Própria conta e níveis iguais ou superiores ficam protegidos");
-            foreach(var resolution in new[]{new Vector2Int(960,540),new Vector2Int(1280,720),new Vector2Int(1600,720)})
-            {
-                Screen.SetResolution(resolution.x,resolution.y,FullScreenMode.Windowed);yield return new WaitForSecondsRealtime(.5f);
-                var panel=ui.Q(className:"admin-modal").worldBound;var bounds=ui.worldBound;
-                check(panel.xMin>=bounds.xMin&&panel.xMax<=bounds.xMax&&panel.yMin>=bounds.yMin&&panel.yMax<=bounds.yMax,"Modal dentro da tela em "+resolution.x+"x"+resolution.y);
-                yield return capture("admin-table-"+resolution.x+"x"+resolution.y,false);
-            }
-            Screen.SetResolution(1280,720,FullScreenMode.Windowed);yield return new WaitForSecondsRealtime(.3f);
-            Press(ui.Q<Button>("admin-player-42"));
             yield return null;
-            check(ui.Q("admin-actions-card")!=null&&!ui.Q(className:"admin-modal").enabledInHierarchy,"Selecionar jogador abre outro modal e bloqueia a tabela ao fundo");
-            check(new[]{"inf","goto","mute","unmute","muterep","unmuterep","jail","unjail","re","kick"}.All(c=>ui.Q<Button>("admin-command-"+c)!=null),"Modal do jogador reúne todos os dez comandos com alvo");
-            foreach(var resolution in new[]{new Vector2Int(960,540),new Vector2Int(1280,720),new Vector2Int(1600,720)})
+            AdminPlayerPanel.Open(GameHud.Instance);
+            yield return new WaitForSecondsRealtime(.3f);
+            var ui = GameHud.Instance.Root;
+            check(AdminPlayerPanel.Instance && AdminPlayerPanel.Instance.IsOpen &&
+                GameHud.Instance.IsPanelOpen, "/apanel abre a lista de jogadores");
+            check(ui.Q("admin-row-42") != null && ui.Q("admin-row-43") != null,
+                "Lista carrega jogadores da API simulada");
+            check(ui.Q("admin-actions-card") == null && ui.Q("admin-command-preview") == null &&
+                ui.Q<Button>("admin-role-42") == null && ui.Q<Button>("admin-block-43") == null,
+                "Painel não oferece comandos nem ações administrativas");
+            foreach (var resolution in new[] { new Vector2Int(960, 540),
+                new Vector2Int(1280, 720), new Vector2Int(1600, 720) })
             {
-                Screen.SetResolution(resolution.x,resolution.y,FullScreenMode.Windowed);yield return new WaitForSecondsRealtime(.3f);
-                var cardBounds=ui.Q("admin-actions-card").worldBound;var screenBounds=ui.worldBound;
-                check(cardBounds.xMin>=screenBounds.xMin&&cardBounds.xMax<=screenBounds.xMax&&cardBounds.yMin>=screenBounds.yMin&&cardBounds.yMax<=screenBounds.yMax,"Modal de ações dentro da tela em "+resolution.x+"x"+resolution.y);
-                yield return capture("admin-player-actions-"+resolution.x+"x"+resolution.y,false);
+                Screen.SetResolution(resolution.x, resolution.y, FullScreenMode.Windowed);
+                yield return new WaitForSecondsRealtime(.5f);
+                var panel = ui.Q(className: "admin-modal").worldBound;
+                var bounds = ui.worldBound;
+                check(panel.xMin >= bounds.xMin && panel.xMax <= bounds.xMax &&
+                    panel.yMin >= bounds.yMin && panel.yMax <= bounds.yMax,
+                    "Lista dentro da tela em " + resolution.x + "x" + resolution.y);
+                yield return capture("admin-table-" + resolution.x + "x" + resolution.y, false);
             }
-            Screen.SetResolution(1280,720,FullScreenMode.Windowed);yield return new WaitForSecondsRealtime(.3f);
-            yield return capture("admin-player-actions",false);
-            Press(ui.Q<Button>("admin-command-mute"));yield return null;
-            check(ui.Q<Label>("admin-command-preview").text.Contains("/mute 42 [MINUTOS] [MOTIVO]")&&!ui.Q<Button>("admin-command-execute").enabledInHierarchy&&mutations==0,"Comando usa ID do alvo e informa indisponibilidade sem enviar ações falsas");
-            yield return capture("admin-command-details",false);
-            Press(ui.Q<Button>("admin-command-back"));yield return null;Press(ui.Q<Button>("admin-detail-general"));yield return null;
-            check(new[]{"a","ans","alist","myastats","reoff"}.All(c=>ui.Q<Button>("admin-command-"+c)!=null)&&ui.Q<Button>("admin-command-kick")==null,"Comandos gerais ficam separados das ações sobre o jogador");
-            Press(ui.Q<Button>("admin-actions-close"));yield return null;
-            Press(ui.Q<Button>("admin-player-44"));
+            var search = ui.Q<TextField>("admin-search");
+            search.value = "43";
+            yield return new WaitForSecondsRealtime(.55f);
+            check(ui.Q("admin-row-43") != null && ui.Q("admin-row-42") == null,
+                "Pesquisa por ID filtra a lista");
+            check(mutations == 0, "Painel não enviou alterações");
+            Press(ui.Q<Button>("admin-close"));
             yield return null;
-            check(!ui.Q<Button>("admin-detail-role").enabledInHierarchy&&!ui.Q<Button>("admin-detail-block").enabledInHierarchy,"Modal de nível protegido não permite alterar cargo ou bloquear");
-            Press(ui.Q<Button>("admin-actions-close"));yield return null;
-            var search=ui.Q<TextField>("admin-search");search.value="43";yield return new WaitForSecondsRealtime(.55f);
-            check(ui.Q("admin-row-43")!=null&&ui.Q("admin-row-42")==null,"Pesquisa por ID filtra o jogador correto");
-            search.value="Lucas";yield return new WaitForSecondsRealtime(.55f);
-            check(ui.Q("admin-row-42")!=null&&ui.Q("admin-row-43")==null,"Pesquisa por primeiro nome filtra corretamente");
-            Press(ui.Q<Button>("admin-role-42"));yield return null;yield return capture("admin-role-dialog",false);
-            ui.Q<IntegerField>("admin-level").value=1;Press(ui.Q<Button>("admin-confirm"));yield return new WaitForSecondsRealtime(.3f);
-            check(rows.First(p=>p.uid=="42").adminLevel==1&&mutations==1,"Confirmação promove o jogador selecionado");
-            search.value="43";yield return new WaitForSecondsRealtime(.55f);Press(ui.Q<Button>("admin-block-43"));yield return null;
-            Press(ui.Q<Button>("admin-confirm"));yield return null;
-            check(mutations==1&&!string.IsNullOrEmpty(ui.Q<Label>("admin-action-error").text),"Bloqueio exige motivo antes de enviar a alteração");
-            ui.Q<TextField>("admin-reason").value="Teste de moderação";yield return capture("admin-block-dialog",false);
-            Press(ui.Q<Button>("admin-confirm"));yield return new WaitForSecondsRealtime(.3f);
-            check(rows.First(p=>p.uid=="43").blocked,"Bloqueio é confirmado e a lista recebe o novo estado");
-            yield return Settle(()=>ui.Q<Button>("admin-block-43")?.text=="Liberar");
-            check(ui.Q<Button>("admin-block-43")?.text=="Liberar","Lista oferece liberar depois de confirmar o bloqueio");
-            Press(ui.Q<Button>("admin-block-43"));yield return new WaitForSecondsRealtime(.15f);
-            Press(ui.Q<Button>("admin-confirm"));yield return Settle(()=>!rows.First(p=>p.uid=="43").blocked);
-            check(!rows.First(p=>p.uid=="43").blocked,"Desbloqueio é reversível pelo mesmo painel");
-            Press(ui.Q<Button>("admin-close"));yield return null;check(!AdminPlayerPanel.Instance.IsOpen&&!GameHud.Instance.IsPanelOpen,"Fechar modal devolve os controles do jogo");
+            check(!AdminPlayerPanel.Instance.IsOpen && !GameHud.Instance.IsPanelOpen,
+                "Fechar lista devolve controles do jogo");
         }
-        finally{AdminPlayerPanel.Instance?.Close(true);AccountSession.AdminVerificationTransport=null;setRole(oldRole,oldLevel);}
+        finally
+        {
+            AdminPlayerPanel.Instance?.Close(true);
+            AccountSession.AdminVerificationTransport = null;
+            setRole(oldRole, oldLevel);
+        }
     }
 }
