@@ -82,6 +82,24 @@ try:
  check(request('PUT','/v1/player/checkpoint',dict(save,requestId=str(uuid.uuid4()),version=version,health=999),token)[0]==400,'Cliente não pode enviar atributos protegidos')
  check(request('PUT','/v1/player/checkpoint',dict(save,requestId=str(uuid.uuid4()),version=version,x=9999),token)[0]==400,'Posição fora do mapa rejeitada')
  check(request('PUT','/v1/player/checkpoint',dict(save,requestId=str(uuid.uuid4())),token)[0]==409,'Versão antiga não sobrescreve progresso')
+ # The official city uses identical authenticated bounds for saves/presence.
+ client_id=str(uuid.uuid4());sequence=0
+ for point in ({'x':45,'y':6,'z':-45},{'x':700,'y':30,'z':-800},{'x':-1000,'y':-80,'z':-1000},{'x':1000,'y':100,'z':1000}):
+  status,large=request('PUT','/v1/player/checkpoint',dict(save,requestId=str(uuid.uuid4()),version=version,**point),token)
+  check(status==200,'Checkpoint aceita interior/borda da cidade '+str(point));version=large['state']['version']
+  sequence+=1
+  frame=dict(point,clientId=client_id,sequence=sequence,yaw=90,speed=0,jumping=False,jumpPhase=0)
+  status,presence=request('POST','/v1/multiplayer/sync',frame,token)
+  check(status==200 and presence['room']=='centro_teste','Presença aceita o mesmo interior/borda da cidade '+str(point))
+ for point in ({'x':-1000.001},{'x':1000.001},{'y':-80.001},{'y':100.001},{'z':-1000.001},{'z':1000.001}):
+  check(request('PUT','/v1/player/checkpoint',dict(save,requestId=str(uuid.uuid4()),version=version,**point),token)[0]==400,'Checkpoint rejeita fora da borda '+str(point))
+  sequence+=1
+  frame=dict(x=0,y=-.1,z=0,clientId=client_id,sequence=sequence,yaw=90,speed=0,jumping=False,jumpPhase=0);frame.update(point)
+  check(request('POST','/v1/multiplayer/sync',frame,token)[0]==400,'Presença rejeita fora da mesma borda '+str(point))
+ unchanged=request('GET','/v1/player',token=token)[1]['state']
+ check(unchanged['version']==version and unchanged['cashCents']=='0' and unchanged['health']==100,'Pedidos rejeitados preservam save, saldo e vida')
+ status,restored=request('PUT','/v1/player/checkpoint',dict(save,requestId=str(uuid.uuid4()),version=version),token)
+ check(status==200,'Fixture volta à posição original antes do teste de novo login')
  new_identity={'firstName':'Maria','lastName':'Teste'+suffix};newname='Maria '+new_identity['lastName']
  status,renamed=request('PUT','/v1/player/profile',new_identity,token)
  check(status==200 and renamed['state']['name']==newname,'Renomear atualiza nome completo e identidade juntos')

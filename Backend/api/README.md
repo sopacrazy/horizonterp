@@ -64,9 +64,50 @@ Limites por IP para login/cadastro, limite de corpo de 4 KiB e consultas paramet
 Serviço limitado a 512 MB e uma CPU; pool de seis conexões. Uma conta/um personagem ativo nesta versão.
 
 Dinheiro, XP, nível, vida, fome, sede e energia são valores do servidor. O checkpoint
-rejeita campos extras e posições fora da pequena área de teste. Isso é persistência
+rejeita campos extras e posições fora dos limites configurados do bairro. Isso é persistência
 para o protótipo; não substitui simulação autoritativa de movimentação no multiplayer.
 Não há recuperação/verificação de e-mail nem Google/Apple nesta entrega.
+
+## Limites da cidade oficial
+
+`world-bounds.mjs` é a fonte única e imutável de limites jogáveis do backend.
+O mundo existente continua `centro_teste`; não há novo mundo, migração SQL,
+reset de personagens ou alteração das posições salvas. O spawn legado
+`(0,-0.1,0)` e o spawn atual do cliente `(0,0.08,0)` ficam dentro da área.
+A configuração local preparada para a cidade oficial é:
+
+```json
+{"centro_teste":{"minX":-1000,"maxX":1000,"minY":-80,"maxY":100,"minZ":-1000,"maxZ":1000}}
+```
+
+Todos os limites são inclusivos, em metros Unity. Coordenadas precisam ser
+números finitos. `getWorldBounds(world)` devolve o objeto congelado ou `null`;
+`isPositionWithinWorld(world,{x,y,z})` valida a mesma regra usada pelo checkpoint
+e pelo sync multiplayer. O mundo vem do personagem autenticado no banco;
+enviar `world`, `characterId` ou campos financeiros no pacote continua proibido.
+Mundo sem configuração recebe `WORLD_UNAVAILABLE`; posição fora da área é
+rejeitada sem modificar o save. Rotação, câmera, velocidade, fase do pulo,
+versão de salvamento e UUID de idempotência mantêm as validações anteriores.
+
+O cliente configura `halfExtent=1001`, resultando em X/Z autorizados de ±1000 m,
+e Y de -80 a 100 m. Os limites administrativos abrangem o cenário recuperado;
+não garantem piso ou circulação em todo ponto dentro desse volume. O contrato
+de requisições e respostas não mudou. Não há dependência do backend em `Assets`.
+
+**A ampliação foi implantada e validada por HTTPS na preparação da versão 0.5.7.** O roteiro
+atual é `PROMPT_VPS_CIDADE_OFICIAL.txt`; `PROMPT_VPS_BAIRRO.txt` descreve apenas
+os limites históricos da praça e não deve orientar esta atualização. Confirmar
+os imports de `world-bounds.mjs` em `server.mjs` e `multiplayer.mjs`, preservar o
+conjunto compatível de módulos e publicar a configuração de limites atualizada.
+O health permanece `0.3.0` e sozinho não confirma a implantação. Nenhuma nova
+dependência, permissão administrativa, regra de chat ou capacidade foi adicionada.
+
+`verify_api.py` foi atualizado para testar interior e seis faces da cidade,
+e sua execução HTTPS na VPS passou, preservando os registros anteriores. Ele usa e limpa somente suas
+próprias fixtures temporárias. Os testes locais pertinentes estão em
+`test/world-bounds.test.mjs`, `test/multiplayer.test.mjs` e
+`test/characters.test.mjs`; eles verificam bordas inclusivas, rejeição 0,001 m
+além de cada face, validação finita, preservação de identidade, saves e finanças.
 
 ## Certificado e configuração
 
@@ -195,8 +236,8 @@ Ao selecionar um jogador na tabela, o Unity abre um segundo modal com os atalhos
 
 `test_bots.py --provision` cria ou verifica exatamente cinco contas normais com personagens BotLucas, BotMarina, BotRafael, BotJulia e BotPedro. Usa o cadastro e a criação de personagem oficiais da API; não injeta identidades no multiplayer nem concede admin. Credenciais aleatórias ficam somente em `/srv/hbrp/bots/accounts.json` (root:hbrp-api, 0640), fora do Git. Não executar o provisionamento repetidamente: os limites normais de login/cadastro se aplicam.
 
-`hbrp-bots.service` mantém cinco clientes autenticados na cidade. Cada cliente envia movimento a 10 Hz e salva a posição a cada minuto. Eles variam entre parar, andar, correr e pular em percursos limitados à faixa livre da rua (sem navegação por prédios ou escadas e sem física de colisão entre personagens). A sala da API comporta dez jogadores; o limite de sync por IP permite a carga dos cinco clientes locais sem remover a limitação de requisições.
+Por solicitação do responsável, `hbrp-bots.service` está parado e desabilitado desde a preparação da versão 0.5.7. As cinco contas foram preservadas; não há bots automáticos na cidade. O código, se explicitamente reativado, usa caminhada e pausas independentes, sem corrida ou pulo. A sala continua com dez vagas.
 
 Para parar/iniciar: `systemctl stop hbrp-bots` / `systemctl start hbrp-bots`. Para trazer de volta um bot após revogação de sessão e posterior liberação: `systemctl restart hbrp-bots`. Sessões revogadas ou bloqueadas interrompem o cliente, sem login automático para contornar a moderação. As contas são persistentes e não devem ser apagadas na limpeza dos testes temporários. No cliente 0.5.6, os bots já aparecem como jogadores remotos e no painel, sem APK novo. Os comandos ainda não implementados continuam sem efeito; cargo e bloqueio/desbloqueio funcionam normalmente.
 
-Validação de movimento: `python test/bots_test.py`. O teste cobre dez minutos simulados por bot, limites do trajeto, deslocamento por frame, os três modos e o pulo.
+Validação de movimento: `python test/bots_test.py`. O teste cobre dez minutos simulados por bot, limites do trajeto, deslocamento por frame e independência dos destinos/pausas, sem corrida ou pulo.

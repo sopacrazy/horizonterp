@@ -134,6 +134,46 @@ test('account -> character -> persisted state over local HTTP and real SQL',{tim
    assert.equal(login.status,200);assert.equal(login.needsCharacter,false);assert.equal(login.state.characterId,character.characterId);
    assert.deepEqual([login.state.name,login.state.firstName,login.state.lastName,login.state.x,login.state.cameraYaw],['Maria Clara de Souza','Maria Clara','de Souza',5,140]);token=login.token;
   });
+  await t.test('official city checkpoint and presence share bounds, preserve finances and trust the saved world only',async()=>{
+   let current=(await request('GET','/v1/player',undefined,legacyToken)).state;
+   const balances=(await pool.query('SELECT currency,balance::text FROM hbrp.wallets WHERE character_id=$1 OR account_id=$2 ORDER BY currency',[legacyCharacter,legacyAccount])).rows;
+   const checkpoint=(point,extra={})=>({requestId:randomUUID(),version:current.version,x:0,y:-.1,z:0,yaw:90,cameraYaw:90,cameraPitch:16,...point,...extra});
+   let sequence=0;
+   const frame=(point,extra={})=>({clientId:'33333333-3333-4333-8333-333333333333',sequence:++sequence,x:0,y:-.1,z:0,yaw:90,speed:0,jumping:false,jumpPhase:0,...point,...extra});
+   for(const point of [{x:45,y:6,z:-45},{x:700,y:30,z:-800},{x:-1000,y:-80,z:-1000},{x:1000,y:100,z:1000}]){
+    const saved=await request('PUT','/v1/player/checkpoint',checkpoint(point),legacyToken);
+    assert.equal(saved.status,200);current=saved.state;
+    assert.deepEqual([current.x,current.y,current.z],[point.x,point.y,point.z]);
+    const sync=await request('POST','/v1/multiplayer/sync',frame(point),legacyToken);
+    assert.equal(sync.status,200);assert.equal(sync.room,'centro_teste');
+   }
+   const observer=await request('POST','/v1/multiplayer/sync',{clientId:'44444444-4444-4444-8444-444444444444',sequence:1,x:0,y:-.1,z:0,yaw:90,speed:0,jumping:false,jumpPhase:0},token);
+   assert.equal(observer.status,200);
+   const remote=observer.peers.find(peer=>peer.characterId===legacyCharacter);
+   assert.deepEqual([remote.x,remote.y,remote.z],[1000,100,1000]);
+   for(const point of [{x:-1000.001},{x:1000.001},{y:-80.001},{y:100.001},{z:-1000.001},{z:1000.001}]){
+    assert.equal((await request('PUT','/v1/player/checkpoint',checkpoint(point),legacyToken)).status,400);
+    assert.equal((await request('POST','/v1/multiplayer/sync',frame(point),legacyToken)).code,'INVALID_FRAME');
+   }
+   for(const extra of [{world:'centro_teste'},{accountId},{characterId:character.characterId},{cashCents:'999999'},{health:999}]){
+    assert.equal((await request('PUT','/v1/player/checkpoint',checkpoint({},extra),legacyToken)).status,400);
+    assert.equal((await request('POST','/v1/multiplayer/sync',frame({},extra),legacyToken)).code,'INVALID_FRAME');
+   }
+   for(const extra of [{yaw:-1},{yaw:360},{cameraYaw:360},{cameraPitch:-11},{cameraPitch:66}])assert.equal((await request('PUT','/v1/player/checkpoint',checkpoint({},extra),legacyToken)).status,400);
+   const unchanged=(await request('GET','/v1/player',undefined,legacyToken)).state;
+   assert.deepEqual([unchanged.x,unchanged.y,unchanged.z,unchanged.version,unchanged.health,unchanged.xp],[1000,100,1000,current.version,76,'1234']);
+   assert.deepEqual((await pool.query('SELECT currency,balance::text FROM hbrp.wallets WHERE character_id=$1 OR account_id=$2 ORDER BY currency',[legacyCharacter,legacyAccount])).rows,balances);
+   await pool.admin(async client=>{
+    const other=(await client.query("INSERT INTO hbrp.worlds(code,scene_name) VALUES('other_world','UnconfiguredScene') RETURNING id")).rows[0].id;
+    await client.query('UPDATE hbrp.character_positions SET world_id=$1 WHERE character_id=$2',[other,legacyCharacter]);
+   });
+   try{
+    assert.equal((await request('PUT','/v1/player/checkpoint',checkpoint({}),legacyToken)).code,'WORLD_UNAVAILABLE');
+    assert.equal((await request('POST','/v1/multiplayer/sync',frame({}),legacyToken)).code,'WORLD_UNAVAILABLE');
+   }finally{
+    await pool.admin(client=>client.query("UPDATE hbrp.character_positions SET world_id=(SELECT id FROM hbrp.worlds WHERE code='centro_teste') WHERE character_id=$1",[legacyCharacter]));
+   }
+  });
   await t.test('second male character, rejected duplicate name and injected fields retain isolation',async()=>{
    const second=await request('POST','/v1/auth/register',{email:'second@example.invalid',password:pass});assert.equal(second.status,201);
    const otherToken=second.token;

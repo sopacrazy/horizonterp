@@ -39,12 +39,26 @@ test('two players share movement and jumping; identities come from authenticatio
 });
 test('expiry frees the room and malformed or protected state cannot be broadcast',()=>{
  let now=1000;const room=createRoom({clock:()=>now});
- for(const extra of [{x:NaN},{y:99},{x:23},{speed:9},{jumping:1},{jumpPhase:2},{uid:'spoof'},{cashCents:'999'},{clientId:null}])
+ for(const extra of [{x:NaN},{y:100.001},{x:1000.001},{speed:9},{jumping:1},{jumpPhase:2},{uid:'spoof'},{cashCents:'999'},{clientId:null}])
   assert.throws(()=>room.sync(id(1),'s',frame(1,extra)),e=>e.code==='INVALID_FRAME');
  room.sync(id(1),'s1',frame());room.sync(id(2),'s2',frame());now+=10001;
  assert.equal(room.sync(id(3),'s3',frame()).count,1);
  // A new authenticated session can replace its own stale connection.
  assert.equal(room.sync(id(3),'s4',frame(1,{clientId:'22222222-2222-4222-8222-222222222222'})).count,1);
+});
+
+test('official city sync accepts exact edges and uses the authenticated world',()=>{
+ const room=createRoom();let sequence=0;
+ for(const point of [{x:45,y:6,z:-45},{x:700,y:30,z:-800},{x:-1000,y:-80,z:-1000},{x:1000,y:100,z:1000}])
+  assert.equal(room.sync(id(1),'s1',frame(++sequence,point)).room,'centro_teste');
+ const seen=room.sync(id(2),'s2',frame());
+ assert.deepEqual([seen.peers[0].x,seen.peers[0].y,seen.peers[0].z],[1000,100,1000]);
+ for(const point of [{x:-1000.001},{x:1000.001},{y:-80.001},{y:100.001},{z:-1000.001},{z:1000.001}])
+  assert.throws(()=>room.sync(id(1),'s1',frame(++sequence,point)),e=>e.code==='INVALID_FRAME');
+ assert.throws(()=>room.sync({...id(1),world:'other_world'},'s1',frame(++sequence)),e=>e.code==='WORLD_UNAVAILABLE');
+ assert.throws(()=>room.sync(id(1),'s1',frame(++sequence,{world:'centro_teste'})),e=>e.code==='INVALID_FRAME');
+ const unchanged=room.sync(id(2),'s2',frame(2));
+ assert.deepEqual([unchanged.peers[0].x,unchanged.peers[0].y,unchanged.peers[0].z],[1000,100,1000]);
 });
 test('room chat is authenticated, Unicode bounded, ordered, deduplicated and rate limited',()=>{
  let now=1000;const room=createRoom({clock:()=>now});

@@ -16,6 +16,22 @@ public static class CityStreetSetup
     static readonly List<string> report = new List<string>();
     static Transform pavement, buildings, props, limits;
 
+    // Shared asset preparation for the larger neighbourhood; the original street builder is unchanged.
+    public static Dictionary<string, Material> PrepareNeighborhoodAssets()
+    {
+        Directory.CreateDirectory(RootPath + "/Materials");
+        AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+        ConfigureImports();
+        CreateMaterials();
+        return new Dictionary<string, Material>(materials);
+    }
+
+    public static void PrepareNeighborhoodLighting(GameObject city)
+    {
+        ConfigureLighting();
+        ConfigureDayNight(city);
+    }
+
     [MenuItem("Teste/Montar Rua do Centro")]
     public static void Create()
     {

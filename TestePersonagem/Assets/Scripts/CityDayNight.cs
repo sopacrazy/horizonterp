@@ -35,13 +35,15 @@ public sealed class CityDayNight : MonoBehaviour
         RenderSettings.skybox = night ? nightSky : daySky;
         RenderSettings.ambientMode = AmbientMode.Trilight;
         RenderSettings.ambientIntensity = 1;
-        RenderSettings.ambientSkyColor = night ? new Color(.12f, .16f, .25f) : new Color(.64f, .71f, .82f);
-        RenderSettings.ambientEquatorColor = night ? new Color(.075f, .095f, .15f) : new Color(.44f, .46f, .47f);
-        RenderSettings.ambientGroundColor = night ? new Color(.04f, .05f, .08f) : new Color(.28f, .27f, .25f);
-        RenderSettings.fogColor = night ? new Color(.026f, .041f, .075f) : new Color(.7f, .77f, .82f);
-        RenderSettings.reflectionIntensity = night ? .24f : .7f;
+        // A visible ambient floor keeps unlit sidewalks and the player readable on mobile.
+        // The sky stays dark; warm local lights provide the street-light contrast.
+        RenderSettings.ambientSkyColor = night ? new Color(.34f, .38f, .49f) : new Color(.64f, .71f, .82f);
+        RenderSettings.ambientEquatorColor = night ? new Color(.25f, .28f, .34f) : new Color(.44f, .46f, .47f);
+        RenderSettings.ambientGroundColor = night ? new Color(.16f, .18f, .22f) : new Color(.28f, .27f, .25f);
+        RenderSettings.fogColor = night ? new Color(.055f, .075f, .115f) : new Color(.7f, .77f, .82f);
+        RenderSettings.reflectionIntensity = night ? .48f : .7f;
         if (sun) { sun.enabled = !night; sun.intensity = 1.12f; }
-        if (moon) { moon.enabled = night; moon.intensity = .35f; }
+        if (moon) { moon.enabled = night; moon.intensity = .6f; moon.color = new Color(.68f, .75f, .88f); }
         RenderSettings.sun = night ? moon : sun;
         foreach (var light in streetLights) if (light) light.enabled = night;
         foreach (var material in interiors)
@@ -50,7 +52,7 @@ public sealed class CityDayNight : MonoBehaviour
             material.EnableKeyword("_EMISSION");
             bool darkRoom = material.name.StartsWith("MI_FakeInterior_4", StringComparison.Ordinal);
             material.SetColor("_EmissionColor", night
-                ? (darkRoom ? new Color(.055f, .075f, .11f) : new Color(.78f, .67f, .48f))
+                ? (darkRoom ? new Color(.08f, .095f, .13f) : new Color(1.15f, .91f, .64f))
                 : new Color(.035f, .033f, .03f));
         }
         foreach (var material in luminaires)

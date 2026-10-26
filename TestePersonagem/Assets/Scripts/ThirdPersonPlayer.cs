@@ -102,7 +102,8 @@ public class ThirdPersonPlayer : MonoBehaviour
             animator.CrossFadeInFixedTime("Locomocao",.06f,0);
         }
         else animator.SetFloat("Speed", CurrentSpeed, .12f, Time.deltaTime);
-        if (transform.position.y < -10) ResetPosition();
+        float fallLimit = NeighborhoodMap.Active && NeighborhoodMap.Active.isOfficialCity ? NeighborhoodMap.Active.minY : -10;
+        if (transform.position.y < fallLimit) ResetPosition();
         if (!DemoMode && Input.GetKeyDown(KeyCode.R) && !panelOpen) ResetPosition();
     }
 

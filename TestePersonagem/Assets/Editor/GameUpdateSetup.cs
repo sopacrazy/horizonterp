@@ -12,15 +12,19 @@ public static class GameUpdateSetup
 {
     public const string GameScene="Assets/Scenes/TestePersonagem.unity";
     public const string BootScene="Assets/Scenes/Entrada.unity";
-    public static string[] Scenes => new[]{BootScene,GameScene};
+    public static string[] Scenes => new[]{BootScene,GameScene}.Concat(
+        Directory.Exists("Assets/Scenes/CitySectors")?Directory.GetFiles("Assets/Scenes/CitySectors","*.unity").OrderBy(path=>path).Select(path=>path.Replace('\\','/')):Enumerable.Empty<string>()).ToArray();
     public static void Prepare()
     {
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
         BrandingSetup.Prepare();
         EditorSceneManager.OpenScene(GameScene);
-        var foundation=GameObject.Find("Base solida 48m");
-        if(!foundation || !foundation.GetComponent<Collider>())throw new Exception("Base de colisão ausente");
-        foundation.GetComponent<Renderer>().enabled=false;
+        var foundation=GameObject.Find("Base solida do bairro")??GameObject.Find("Base solida 48m");
+        var officialCity=UnityEngine.Object.FindAnyObjectByType<GtaCityEnvironment>();
+        var streaming=UnityEngine.Object.FindAnyObjectByType<CitySectorStreaming>();
+        if((!foundation || !foundation.GetComponent<Collider>()) && (!officialCity || officialCity.GetComponentsInChildren<MeshCollider>().Length==0) && (!streaming || streaming.sectors.Length==0))throw new Exception("Base de colisão ausente");
+        var foundationVisual=foundation?foundation.GetComponent<Renderer>():null;
+        if(foundationVisual)foundationVisual.enabled=false;
         Camera.main.nearClipPlane=.15f;
         var player=UnityEngine.Object.FindAnyObjectByType<ThirdPersonPlayer>();
         player.runSpeed=4.5f;
@@ -90,6 +94,8 @@ public static class GameUpdateSetup
     public static void PrepareAndBuildWindows(){Prepare();HudSetup.Prepare();PrototypeSetup.BuildWindows();}
 
     public static void PrepareAndBuildAndroid(){Prepare();AndroidSetup.Build();}
+    public static void CreateNeighborhoodAndBuildWindows(){CityNeighborhoodSetup.Create();PrepareAndBuildWindows();}
+    public static void ApplyNeighborhoodNightAndBuildWindows(){CityNeighborhoodSetup.ApplyNightLighting();PrepareAndBuildWindows();}
     public static void InspectGround()
     {
         EditorSceneManager.OpenScene(GameScene);

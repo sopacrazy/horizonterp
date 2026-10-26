@@ -183,3 +183,62 @@ faixas pretas. A imagem do carregamento inicial permanece a do carro anterior.
 O nome de exibicao do aplicativo passa a Horizonte, e personagem/logo.png e
 a fonte dos icones do Android. BrandingSetup.Prepare reaplica essa configuracao
 sem gerar APK. O pacote Android existente nao e modificado sem novo build.
+
+BAIRRO HORIZONTE - PRACA CENTRAL
+
+A cena TestePersonagem agora usa um bairro original de 120 x 120 m com quatro
+cruzamentos, calcadas, faixas de pedestres e 16 edificios Downtown ao redor
+da praca central. A praca tem fonte, oito bancos, canteiros e arvores de
+geometria simples. O personagem continua com aproximadamente 1,80 m.
+
+Noite inicial e alternancia de dia/noite foram preservadas. Ha oito luzes
+reais de postes sem sombras locais; demais luminarias usam emissao.
+O perfil noturno tem luz ambiente de preenchimento, luar mais neutro e
+postes quentes com maior alcance, distribuidos nas quatro entradas do bairro.
+As janelas acesas reforcam a iluminacao das fachadas. O ceu continua escuro
+e estrelado; N e o botao DIA/NOITE permitem comparar os dois modos.
+Materiais compartilhados, instancing e descarte de detalhes distantes ajudam
+a limitar o custo. O desempenho precisa ser medido em aparelho Android real.
+
+VerBairro.bat na raiz abre uma previa local livre no Windows. A tarja indica
+SEM SALVAMENTO ONLINE: login e progresso usam somente uma fixture em memoria;
+nenhuma conta real e criada ou acessada. WASD move, Shift corre, Espaco pula,
+mouse controla a camera, N alterna dia/noite e M abre o mapa do bairro.
+Jogar.bat continua usando login e a API real.
+
+Reconstrucao: Horizonte > Montar bairro com praca central no Editor.
+Reaplicar apenas a iluminacao: Horizonte > Iluminar noite do bairro.
+O builder salva uma copia da cena anterior em tools/neighborhood-review.
+Verificacao local automatica: --verify-neighborhood, sem --neighborhood-preview.
+Ela testa percursos, pisos, colisoes, altura, mapa e dia/noite e grava capturas,
+incluindo night.png e plaza-night.png, com comparacao de luminosidade dia/noite.
+
+O backend foi preparado para X/Z -59 a 59 e Y -1 a 8. Antes de usar o bairro
+online, o agente da VPS precisa publicar server.mjs, multiplayer.mjs e o novo
+world-bounds.mjs conforme Backend/api/PROMPT_VPS_BAIRRO.txt. Saves antigos e
+o world centro_teste sao preservados. Nenhum APK e gerado por montar o bairro.
+
+SAKELAND - TRECHO EXPERIMENTAL SEPARADO
+
+VerSakeland.bat na raiz abre o clube de praia convertido do pacote enviado.
+Cena: Assets/Scenes/SakelandTeste.unity. Executavel separado em Builds/Sakeland.
+WASD anda, Shift corre, Espaco pula, mouse controla a camera e N alterna dia/noite.
+A cena inicia a noite; lanternas e luzes do clube acendem nesse modo.
+Areia usa textura e mapa normal do pacote, com repeticao em escala de metros.
+Arvores, bancos, cercas, lanternas e outros objetos independentes sao apoiados
+no piso; clube/DJ e suas pecas conectadas deslocam juntos. Cercas da praia
+foram niveladas. Fundacoes de pedra ficam parcialmente enterradas na areia.
+Esse teste nao usa login, API, multiplayer ou salvamento de progresso.
+Jogar.bat e VerBairro.bat continuam abrindo o bairro anterior.
+
+Os modelos, texturas e o posicionamento do clube vieram do Sakeland.
+A praia de apoio, mar cenografico, limites e algumas colisoes simples sao locais.
+Objetos que dependem do GTA original, paineis de mistura com o terreno e uma
+peca muito pesada de fitas de luz foram omitidos. Nao e a cidade completa do GTA.
+Creditos e limites de uso em Assets/SakelandTest/Provenance.txt e Readme_Sakeland.txt.
+
+Reconstrucao: Horizonte > Sakeland > Montar trecho de teste separado.
+Previa Windows: Horizonte > Sakeland > Gerar previa Windows separada.
+Verificacao local: TesteSakeland.exe --verify-sakeland.
+Relatorio e capturas em tools/sakeland/review, incluindo medicao das bases e
+do contato dos pes na areia e no deck. Nenhum APK e gerado por esse fluxo.

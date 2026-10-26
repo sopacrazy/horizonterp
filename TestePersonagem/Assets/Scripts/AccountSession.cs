@@ -129,7 +129,9 @@ public sealed partial class AccountSession : MonoBehaviour
         if(!HasCharacter||!ReadyToEnterCity)return;
         player=target;
         var controller=player.GetComponent<CharacterController>();controller.enabled=false;
-        player.transform.SetPositionAndRotation(new Vector3(State.x,State.y,State.z),Quaternion.Euler(0,State.yaw,0));controller.enabled=true;
+        var savedPosition=new Vector3(State.x,State.y,State.z);
+        if(NeighborhoodMap.Active)savedPosition=NeighborhoodMap.Active.ResolveSavedPosition(savedPosition,controller);
+        player.transform.SetPositionAndRotation(savedPosition,Quaternion.Euler(0,State.yaw,0));controller.enabled=true;
         player.Health=State.health;player.Energy=State.energy;player.Hunger=State.hunger;player.Hydration=State.thirst;
         player.Level=State.level;float.TryParse(State.xp,out player.Experience);
         if(long.TryParse(State.cashCents,out long cash))player.Cash=cash/100;
@@ -194,6 +196,8 @@ public sealed partial class AccountSession : MonoBehaviour
         if(VerificationTransport!=null)
         {
             if(Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-character-flow")<0&&
+                Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-neighborhood")<0&&
+                Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-official-city")<0&&
                 Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-landing")<0)
             {LastError="Modo de verificação local não autorizado.";done(null);yield break;}
             yield return VerificationTransport(method,path,body,authenticated,(reply,error)=>

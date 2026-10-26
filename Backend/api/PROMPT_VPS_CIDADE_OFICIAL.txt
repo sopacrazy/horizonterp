@@ -1,0 +1,33 @@
+CIDADE OFICIAL HBRP - IMPLANTACAO DO BACKEND PENDENTE
+
+Este roteiro nao comprova nem executa publicacao. Os arquivos foram preparados e testados localmente.
+A cidade oficial do Unity exige limites maiores que os do bairro anterior. Publicar o cliente sem atualizar a API pode fazer checkpoint e presenca rejeitarem coordenadas validas do cenario novo.
+
+CONTRATO
+- Manter world code centro_teste, identidade de contas/personagens, mundo salvo, progresso, carteiras e saves existentes.
+- WORLD_BOUNDS.centro_teste: minX=-1000, maxX=1000, minY=-80, maxY=100, minZ=-1000, maxZ=1000. Fronteiras inclusivas; metros Unity.
+- O cliente usa halfExtent=1001 e min/maxY=-80/100; spawn novo (0,0.08,0). O spawn legado (0,-0.1,0) continua valido. Nao teleportar nem regravar saves reais para aplicar esta configuracao.
+- Checkpoint e multiplayer devem usar isPositionWithinWorld com mundo obtido da identidade autenticada. Manter rejeicao de numeros nao finitos, campos extras, identidades e financas enviadas pelo cliente.
+- Nao alterar rotacao/camera, velocidade/pulo, idempotencia, autenticacao, sala/chat/admin ou limites financeiros.
+- Limites sao validacao de coordenadas, nao prova de piso/colisao em todo o volume da cidade.
+
+ARQUIVOS
+- Backend/api/world-bounds.mjs: limites oficiais atualizados.
+- Backend/api/server.mjs e multiplayer.mjs: conferir imports do modulo central. Ambos ja usam a funcao compartilhada na copia local; preservar o conjunto compativel de producao, sem reconstruir validacoes manualmente.
+- Backend/api/verify_api.py: verificacao HTTPS atualizada, para execucao manual apos implantacao.
+- Backend/api/test/world-bounds.test.mjs, test/multiplayer.test.mjs e test/characters.test.mjs: regressao local.
+- Backend/api/README.md: contrato e estado da implantacao.
+Nao usar PROMPT_VPS_BAIRRO.txt como roteiro atual: ele documenta somente a etapa historica dos limites +/-59.
+
+PROCEDIMENTO MANUAL
+1. No ambiente ja autorizado de operacao, registrar estado do servico hbrp-api, health e versoes dos modulos; preservar backup protegido dos modulos atuais e backup PostgreSQL pelo procedimento existente. Nao imprimir credenciais, tokens, chaves TLS ou dados pessoais.
+2. Publicar a configuracao de limites atualizada e conferir que server.mjs e multiplayer.mjs usam o mesmo world-bounds.mjs. Se os imports ainda nao existirem em producao, publicar os modulos compativeis ja preparados. Comparar SHA-256 local/remoto e manter owner/permissoes.
+3. Nao alterar SQL, schema, world_id, scene_name, contas, bots, saldos, posicoes salvas, certificado/chave TLS, pin do cliente, firewall, portas ou outros servicos. Nao executar migrações antigas ou resetar tabelas. Nenhuma dependencia npm nova e necessaria.
+4. Executar node --check nos tres modulos e conferir pela importacao de WORLD_BOUNDS que os seis valores sao exatamente os oficiais acima e que os objetos sao imutaveis.
+5. Reiniciar somente hbrp-api, verificar status e health com a verificacao TLS existente. Versao 0.3.0 do health sozinha nao demonstra a atualizacao dos limites.
+6. Executar o verify_api.py atualizado somente no ambiente autorizado da API: ele testa contas temporarias, checkpoint, presenca e persistencia. Deve aceitar o interior (700,30,-800), cantos (-1000,-80,-1000)/(1000,100,1000) e rejeitar 0.001 metro fora de cada uma das seis faces. O teste limpa apenas as proprias fixtures em finally e precisa de vaga na sala; nao expulsar jogadores nem parar bots para obter vaga.
+7. Confirmar preservacao de contas, personagens, saves, saldos e bots anteriores, limpeza das fixtures e ausencia de erros novos. Registrar hashes e resultado HTTPS. Se houver falha, restaurar os modulos anteriores, sem restauracao destrutiva do banco.
+
+VALIDACAO LOCAL
+Comando: node --test test/world-bounds.test.mjs test/multiplayer.test.mjs test/characters.test.mjs
+A suite usa HTTP localhost e PGlite em memoria; nao acessa a VPS. verify_api.py foi apenas atualizado/verificado sintaticamente nesta tarefa. Nenhuma implantacao remota foi executada.

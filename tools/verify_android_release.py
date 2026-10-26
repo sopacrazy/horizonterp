@@ -13,6 +13,8 @@ parser.add_argument('--network',action='store_true')
 parser.add_argument('--hud2',action='store_true')
 parser.add_argument('--admin-chat',action='store_true')
 parser.add_argument('--admin-panel',action='store_true')
+parser.add_argument('--remembered-access',action='store_true')
+parser.add_argument('--official-city',action='store_true')
 args=parser.parse_args()
 assert re.fullmatch(r'\d+\.\d+\.\d+',args.version)
 
@@ -56,6 +58,17 @@ with zipfile.ZipFile(apk) as archive:
         assert b'AdminPlayerPanel' in metadata and b'AdminRequest' in metadata
         assert b'admin-command-execute' in metadata and b'admin-detail-role' in metadata
         assert b'PlayerDisplayName' in metadata and b'/v1/admin/players' in metadata
+    if args.remembered_access:
+        assert b'RestoreRemembered' in metadata and b'remembered-play' in metadata and b'SessionVault' in metadata
+        vault_dex=b''.join(archive.read(name) for name in names if re.fullmatch(r'classes\d*\.dex',name))
+        assert b'Lcom/horizonte/update/HbrpSessionVault;' in vault_dex
+        assert b'AndroidKeyStore' in vault_dex and b'AES/GCM/NoPadding' in vault_dex
+    if args.official_city:
+        assert b'GtaCityEnvironment' in metadata and b'CitySectorStreaming' in metadata and b'NeighborhoodMap' in metadata
+        expected_sectors=list((root/'TestePersonagem/Assets/Scenes/CitySectors').glob('*.unity'))
+        assert len(expected_sectors)>1,'Official city must include streaming sector sources'
+        levels={re.match(r'assets/bin/Data/level(\d+)',name).group(1) for name in names if re.fullmatch(r'assets/bin/Data/level\d+(?:\.split\d+)?',name)}
+        assert len(levels)==len(expected_sectors)+2,'APK must package boot, official city and every streaming sector'
     if args.hud2:
         assert b'Hud2Atlas' in metadata and b'h2_sprint' in metadata
         layout_meta=(root/'TestePersonagem/Assets/Resources/Hud2AtlasLayout.json.meta').read_text()
@@ -105,6 +118,8 @@ report={'result':'ANDROID_RELEASE_VERIFIED','version':args.version,'versionCode'
     'transparent_hub2_layout_included':args.hud2,
     'admin_identity_and_placeholder_button_included':args.admin_chat,
     'admin_player_panel_and_command_catalog_included':args.admin_panel,
+    'protected_remembered_access_included':args.remembered_access,
+    'official_city_streaming_included':args.official_city,
     'bytes':release.stat().st_size,'sha256':hashlib.sha256(release.read_bytes()).hexdigest(),
     'device_runtime_tested':False,'file':str(release)}
 (root/('tools/android-'+args.version.replace('.','')+'-validation.json')).write_text(json.dumps(report,indent=2),encoding='utf-8')

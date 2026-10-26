@@ -6,6 +6,7 @@ import { pathToFileURL } from 'node:url';
 import pg from 'pg';
 import {createRoom,RoomError} from './multiplayer.mjs';
 import {createPlayerAdmin,AdminError} from './player-admin.mjs';
+import {getWorldBounds,isPositionWithinWorld} from './world-bounds.mjs';
 
 const scrypt=promisify(scryptCb);
 const hash=x=>createHash('sha256').update(x).digest();
@@ -134,13 +135,15 @@ async function checkpoint(body,token){
  exact(body,['requestId','version','x','y','z','yaw','cameraYaw','cameraPitch']);
  if(!uuid(body.requestId)||! /^[1-9][0-9]{0,17}$/.test(String(body.version)))fail(400,'Salvamento inválido.');
  for(const key of ['x','y','z','yaw','cameraYaw','cameraPitch'])if(typeof body[key]!=='number'||!Number.isFinite(body[key]))fail(400,'Posição inválida.');
- if(Math.abs(body.x)>22.5||Math.abs(body.z)>22.5||body.y< -1||body.y>5||body.yaw<0||body.yaw>=360||body.cameraYaw<0||body.cameraYaw>=360||body.cameraPitch< -10||body.cameraPitch>65)fail(400,'Posição fora da área de teste.');
+ if(body.yaw<0||body.yaw>=360||body.cameraYaw<0||body.cameraYaw>=360||body.cameraPitch< -10||body.cameraPitch>65)fail(400,'Posição fora da área de teste.');
  const digest=hash(JSON.stringify([String(body.version),body.x,body.y,body.z,body.yaw,body.cameraYaw,body.cameraPitch]));
  return transaction(async client=>{
   const auth=await session(client,token,true);
+  const current=await requireCharacter(client,auth.account_id);
+  if(!getWorldBounds(current.world))fail(409,'Esta área não está disponível para salvamento.','WORLD_UNAVAILABLE');
+  if(!isPositionWithinWorld(current.world,body))fail(400,'Posição fora da área de teste.');
   const previous=await client.query('SELECT payload_hash FROM hbrp.save_requests WHERE session_id=$1 AND request_id=$2',[auth.id,body.requestId]);
   if(previous.rowCount){if(!timingSafeEqual(previous.rows[0].payload_hash,digest))fail(409,'Pedido repetido com dados diferentes.','SAVE_CONFLICT');return {state:await state(client,auth.account_id)};}
-  const current=await requireCharacter(client,auth.account_id);
   if(current.version!==String(body.version))fail(409,'Os dados foram atualizados em outra sessão. Entre novamente.','SAVE_CONFLICT');
   const result=await client.query(`UPDATE hbrp.character_positions SET x=$1,y=$2,z=$3,yaw=$4,camera_yaw=$5,camera_pitch=$6,version=version+1,updated_at=now() WHERE character_id=$7 AND version=$8 RETURNING version::text`,[body.x,body.y,body.z,body.yaw,body.cameraYaw,body.cameraPitch,current.characterId,body.version]);
   if(!result.rowCount)fail(409,'Os dados foram atualizados. Entre novamente.','SAVE_CONFLICT');

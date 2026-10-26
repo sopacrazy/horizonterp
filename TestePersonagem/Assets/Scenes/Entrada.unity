@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &996325564
+--- !u!1 &405056424
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,57 +127,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 996325566}
-  - component: {fileID: 996325565}
-  m_Layer: 0
-  m_Name: Entrada Horizonte Brasil
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &996325565
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 996325564}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 966bc8c8011614b44ab64c8d83809c8d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::StartupLoader
-  artwork: {fileID: 2800000, guid: 449640dd6ccede146a9666df0ccba9da, type: 3}
-  loginArtwork: {fileID: 2800000, guid: c45c8064d4418ab4c86fe7b724f35e33, type: 3}
-  intro: {fileID: 8300000, guid: 763e755e01bb7d544a7854c733122d96, type: 3}
-  minimumSeconds: 10
---- !u!4 &996325566
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 996325564}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1917657849
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1917657852}
-  - component: {fileID: 1917657851}
-  - component: {fileID: 1917657850}
+  - component: {fileID: 405056427}
+  - component: {fileID: 405056426}
+  - component: {fileID: 405056425}
   m_Layer: 0
   m_Name: Camera da entrada
   m_TagString: Untagged
@@ -185,21 +137,21 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!81 &1917657850
+--- !u!81 &405056425
 AudioListener:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1917657849}
+  m_GameObject: {fileID: 405056424}
   m_Enabled: 1
---- !u!20 &1917657851
+--- !u!20 &405056426
 Camera:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1917657849}
+  m_GameObject: {fileID: 405056424}
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
@@ -244,13 +196,61 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!4 &1917657852
+--- !u!4 &405056427
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1917657849}
+  m_GameObject: {fileID: 405056424}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1449823768
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1449823770}
+  - component: {fileID: 1449823769}
+  m_Layer: 0
+  m_Name: Entrada Horizonte Brasil
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1449823769
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1449823768}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 966bc8c8011614b44ab64c8d83809c8d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StartupLoader
+  artwork: {fileID: 2800000, guid: 449640dd6ccede146a9666df0ccba9da, type: 3}
+  loginArtwork: {fileID: 2800000, guid: c45c8064d4418ab4c86fe7b724f35e33, type: 3}
+  intro: {fileID: 8300000, guid: 763e755e01bb7d544a7854c733122d96, type: 3}
+  minimumSeconds: 10
+--- !u!4 &1449823770
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1449823768}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -263,5 +263,5 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1917657852}
-  - {fileID: 996325566}
+  - {fileID: 405056427}
+  - {fileID: 1449823770}

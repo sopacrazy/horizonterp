@@ -17,8 +17,9 @@ public sealed class GameHud : MonoBehaviour
     public float TopSpeed { get; private set; }
 
     static readonly Color Mint=new Color(1f,.79f,.15f);
-    const float MapCameraHeight=60f;
-    const float AreaMapHalfExtent=27f;
+    float MapCameraHeight => NeighborhoodMap.Active?NeighborhoodMap.Active.mapCameraHeight:60f;
+    float AreaMapHalfExtent => NeighborhoodMap.Active?NeighborhoodMap.Active.MapHalfExtent:27f;
+    string MapDisplayName => NeighborhoodMap.Active?NeighborhoodMap.Active.displayName:"Rua do Centro";
     ThirdPersonPlayer player;
     ThirdPersonCamera orbit;
     CityDayNight dayNight;
@@ -234,7 +235,7 @@ public sealed class GameHud : MonoBehaviour
                 topSpeedMetric=Metric("Maior velocidade","0.0 m/s");
                 break;
             case "map":
-                drawerTitle.text="Mapa da Rua do Centro";
+                drawerTitle.text="Mapa · "+MapDisplayName;
                 Text("Explore livremente. O marcador mostra sua posição.","panel-description",content);
                 mapArea=Element("map-area",content);
                 mapImage=new Image{image=mapTexture,pickingMode=PickingMode.Ignore};mapImage.AddToClassList("mini-image");mapArea.Add(mapImage);
@@ -430,7 +431,7 @@ public sealed class GameHud : MonoBehaviour
         miniTexture=new RenderTexture(256,256,24){name="HUD Minimap"};miniTexture.Create();
         mapTexture=new RenderTexture(512,512,24){name="HUD Area Map"};mapTexture.Create();
         miniCamera=MapCamera("Minimapa",miniTexture,14);
-        mapCamera=MapCamera("Mapa da Rua do Centro",mapTexture,AreaMapHalfExtent);
+        mapCamera=MapCamera("Mapa · "+MapDisplayName,mapTexture,AreaMapHalfExtent);
         mapCamera.transform.position=new Vector3(0,MapCameraHeight,0);
     }
     Camera MapCamera(string name,RenderTexture texture,float size)
@@ -438,8 +439,15 @@ public sealed class GameHud : MonoBehaviour
         var camera=new GameObject(name).AddComponent<Camera>();camera.transform.SetParent(transform);
         camera.orthographic=true;camera.orthographicSize=size;camera.transform.rotation=Quaternion.Euler(90,0,0);
         camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=new Color(.065f,.105f,.14f);
-        camera.cullingMask=1;camera.farClipPlane=100;camera.nearClipPlane=.1f;camera.targetTexture=texture;
+        camera.cullingMask=1;camera.farClipPlane=MapFarClip(size);camera.nearClipPlane=.1f;camera.targetTexture=texture;
         camera.allowHDR=false;camera.allowMSAA=false;camera.enabled=false;return camera;
+    }
+    float MapFarClip(float size)
+    {
+        var map=NeighborhoodMap.Active;
+        float minimum=map?map.minY:-1;
+        float maximum=map?map.maxY:8;
+        return Mathf.Max(100,MapCameraHeight-minimum+10,maximum-minimum+20,size*2+20);
     }
     void LateUpdate()
     {
@@ -451,9 +459,13 @@ public sealed class GameHud : MonoBehaviour
     {
         if(!miniCamera||miniImage==null)return;
         if(!miniTexture.IsCreated())miniTexture.Create();
-        var p=player.transform.position;miniCamera.transform.position=new Vector3(p.x,MapCameraHeight,p.z);miniCamera.Render();miniImage.MarkDirtyRepaint();
+        var p=player.transform.position;
+        miniCamera.transform.position=new Vector3(p.x,MapCameraHeight,p.z);miniCamera.farClipPlane=MapFarClip(miniCamera.orthographicSize);
+        miniCamera.Render();miniImage.MarkDirtyRepaint();
         if(CurrentPanel=="map")
         {
+            mapCamera.transform.position=new Vector3(0,MapCameraHeight,0);mapCamera.orthographicSize=AreaMapHalfExtent;
+            mapCamera.farClipPlane=MapFarClip(AreaMapHalfExtent);
             if(!mapTexture.IsCreated())mapTexture.Create();mapCamera.Render();mapImage?.MarkDirtyRepaint();
         }
     }

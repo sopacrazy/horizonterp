@@ -26,13 +26,31 @@ No Windows, `AbrirProjeto.bat` abre o projeto na instalação padrão do editor.
 
 - Personagem com animações de parado, caminhada, corrida e pulo; câmera em terceira pessoa.
 - HUD, controles por toque, introdução e lobby de criação de personagem.
+- Cidade oficial na cena `TestePersonagem`, com cenário recuperado, materiais reconstruídos e colisões revisadas. O bairro anterior fica em backup local durante a integração.
 - Cadastro e login, separação entre conta e personagem e salvamento de progresso.
-- Sala experimental para dois jogadores, sincronização de movimento e chat.
+- Sala experimental com dez vagas, sincronização de movimento e chat. Bots automáticos desativados.
 - Tipos de conta e nível administrativo. Os comandos administrativos são apenas placeholders: suas ações ainda não são executadas.
 - Chat com eco local imediato e destaque verde para comandos administrativos.
 - A partir da 0.5.0: versão no HUD/loading e atualização Android pelo GitHub Releases, com confirmação de instalação pelo Android.
 
 A rede ainda é um protótipo de sincronização por HTTPS; a suavização não elimina a latência da conexão.
+
+`VerMapaGTA.bat` abre uma prévia independente da cidade no Windows, sem conta ou multiplayer.
+`Jogar.bat` abre a build oficial com a entrada normal e login. A cidade oficial é
+configurada por `GtaOfficialCitySetup.CreateAndBuildWindows`; `GTAMapaTeste` permanece
+uma cena de revisão separada. Os materiais novos ficam em `Assets/GTARecoveredMap/Restored`.
+O pacote de origem tinha referências de materiais ausentes; a reconstrução não reproduz
+integralmente sua aparência. Relatórios e imagens locais ficam em `tools/gta-map-review`.
+Os limites ampliados da API foram implantados e validados por HTTPS para a versão 0.5.7,
+preservando contas, posições e saldos. A cidade carrega 56 setores por proximidade;
+`GameUpdateSetup.Scenes` inclui esses setores na compilação Android e Windows.
+
+`VerBairro.bat` é o atalho legado de revisão do bairro anterior, com personagem de teste e
+salvamento apenas em memória. Essa prévia não acessa a API da VPS e não é um modo
+offline para contas reais. `Jogar.bat` continua abrindo a entrada normal com login.
+O comando **Horizonte > Montar bairro com praca central** permanece como ferramenta
+histórica e substitui o cenário; não faz parte da geração da cidade oficial.
+O backend mantém o mundo e os saves existentes; a ampliação não exige migração SQL.
 
 As versões são definidas em `TestePersonagem/Assets/Resources/GameVersion.json`. Veja [como publicar atualizações Android](releases/README.md). APKs anteriores à 0.5.0 precisam de uma instalação manual para receber o atualizador.
 
