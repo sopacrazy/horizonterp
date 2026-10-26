@@ -61,7 +61,9 @@ public sealed partial class AccountSession : MonoBehaviour
     public IEnumerator RequireLogin(Texture2D artwork)
     {
         Build(artwork);ReadyToEnterCity=false;
-        if(Authenticated)ShowAccountCharacter();else ShowLogin();
+        if(Authenticated)ShowAccountCharacter();
+        else if(!string.IsNullOrEmpty(SessionVault.Read()))yield return RestoreRemembered();
+        else ShowLogin();
         while(!ReadyToEnterCity||!HasCharacter)yield return null;
     }
     IEnumerator Submit()
@@ -76,12 +78,13 @@ public sealed partial class AccountSession : MonoBehaviour
         if(string.IsNullOrEmpty(result?.token)||(!result.needsCharacter&&(result.state==null||string.IsNullOrEmpty(result.state.characterId))))
         {SetGeneralMessage(string.IsNullOrEmpty(LastError)?"Não foi possível acessar sua conta. Tente novamente.":LastError,true);yield break;}
         ClearSecrets();
-        token=result.token;State=result.state;pending=null;leaving=false;
+        token=result.token;State=result.state;pending=null;leaving=false;SessionVault.Write(token);
         PlayerPrefs.SetString("account.email",email.value.Trim());PlayerPrefs.Save();
         ShowAccountCharacter();
     }
     void ShowAccountCharacter()
     {
+        HideRemembered();
         ReadyToEnterCity=false;AuthVisible=true;root.style.display=DisplayStyle.Flex;
         landing.style.display=DisplayStyle.None;scroll.style.display=DisplayStyle.None;
         if(HasCharacter)ShowExistingCharacter(State);else ShowCharacterLobby();
@@ -105,6 +108,7 @@ public sealed partial class AccountSession : MonoBehaviour
     void EnterCity()
     {
         if(busy||!HasCharacter||ReadyToEnterCity)return;
+        HideRemembered();
         CityEntryLoading.Show();
         ReadyToEnterCity=true;AuthVisible=false;root.style.display=DisplayStyle.None;HideCharacterLobby();
         nextSave=Time.realtimeSinceStartup+15;
@@ -169,7 +173,7 @@ public sealed partial class AccountSession : MonoBehaviour
         while(busy)yield return null;
         if(MultiplayerWorld.Instance)yield return MultiplayerWorld.Instance.Leave();
         busy=true;yield return Request("POST","/v1/auth/logout","{}",true,_=>{});busy=false;
-        token=null;State=null;player=null;pending=null;leaving=false;ReadyToEnterCity=false;
+        SessionVault.Clear();HideRemembered();token=null;State=null;player=null;pending=null;leaving=false;ReadyToEnterCity=false;
         SceneManager.LoadScene("Entrada");
     }
     void OnApplicationPause(bool pause)
@@ -193,7 +197,9 @@ public sealed partial class AccountSession : MonoBehaviour
                 Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-landing")<0)
             {LastError="Modo de verificação local não autorizado.";done(null);yield break;}
             yield return VerificationTransport(method,path,body,authenticated,(reply,error)=>
-            {LastError=error??"";LastErrorCode=reply?.code??"";done(string.IsNullOrEmpty(error)?reply:null);});
+            {LastError=error??"";LastErrorCode=reply?.code??"";
+                if(authenticated&&!string.IsNullOrEmpty(error)&&(reply?.code=="UNAUTHORIZED"||reply?.code=="CHARACTER_BLOCKED"||reply?.code=="SAVE_CONFLICT"))InvalidateSession(LastError);
+                done(string.IsNullOrEmpty(error)?reply:null);});
             yield break;
         }
         using(var request=new UnityWebRequest(config.baseUrl+path,method))
@@ -210,12 +216,12 @@ public sealed partial class AccountSession : MonoBehaviour
             LastError=reply?.error??"Não foi possível conectar ao HBRP. Verifique sua internet e tente novamente.";
             LastErrorCode=reply?.code??"";
             if(authenticated&&(request.responseCode==401||reply?.code=="SAVE_CONFLICT"||reply?.code=="CHARACTER_BLOCKED"))
-            {token=null;State=null;pending=null;ReadyToEnterCity=false;if(document)ShowLogin(LastError);}
+            {SessionVault.Clear();token=null;State=null;pending=null;ReadyToEnterCity=false;if(document)ShowLogin(LastError);}
             done(null);
         }
     }
     internal void InvalidateSession(string message)
-    {token=null;State=null;pending=null;ReadyToEnterCity=false;if(document)ShowLogin(message);}
+    {SessionVault.Clear();token=null;State=null;pending=null;ReadyToEnterCity=false;if(document)ShowLogin(message);}
     sealed class PinnedCertificate:CertificateHandler
     {
         readonly string expected;

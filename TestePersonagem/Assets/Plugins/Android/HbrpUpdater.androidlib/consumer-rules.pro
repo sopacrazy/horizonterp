@@ -1,1 +1,2 @@
 -keep class com.horizonte.update.HbrpApkProvider { *; }
+-keep class com.horizonte.update.HbrpSessionVault { *; }

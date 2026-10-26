@@ -153,6 +153,7 @@ public sealed partial class AccountSession
 
     void ShowLogin(string error="")
     {
+        HideRemembered();
         ReadyToEnterCity=false;HideCharacterLobby();AuthVisible=true;root.style.display=DisplayStyle.Flex;
         if(string.IsNullOrEmpty(error))ShowLanding();
         else {DisplayEmailForm(false);SetGeneralMessage(error,true);}

@@ -298,6 +298,7 @@ public sealed class CharacterFlowVerification : MonoBehaviour
         run.Focus();Dispatch(run);yield return null;Check(!hud.SprintRequested,"Botão HUB2 desativa corrida");
         yield return VerifyChatInterface();
         yield return AdminPanelVerification.Run(Check,Capture,SetFixtureRole);
+        yield return account.VerifyRememberedAccess(Check,Capture);
         yield return Capture("hud2-final");
     }
 
