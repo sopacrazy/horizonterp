@@ -52,29 +52,36 @@ def provision():
 
 class Motion:
  def __init__(self,index,rng=None):
-  self.rng=rng or random.Random();self.x=-10+index*5;self.z=(-1 if index%2 else 1)*1.2
-  self.yaw=90.;self.speed=0.;self.mode_until=0.;self.target=(0.,0.);self.jump_at=0.;self.next_jump=self.rng.uniform(5,13);self.elapsed=0.
+  # Each bot owns its RNG, destination and pause clock; no group movement timer.
+  self.rng=rng if rng is not None else random.Random(secrets.randbits(128))
+  self.x=-10+index*5;self.z=self.rng.uniform(-2,2)
+  self.yaw=self.rng.uniform(0,360);self.speed=0.;self.elapsed=0.
+  self.pause_until=0.;self.next_pause=self.rng.uniform(9,38)
+  self.target=self.destination();self.retarget_at=self.rng.uniform(8,27)
+ def destination(self):
+  for _ in range(20):
+   target=(self.rng.uniform(-13,13),self.rng.uniform(-2,2))
+   if math.hypot(target[0]-self.x,target[1]-self.z)>=4:return target
+  return (-self.x,-self.z)
  def step(self,dt):
   dt=max(0,min(dt,.15));self.elapsed+=dt
-  if self.elapsed>=self.mode_until:
-   self.speed=self.rng.choices([0.,1.65,4.5],[15,55,30])[0];self.mode_until=self.elapsed+self.rng.uniform(2,5)
-   self.target=(self.rng.uniform(-13,13),self.rng.uniform(-2,2))
+  if self.elapsed>=self.next_pause:
+   self.pause_until=self.elapsed+self.rng.uniform(.7,3.2)
+   self.next_pause=self.pause_until+self.rng.uniform(14,43)
+  desired_speed=0. if self.elapsed<self.pause_until else 1.65
+  self.speed+=max(-3*dt,min(3*dt,desired_speed-self.speed))
+  if math.hypot(self.target[0]-self.x,self.target[1]-self.z)<.4 or self.elapsed>=self.retarget_at:
+   self.target=self.destination();self.retarget_at=self.elapsed+self.rng.uniform(8,27)
   dx,dz=self.target[0]-self.x,self.target[1]-self.z
-  if math.hypot(dx,dz)<.5:self.target=(self.rng.uniform(-13,13),self.rng.uniform(-2,2))
   desired=math.degrees(math.atan2(dx,dz))%360
-  turn=(desired-self.yaw+180)%360-180;self.yaw=(self.yaw+max(-140*dt,min(140*dt,turn)))%360
-  # Advance toward safe road waypoints; stay away from buildings, stairs and props.
-  distance=min(self.speed*dt,math.hypot(dx,dz))
-  self.x=max(-14,min(14,self.x+math.sin(math.radians(self.yaw))*distance))
-  self.z=max(-2.2,min(2.2,self.z+math.cos(math.radians(self.yaw))*distance))
-  if self.elapsed>=self.next_jump and not self.jump_at:
-   self.jump_at=self.elapsed;self.next_jump=self.elapsed+self.rng.uniform(7,17)
-  phase=(self.elapsed-self.jump_at)/1.15 if self.jump_at else 0
-  jumping=bool(self.jump_at) and phase<1
-  if not jumping:self.jump_at=0;phase=0
-  flight=max(0,phase*1.15-.105)
-  height=max(0,math.sqrt(2*18*.75)*flight-9*flight*flight) if jumping else 0
-  return dict(x=self.x,y=-.10+height,z=self.z,yaw=self.yaw,speed=self.speed,jumping=jumping,jumpPhase=phase)
+  turn=(desired-self.yaw+180)%360-180
+  # Turn in place at a corner rather than walking sideways or clamping into a wall.
+  self.yaw=(self.yaw+max(-200*dt,min(200*dt,turn)))%360
+  distance=min(self.speed*dt,math.hypot(dx,dz)) if abs(turn)<20 else 0.
+  length=math.hypot(dx,dz)
+  if length>0:self.x+=dx/length*distance;self.z+=dz/length*distance
+  actual_speed=distance/dt if dt else 0.
+  return dict(x=self.x,y=-.10,z=self.z,yaw=self.yaw,speed=actual_speed,jumping=False,jumpPhase=0.)
 
 def run_bot(index,account,stop):
  api=Api()
@@ -90,9 +97,9 @@ def run_bot(index,account,stop):
    if status in (401,403) or reply.get('code')=='SESSION_IN_USE':
     print(json.dumps({'bot':account['uid'],'event':'stopped_by_auth','code':reply.get('code')}),flush=True);return
    if status!=200:stop.wait(2);continue
-   seen_modes.add(frame['speed']);saw_jump|=frame['jumping']
+   seen_modes.add(round(frame['speed'],2));saw_jump|=frame['jumping']
    if started>=report_at:
-    print(json.dumps({'bot':account['uid'],'event':'presence','count':reply['count'],'capacity':reply['capacity'],'frames':sequence,'modes':sorted(seen_modes),'jumped':saw_jump}),flush=True);report_at=started+60
+    print(json.dumps({'bot':account['uid'],'event':'presence','count':reply['count'],'capacity':reply['capacity'],'frames':sequence,'modes':sorted(seen_modes),'jumped':saw_jump,'nextPauseIn':round(motion.next_pause-motion.elapsed,1),'target':[round(v,2) for v in motion.target]}),flush=True);report_at=started+60
    if started-checkpoint>=60 and not frame['jumping']:
     status,saved=api.request('PUT','/v1/player/checkpoint',dict(requestId=str(uuid.uuid4()),version=state['version'],x=frame['x'],y=-.10,z=frame['z'],yaw=frame['yaw'],cameraYaw=frame['yaw'],cameraPitch=16),token)
     if status==200:
