@@ -62,6 +62,10 @@ public sealed class ArrivalVerification:MonoBehaviour
         Check(!tutorial.ModalOpen&&tutorial.LoanCar==null&&starts==0,"Entrada não abre diálogo automaticamente nem concede carro antes de conversar");
         Position(tutorial.Config.giver+Vector3.left);yield return new WaitForSecondsRealtime(.4f);tutorial.Interact("talk");yield return null;
         Check(tutorial.ModalOpen,"Aproximação e interação abrem diálogo do NPC");
+        yield return new WaitForSecondsRealtime(.5f);
+        Vector3 welcomeDirection=Vector3.ProjectOnPlane(player.transform.position-tutorial.WelcomeNpc.transform.position,Vector3.up).normalized;
+        Check(Vector3.Angle(tutorial.WelcomeNpc.transform.forward,welcomeDirection)<8,
+            "NPC inicial vira suavemente para olhar o jogador");
         var ui=tutorial.Document.rootVisualElement;
         var dialogueTitle=ui.Q<Label>("arrival-dialog-title");var dialogueText=ui.Q<Label>("arrival-dialog-text");var objective=ui.Q<Label>("arrival-objective-title");
         Check(dialogueTitle.text=="BOAS-VINDAS"&&dialogueText.text.StartsWith("Salve, meu cria!")&&ui.Q<Button>("arrival-start").text=="PRÓXIMO","Banner começa pela boas-vindas com texto e ação corretos");yield return Capture("npc-dialogue");
@@ -90,7 +94,12 @@ public sealed class ArrivalVerification:MonoBehaviour
         Check(Vector3.Distance(car.transform.position,initial)>2,"Carro emprestado percorre a rua com direção funcional");yield return Capture("driving");
         Check(Quaternion.Angle(initialWheel,car.VisualWheels[0].localRotation)>10,"Pneus giram visualmente enquanto o Mustang anda");
         Check(car.Exit(),"É possível sair em um local livre");Position(tutorial.Config.cityHall+Vector3.left);yield return new WaitForSecondsRealtime(.5f);tutorial.Interact("finish");
-        Check(tutorial.ModalOpen,"Prefeitura exige aproximação e diálogo com o atendente");Press(ui.Q<Button>("arrival-start"));
+        Check(tutorial.ModalOpen,"Prefeitura exige aproximação e diálogo com o atendente");
+        yield return new WaitForSecondsRealtime(.5f);
+        Vector3 attendantDirection=Vector3.ProjectOnPlane(player.transform.position-tutorial.CityHallNpc.transform.position,Vector3.up).normalized;
+        Check(Vector3.Angle(tutorial.CityHallNpc.transform.forward,attendantDirection)<8,
+            "NPC da Prefeitura vira suavemente para olhar o jogador");
+        Press(ui.Q<Button>("arrival-start"));
         yield return Wait(()=>tutorial.Phase=="completed","Atendimento conclui missão");yield return null;
         Check(rewards==1&&state.xp=="100"&&state.cashCents=="15000"&&player.Cash==150,"Servidor confirma 100 XP e 150 reais uma única vez");
         Check(!tutorial.LoanCar&&!MissionVehicle.Driver&&mission.loanId==null,"Conclusão devolve o carro ao NPC sem propriedade permanente");yield return Capture("mission-completed");

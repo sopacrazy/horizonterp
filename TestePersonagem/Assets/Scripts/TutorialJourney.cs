@@ -27,6 +27,8 @@ public sealed class TutorialJourney : MonoBehaviour
     public ArrivalConfig Config=>config;
     public UIDocument Document=>document;
     public GameObject GpsArrow=>gpsObject;
+    public GameObject WelcomeNpc=>giver;
+    public GameObject CityHallNpc=>cityHall;
     ThirdPersonPlayer player;
     ArrivalConfig config;
     ArrivalState mission;
@@ -78,6 +80,8 @@ public sealed class TutorialJourney : MonoBehaviour
     void Update()
     {
         if(!document||!player||mission==null)return;
+        FacePlayer(giver);
+        FacePlayer(cityHall);
         bool available=!busy&&!modalOpen&&!player.IsTeleporting&&!player.IsJumping&&!InGameChat.Editing&&!StartupLoader.IsLoading&&!AccountSession.InputBlocked&&!(GameHud.Instance&&GameHud.Instance.IsPanelOpen)&&Time.unscaledTime>=nextInteraction;
         string action=null;string caption="";
         if(Phase=="available"&&Vector3.Distance(player.transform.position,config.giver)<2.8f){action="talk";caption="E  CONVERSAR";}
@@ -107,6 +111,14 @@ public sealed class TutorialJourney : MonoBehaviour
             ShowDialog("PREFEITURA · ATENDIMENTO","Bem-vindo à Prefeitura! Você chegou ao local certo. Vamos encerrar sua chegada à cidade e preparar o próximo atendimento. O carro emprestado será devolvido ao morador.","CONTINUAR","finish");
     }
     bool Near(Vector3 point)=>Vector3.Distance(player.transform.position,point)<2.8f;
+    void FacePlayer(GameObject npc)
+    {
+        if(!npc||!player)return;
+        Vector3 direction=Vector3.ProjectOnPlane(player.transform.position-npc.transform.position,Vector3.up);
+        if(direction.sqrMagnitude>.001f&&direction.sqrMagnitude<144f)
+            npc.transform.rotation=Quaternion.RotateTowards(npc.transform.rotation,
+                Quaternion.LookRotation(direction.normalized,Vector3.up),240f*Time.deltaTime);
+    }
     internal IEnumerator SubmitMission(string action)
     {
         if(busy)yield break;busy=true;primary.SetEnabled(false);dialogError.text="";
