@@ -29,7 +29,14 @@ export function createArrivalMission({pool,session,transaction,requireCharacter}
    await client.query("INSERT INTO hbrp.character_progress(character_id,category,code) VALUES($1,'mission',$2) ON CONFLICT DO NOTHING",[current.characterId,config.code]);
    const record=(await client.query("SELECT state FROM hbrp.character_progress WHERE character_id=$1 AND category='mission' AND code=$2 FOR UPDATE",[current.characterId,config.code])).rows[0];
    let saved={...record.state};let phase=summary(saved).phase;
-   if(saved.phase==='completed'&&saved.journeyVersion!==2)saved={...saved,phase:'rg_pending',journeyVersion:2,hasRG:false};
+   if(saved.phase==='completed'&&saved.journeyVersion!==2)saved={
+    ...saved,
+    phase:'rg_pending',
+    journeyVersion:2,
+    hasRG:false,
+    mission1CompletedAt:saved.mission1CompletedAt||saved.completedAt||new Date().toISOString(),
+    rgRewardKey:saved.rgRewardKey||randomUUID()
+   };
    phase=summary(saved).phase;
    if(phase==='completed')return {mission:summary(saved),state:await requireCharacter(client,auth.account_id)};
    if(body.action==='start'&&phase==='borrowed')return {mission:summary(saved),state:current};
