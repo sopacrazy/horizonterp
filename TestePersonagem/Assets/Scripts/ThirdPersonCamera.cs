@@ -11,6 +11,8 @@ public class ThirdPersonCamera : MonoBehaviour
     Vector3 smoothFocus;
     Vector3 lastMouse;
     bool dragAllowed;
+    float vehicleYawOffset,vehicleLastLook;
+    public bool VehicleFollowActive {get;private set;}
 
     void Start()
     {
@@ -23,18 +25,35 @@ public class ThirdPersonCamera : MonoBehaviour
     {
         if(StartupLoader.IsLoading || AccountSession.InputBlocked || InGameChat.Editing){lastMouse=Input.mousePosition;dragAllowed=false;Place(false);return;}
         Vector3 mouse = Input.mousePosition;
+        float yawDelta=0;
         var hud=GameHud.Instance;
         if(Input.GetMouseButtonDown(0)||Input.GetMouseButtonDown(1))
             dragAllowed=!(hud&&(hud.IsPanelOpen||hud.BlocksPointer(mouse)));
         if (!MobileControls.HasTouches && (Input.GetMouseButton(0) || Input.GetMouseButton(1)) && dragAllowed && !(hud&&hud.IsPanelOpen) && !Input.GetMouseButtonDown(0) && !Input.GetMouseButtonDown(1))
         {
             Vector3 delta = mouse - lastMouse;
-            yaw += delta.x * .2f * sensitivity;
+            yawDelta += delta.x * .2f * sensitivity;
             pitch = Mathf.Clamp(pitch - delta.y * .15f * sensitivity, -10, 65);
         }
         Vector2 touchLook=MobileControls.Look;
-        yaw+=touchLook.x*.2f*sensitivity;
+        yawDelta+=touchLook.x*.2f*sensitivity;
+        yaw+=yawDelta;
         pitch=Mathf.Clamp(pitch-touchLook.y*.15f*sensitivity,-10,65);
+        if(VehicleFollowActive&&target)
+        {
+            if(Mathf.Abs(yawDelta)>.001f)
+            {
+                vehicleYawOffset=Mathf.DeltaAngle(target.eulerAngles.y,yaw);
+                vehicleLastLook=Time.unscaledTime;
+            }
+            else
+            {
+                if(Time.unscaledTime-vehicleLastLook>.9f)
+                    vehicleYawOffset=Mathf.MoveTowards(vehicleYawOffset,0,85f*Time.deltaTime);
+                yaw=Mathf.LerpAngle(yaw,target.eulerAngles.y+vehicleYawOffset,
+                    1-Mathf.Exp(-9f*Time.deltaTime));
+            }
+        }
         lastMouse = mouse;
         if(!(hud&&(hud.IsPanelOpen||hud.BlocksPointer(mouse))))
             distance = Mathf.Clamp(distance - Input.mouseScrollDelta.y * .35f, 2f, 6f);
@@ -45,6 +64,19 @@ public class ThirdPersonCamera : MonoBehaviour
     {
         yaw=target.eulerAngles.y;pitch=14;distance=4.2f;
         Place(true);
+    }
+
+    public void BeginVehicleFollow(Transform vehicle)
+    {
+        if(!vehicle)return;
+        target=vehicle;VehicleFollowActive=true;vehicleYawOffset=0;
+        vehicleLastLook=Time.unscaledTime;yaw=vehicle.eulerAngles.y;Place(true);
+    }
+
+    public void EndVehicleFollow(Transform restoredTarget)
+    {
+        VehicleFollowActive=false;vehicleYawOffset=0;
+        if(restoredTarget)target=restoredTarget;
     }
 
     void Place(bool snap)

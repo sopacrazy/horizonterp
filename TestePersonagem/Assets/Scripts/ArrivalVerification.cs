@@ -90,10 +90,18 @@ public sealed class ArrivalVerification:MonoBehaviour
         Check(MissionVehicle.Driver==player&&!player.GetComponent<CharacterController>().enabled,"Entrar no veículo troca os controles e oculta o personagem");
         yield return null;Check(ui.Q<VisualElement>("arrival-prompt").ClassListContains("arrival-exit-prompt"),"Sair do carro aparece como botão compacto acima do pulo");
         if(Environment.GetCommandLineArgs().Contains("--inspect-arrival"))yield return new WaitForSecondsRealtime(30);
-        var car=tutorial.LoanCar;Vector3 initial=car.transform.position;Quaternion initialWheel=car.VisualWheels[0].localRotation;MissionVehicle.VerificationInput=Vector2.up;yield return new WaitForSecondsRealtime(2);MissionVehicle.VerificationInput=Vector2.zero;
+        var car=tutorial.LoanCar;var vehicleCamera=UnityEngine.Object.FindAnyObjectByType<ThirdPersonCamera>();
+        Vector3 initial=car.transform.position;Quaternion initialWheel=car.VisualWheels[0].localRotation;
+        MissionVehicle.VerificationInput=Vector2.up;yield return new WaitForSecondsRealtime(1.2f);
+        MissionVehicle.VerificationInput=new Vector2(.55f,1);yield return new WaitForSecondsRealtime(.8f);MissionVehicle.VerificationInput=Vector2.zero;
         Check(Vector3.Distance(car.transform.position,initial)>2,"Carro emprestado percorre a rua com direção funcional");yield return Capture("driving");
         Check(Quaternion.Angle(initialWheel,car.VisualWheels[0].localRotation)>10,"Pneus giram visualmente enquanto o Mustang anda");
-        Check(car.Exit(),"É possível sair em um local livre");Position(tutorial.Config.cityHall+Vector3.left);yield return new WaitForSecondsRealtime(.5f);tutorial.Interact("finish");
+        Check(vehicleCamera.VehicleFollowActive&&Mathf.Abs(Mathf.DeltaAngle(vehicleCamera.yaw,car.transform.eulerAngles.y))<12,
+            "Câmera acompanha automaticamente a direção do carro nas curvas");
+        Check(car.Exit(),"É possível sair em um local livre");
+        Check(!vehicleCamera.VehicleFollowActive&&vehicleCamera.target==player.transform,
+            "Sair do carro restaura a câmera do personagem");
+        Position(tutorial.Config.cityHall+Vector3.left);yield return new WaitForSecondsRealtime(.5f);tutorial.Interact("finish");
         Check(tutorial.ModalOpen,"Prefeitura exige aproximação e diálogo com o atendente");
         yield return new WaitForSecondsRealtime(.5f);
         Vector3 attendantDirection=Vector3.ProjectOnPlane(player.transform.position-tutorial.CityHallNpc.transform.position,Vector3.up).normalized;

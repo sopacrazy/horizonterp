@@ -113,7 +113,7 @@ public sealed class MissionVehicle : MonoBehaviour
         driver=player;Driver=player;oldCombat=player.CombatLocked;player.CombatLocked=true;
         player.GetComponent<CharacterController>().enabled=false;player.animator.gameObject.SetActive(false);
         camera=UnityEngine.Object.FindAnyObjectByType<ThirdPersonCamera>();
-        if(camera){oldTarget=camera.target;oldDistance=camera.distance;oldPitch=camera.pitch;camera.target=transform;camera.distance=6;camera.pitch=18;camera.yaw=transform.eulerAngles.y;}
+        if(camera){oldTarget=camera.target;oldDistance=camera.distance;oldPitch=camera.pitch;camera.distance=6;camera.pitch=18;camera.BeginVehicleFollow(transform);}
         return true;
     }
     public bool Exit(bool force=false)
@@ -132,7 +132,7 @@ public sealed class MissionVehicle : MonoBehaviour
         if(!safe&&!force)return false;
         var player=driver;driver=null;Driver=null;Speed=0;
         player.transform.position=point;player.animator.gameObject.SetActive(true);player.GetComponent<CharacterController>().enabled=true;player.CombatLocked=oldCombat;
-        if(camera){camera.target=oldTarget?oldTarget:player.transform;camera.distance=oldDistance;camera.pitch=oldPitch;camera.ResetView();}
+        if(camera){camera.EndVehicleFollow(oldTarget?oldTarget:player.transform);camera.distance=oldDistance;camera.pitch=oldPitch;camera.ResetView();}
         return true;
     }
     void Update()
