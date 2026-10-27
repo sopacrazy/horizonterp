@@ -69,7 +69,7 @@ public sealed class HudRuntimeVerification : MonoBehaviour
         hud.ClosePanel();Submit(hud.Root.Q<Button>("nav-phone"));yield return null;
         Check(hud.CurrentPanel=="phone","Botão de celular abre atalhos");
         hud.ClosePanel();Submit(hud.Root.Q<Button>("nav-session"));yield return null;
-        Check(hud.CurrentPanel=="session","Prancheta abre dados da sessão");
+        Check(hud.CurrentPanel=="missions"&&MissionCatalog.Data.missions.Length==17,"Prancheta abre catálogo com 10 missões de tutorial e 7 normais");
         hud.OpenPanel("player");yield return null;
         string originalName=hud.PlayerName;
         var field=hud.Root.Q<TextField>("player-name-input");field.value="TESTE HUD";

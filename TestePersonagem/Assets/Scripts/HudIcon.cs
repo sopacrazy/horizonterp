@@ -41,6 +41,7 @@ public sealed class HudIcon : VisualElement
             case "wallet": Box(3,6,18,14);Line(3,10,21,10);Box(14,12,7,5);Circle(17,14.5f,.5f);break;
             case "phone": Box(7,2,10,20);Line(10,5,14,5);Circle(12,19,.6f);break;
             case "list": Box(4,3,16,18);Line(8,8,17,8);Line(8,12,17,12);Line(8,16,15,16);break;
+            case "mission": Box(4,3,16,18);Line(7,8,9,10,12,6);Line(13,8,17,8);Line(7,15,9,17,12,13);Line(13,15,17,15);break;
             case "person": Circle(12,7,3.5f);Line(4,21,4,18,7,14,17,14,20,18,20,21);break;
             case "map": Line(3,5,9,3,15,6,21,3,21,19,15,22,9,19,3,21,3,5);Line(9,3,9,19);Line(15,6,15,22);break;
             case "run": Circle(16,4,2);Line(4,10,9,8,14,10,17,14,21,14);Line(14,10,11,15,15,20,18,21);Line(11,15,7,20,3,20);break;

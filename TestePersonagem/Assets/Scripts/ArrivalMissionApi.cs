@@ -4,10 +4,10 @@ using UnityEngine;
 
 [Serializable]public class ArrivalConfig
 {
-    public string code;public Vector3 giver,car,cityHall;public Vector3[] route;
-    public int rewardXp,rewardCashCents,loanMinutes;
+    public string code;public Vector3 giver,car,cityHall,cityHallCar,drivingSchool;public Vector3[] route,drivingRoute;
+    public int rewardXp,rewardCashCents,rgRewardXp,rgRewardCashCents,drivingRewardXp,loanMinutes;
 }
-[Serializable]public class ArrivalState{public string phase,loanId,loanExpiresAt;public ArrivalConfig config;}
+[Serializable]public class ArrivalState{public string phase,loanId,loanExpiresAt;public bool hasRG,hasCNH;public ArrivalConfig config;}
 [Serializable]public class ArrivalAction{public string action;}
 public sealed partial class AccountSession
 {

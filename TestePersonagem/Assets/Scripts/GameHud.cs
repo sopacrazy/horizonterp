@@ -140,7 +140,7 @@ public sealed class GameHud : MonoBehaviour
 
         var nav=Element("h2-nav");Block(nav);
         AtlasButton("h2_menu","h2-nav-button","Menu [Tab]",()=>OpenPanel("menu"),nav).name="nav-menu";
-        AtlasButton("h2_tasks","h2-nav-button","Dados da sessão",()=>OpenPanel("session"),nav).name="nav-session";
+        AtlasButton("h2_tasks","h2-nav-button","Missões",()=>OpenPanel("missions"),nav).name="nav-session";
         AtlasButton("h2_phone","h2-nav-button","Celular",()=>OpenPanel("phone"),nav).name="nav-phone";
         var top=Element("h2-top");Block(top);
         adminButton=IconButton("admin","h2-top-button h2-admin","Painel administrativo",()=>AdminPlayerPanel.Open(this),top);
@@ -219,6 +219,10 @@ public sealed class GameHud : MonoBehaviour
                 drawerTitle.text="Sua sessão";
                 Text("Explore a Rua do Centro no seu ritmo.","panel-description",content);
                 distanceMetric=Metric("Distância percorrida","0 m");timeMetric=Metric("Tempo de exploração","00:00");topSpeedMetric=Metric("Maior velocidade","0 m/s");
+                break;
+            case "missions":
+                drawerTitle.text="Central de Missões";
+                BuildMissionPanel();
                 break;
             case "wallet":
                 drawerTitle.text="Carteira";
@@ -302,6 +306,7 @@ public sealed class GameHud : MonoBehaviour
         HomeTile(grid,"map","Mapa e GPS","EXPLORAR",()=>OpenPanel("map"));
         HomeTile(grid,"run","Ações","PERSONAGEM",()=>OpenPanel("actions"));
         HomeTile(grid,"list","Minha sessão","PROGRESSO",()=>OpenPanel("session"));
+        HomeTile(grid,"mission","Missões","JORNADA",()=>OpenPanel("missions"));
         HomeTile(grid,"wallet","Carteira","SALDO",()=>OpenPanel("wallet"));
         HomeTile(grid,"phone","Celular","ATALHOS",()=>OpenPanel("phone"));
         HomeTile(grid,"settings","Configurações","AJUSTES",()=>OpenPanel("settings"));
@@ -318,6 +323,33 @@ public sealed class GameHud : MonoBehaviour
         Text(category,"home-tile-category",top);
         Text(title,"home-tile-title",tile);
         Element("home-tile-accent",tile);
+    }
+    void BuildMissionPanel()
+    {
+        Text("TUTORIAL OBRIGATÓRIO","eyebrow",content);
+        Text("As três primeiras etapas já são jogáveis. As demais estão cadastradas e serão ativadas quando seus sistemas ficarem prontos.","panel-description",content);
+        var scroll=new ScrollView(ScrollViewMode.Vertical);content.Add(scroll);
+        string phase=TutorialJourney.Instance?TutorialJourney.Instance.Phase:"available";
+        foreach(var mission in MissionCatalog.Data.missions)
+        {
+            var card=Element("metric-row",scroll);
+            string prefix=mission.category=="tutorial"?"TUTORIAL "+mission.order.ToString("00"):"NORMAL "+mission.order.ToString("00");
+            Text(prefix+" · "+mission.title.ToUpperInvariant(),"item-title",card);
+            string status=MissionStatus(mission,phase);
+            Text(status,"muted",card);
+            string prize=mission.rewardXp+" XP"+(mission.rewardCashCents>0?" + R$ "+(mission.rewardCashCents/100):"");
+            Text("RECOMPENSA · "+prize,"eyebrow",card);
+        }
+        if(MissionCatalog.Data.daily.Length==0||MissionCatalog.Data.weekly.Length==0)
+            Text("MISSÕES DIÁRIAS E SEMANAIS · aguardando conteúdo","muted",scroll);
+    }
+    static string MissionStatus(MissionDefinition mission,string phase)
+    {
+        if(!mission.implemented)return mission.category=="normal"?"BLOQUEADA · conclua o tutorial e aguarde a mecânica":"EM PREPARAÇÃO · conteúdo cadastrado";
+        if(mission.order==1)return phase=="available"?"DISPONÍVEL":phase=="borrowed"?"EM ANDAMENTO":"CONCLUÍDA";
+        if(mission.order==2)return phase=="rg_pending"||phase=="rg_processing"?"EM ANDAMENTO":phase=="available"||phase=="borrowed"?"BLOQUEADA":"CONCLUÍDA";
+        if(mission.order==3)return phase=="rg_issued"?"DISPONÍVEL":phase=="driving_school"?"EM ANDAMENTO":phase=="completed"?"CONCLUÍDA":"BLOQUEADA";
+        return "EM PREPARAÇÃO";
     }
     Label Metric(string title,string value)
     {

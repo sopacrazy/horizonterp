@@ -50,13 +50,25 @@ test('arrival mission has authenticated loans and exactly-once server rewards',{
    assert.equal((await pool.query('SELECT count(*)::int AS n FROM hbrp.player_vehicles')).rows[0].n,0);
    assert.equal((await req('POST',{action:'finish'})).code,'MISSION_TOO_FAR');
   });
-  await t.test('parallel completion grants exactly 100 XP / 150 reais once and returns the car',async()=>{
+  await t.test('mission 1 rewards once and unlocks RG while retaining the temporary car',async()=>{
    await move(config.cityHall);const replies=await Promise.all([req('POST',{action:'finish'}),req('POST',{action:'finish'})]);
-   for(const reply of replies){assert.equal(reply.status,200);assert.equal(reply.mission.phase,'completed');assert.equal(reply.mission.loanId,null);assert.equal(reply.state.cashCents,'17000');assert.equal(reply.state.xp,'130');assert.equal(reply.state.bankCents,'5000');}
-   assert.equal((await req('POST',{action:'start'})).mission.phase,'completed');
-   assert.equal((await drive()).code,'MISSION_VEHICLE_UNAVAILABLE');
+   for(const reply of replies){assert.equal(reply.status,200);assert.equal(reply.mission.phase,'rg_pending');assert.ok(reply.mission.loanId);assert.equal(reply.state.cashCents,'17000');assert.equal(reply.state.xp,'130');assert.equal(reply.state.bankCents,'5000');}
+   assert.equal((await drive()).status,200);
    assert.equal((await pool.query('SELECT count(*)::int AS n FROM hbrp.financial_operations')).rows[0].n,1);
    assert.equal((await pool.query('SELECT count(*)::int AS n FROM hbrp.wallet_entries')).rows[0].n,1);
+  });
+  await t.test('mission 2 confirms identity, issues RG and rewards exactly once',async()=>{
+   const confirmed=await req('POST',{action:'confirm_rg'});assert.equal(confirmed.mission.phase,'rg_processing');
+   const replies=await Promise.all([req('POST',{action:'issue_rg'}),req('POST',{action:'issue_rg'})]);
+   for(const reply of replies){assert.equal(reply.status,200);assert.equal(reply.mission.phase,'rg_issued');assert.equal(reply.mission.hasRG,true);assert.equal(reply.state.cashCents,'32000');assert.equal(reply.state.xp,'230');}
+   assert.equal((await pool.query('SELECT count(*)::int AS n FROM hbrp.financial_operations')).rows[0].n,2);
+  });
+  await t.test('mission 3 sends the player to driving school, rewards XP and returns the loan',async()=>{
+   const started=await req('POST',{action:'start_driving_school'});assert.equal(started.mission.phase,'driving_school');assert.ok(started.mission.loanId);
+   assert.equal((await drive()).status,200);await move(config.drivingSchool);
+   const replies=await Promise.all([req('POST',{action:'finish_driving_school'}),req('POST',{action:'finish_driving_school'})]);
+   for(const reply of replies){assert.equal(reply.status,200);assert.equal(reply.mission.phase,'completed');assert.equal(reply.mission.loanId,null);assert.equal(reply.mission.hasRG,true);assert.equal(reply.state.cashCents,'32000');assert.equal(reply.state.xp,'330');}
+   assert.equal((await drive()).code,'MISSION_VEHICLE_UNAVAILABLE');
   });
   assert.deepEqual(errors,[]);
   await t.test('expired loan cannot reward; returning to the NPC renews it',async()=>{

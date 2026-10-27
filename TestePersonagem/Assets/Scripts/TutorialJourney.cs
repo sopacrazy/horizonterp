@@ -18,7 +18,7 @@ public sealed class TutorialJourney : MonoBehaviour
     public static TutorialJourney Instance {get;private set;}
     internal static bool AllowVerification;
     public bool ModalOpen=>modalOpen;
-    public bool HasRG=>false;
+    public bool HasRG=>mission?.hasRG==true;
     public bool HasCNH=>false;
     public long DemoCoins=>0;
     public long DemoDonations=>0;
@@ -32,7 +32,7 @@ public sealed class TutorialJourney : MonoBehaviour
     ThirdPersonPlayer player;
     ArrivalConfig config;
     ArrivalState mission;
-    GameObject giver,cityHall,uiObject,gpsObject;
+    GameObject giver,cityHall,instructor,uiObject,gpsObject;
     MissionVehicle car;
     UIDocument document;
     VisualElement quest,prompt,modal;
@@ -40,7 +40,8 @@ public sealed class TutorialJourney : MonoBehaviour
     Button promptButton,primary,secondary,retry;
     AudioSource narration;
     string dialogAction;
-    bool modalOpen,busy,previousCombat,rehearsal;
+    bool modalOpen,busy,previousCombat;
+    string gpsPhase;
     int waypoint,tutorialPage;
     bool enteredLoanCar;
     float nextInteraction,nextRefresh;
@@ -57,6 +58,7 @@ public sealed class TutorialJourney : MonoBehaviour
         if(!player)yield break;
         config=JsonUtility.FromJson<ArrivalConfig>(Resources.Load<TextAsset>("Arrival/Config").text);
         CreateUI();giver=Npc("Morador · boas-vindas",config.giver,new Color(.3f,.85f,1));cityHall=Npc("Prefeitura · atendimento",config.cityHall,new Color(1,.82f,.3f));
+        instructor=Npc("Autoescola · instrutor",config.drivingSchool,new Color(.35f,1f,.55f));
         yield return Load();
     }
     IEnumerator Load()
@@ -64,15 +66,19 @@ public sealed class TutorialJourney : MonoBehaviour
         if(busy)yield break;busy=true;ApiReply reply=null;
         yield return AccountSession.Instance.ArrivalRequest(null,r=>reply=r);busy=false;
         if(reply?.mission==null){title.text="MISSÃO DE CHEGADA";detail.text="Não foi possível carregar a missão. Tente novamente.";retry.style.display=DisplayStyle.Flex;yield break;}
-        rehearsal=reply.mission.phase=="completed";
-        Apply(new ArrivalState{phase="available",config=reply.mission.config});
+        Apply(reply.mission);
     }
     internal IEnumerator ReloadForTest(){yield return Load();}
     void Apply(ArrivalState value)
     {
         mission=value;config=value.config??config;retry.style.display=DisplayStyle.None;
-        if(Phase=="borrowed"&&!car){car=MissionVehicle.Create(config.car);waypoint=0;BuildGps();}
-        if(Phase!="borrowed"){RemoveCar();if(gpsObject)Destroy(gpsObject);}
+        bool loanActive=!string.IsNullOrEmpty(value.loanId);
+        if(loanActive&&!car){car=MissionVehicle.Create(Phase=="borrowed"?config.car:config.cityHallCar);waypoint=0;}
+        if(!loanActive)RemoveCar();
+        bool needsGps=Phase=="borrowed"||Phase=="driving_school";
+        if(needsGps&&gpsPhase!=Phase){waypoint=0;BuildGps();gpsPhase=Phase;}
+        if(!needsGps&&gpsObject){Destroy(gpsObject);gpsObject=null;gpsPhase=null;}
+        if(instructor)instructor.SetActive(Phase=="driving_school");
         quest.style.display=Phase=="completed"?DisplayStyle.None:DisplayStyle.Flex;
         RefreshObjective();
         nextRefresh=Time.unscaledTime+5;
@@ -82,6 +88,7 @@ public sealed class TutorialJourney : MonoBehaviour
         if(!document||!player||mission==null)return;
         FacePlayer(giver);
         FacePlayer(cityHall);
+        FacePlayer(instructor);
         bool available=!busy&&!modalOpen&&!player.IsTeleporting&&!player.IsJumping&&!InGameChat.Editing&&!StartupLoader.IsLoading&&!AccountSession.InputBlocked&&!(GameHud.Instance&&GameHud.Instance.IsPanelOpen)&&Time.unscaledTime>=nextInteraction;
         string action=null;string caption="";
         if(Phase=="available"&&Vector3.Distance(player.transform.position,config.giver)<2.8f){action="talk";caption="E  CONVERSAR";}
@@ -95,20 +102,40 @@ public sealed class TutorialJourney : MonoBehaviour
             if(Time.unscaledTime>=nextRefresh&&DateTime.TryParse(mission.loanExpiresAt,null,System.Globalization.DateTimeStyles.RoundtripKind,out var expires)&&expires.ToUniversalTime()<=DateTime.UtcNow)
             {nextRefresh=Time.unscaledTime+10;StartCoroutine(Load());}
         }
+        else if(Phase=="rg_pending"&&Vector3.Distance(player.transform.position,config.cityHall)<2.8f)
+        {action="rg";caption="E  CONFIRMAR DADOS";}
+        else if(Phase=="rg_processing"&&Vector3.Distance(player.transform.position,config.cityHall)<2.8f)
+        {action="issue_rg";caption="E  RETOMAR EMISSÃO";}
+        else if(Phase=="rg_issued"&&Vector3.Distance(player.transform.position,config.cityHall)<2.8f)
+        {action="mission3";caption="E  FALAR COM ATENDENTE";}
+        else if(Phase=="driving_school")
+        {
+            if(car&&car.Occupied){action="exit";caption="F  SAIR DO CARRO";enteredLoanCar=true;}
+            else if(Vector3.Distance(player.transform.position,config.drivingSchool)<2.8f){action="driving_finish";caption="E  FALAR COM INSTRUTOR";}
+            else if(car&&Vector3.Distance(player.transform.position,car.transform.position)<3.8f){action="enter";caption="E  ENTRAR NO CARRO";}
+            UpdateGps();RefreshObjective();
+        }
         else if(Phase=="available"&&!modalOpen)RefreshObjective();
         prompt.style.display=available&&action!=null?DisplayStyle.Flex:DisplayStyle.None;
         prompt.EnableInClassList("arrival-exit-prompt",action=="exit");
-        promptTitle.text=action=="finish"?"PREFEITURA":action=="talk"?"MORADOR DA CIDADE":"EMPRÉSTIMO TEMPORÁRIO";promptButton.text=caption;promptButton.userData=action;
+        promptTitle.text=action=="finish"||action=="rg"||action=="issue_rg"||action=="mission3"?"PREFEITURA":action=="driving_finish"?"AUTOESCOLA":action=="talk"?"MORADOR DA CIDADE":"EMPRÉSTIMO TEMPORÁRIO";promptButton.text=caption;promptButton.userData=action;
         if(available&&action!=null&&Input.GetKeyDown(KeyCode.E)&&action!="exit")Interact(action);
     }
     internal void Interact(string action)
     {
         if(busy||modalOpen||Time.unscaledTime<nextInteraction)return;
         if(action=="talk"&&Phase=="available"&&Near(config.giver)){tutorialPage=0;ShowTutorialPage();}
-        else if(action=="enter"&&car&&Phase=="borrowed"){if(car.Enter(player))nextInteraction=Time.unscaledTime+.4f;}
+        else if(action=="enter"&&car&&(Phase=="borrowed"||Phase=="driving_school")){if(car.Enter(player))nextInteraction=Time.unscaledTime+.4f;}
         else if(action=="exit"&&car){if(!car.Exit())GameHud.Instance?.ShowToast("Pare em um local livre para sair do carro.");}
         else if(action=="finish"&&Phase=="borrowed"&&Near(config.cityHall)&&!(car&&car.Occupied))
-            ShowDialog("PREFEITURA · ATENDIMENTO","Bem-vindo à Prefeitura! Você chegou ao local certo. Vamos encerrar sua chegada à cidade e preparar o próximo atendimento. O carro emprestado será devolvido ao morador.","CONTINUAR","finish");
+            ShowDialog("PREFEITURA · ATENDIMENTO","Bem-vindo à Prefeitura! Você chegou ao local certo. Vamos concluir sua chegada e iniciar a emissão do seu primeiro documento. O carro continuará emprestado para a próxima etapa.","CONTINUAR","finish");
+        else if(action=="rg"&&Phase=="rg_pending"&&Near(config.cityHall))
+            ShowDialog("MISSÃO 02 · EMITINDO O PRIMEIRO RG","Boa, chegou direitinho! Agora vamos cuidar da sua documentação. Aqui na Prefeitura você vai emitir seu primeiro RG, que será sua identificação na cidade. Confirma seus dados comigo e vamos deixar tudo certinho!\n\nNOME: "+AccountSession.Instance.State.name+"\nSEXO: "+(AccountSession.Instance.State.gender=="female"?"FEMININO":"MASCULINO"),"CONFIRMAR DADOS","confirm_rg");
+        else if(action=="issue_rg"&&Phase=="rg_processing"&&Near(config.cityHall))
+        {ShowDialog("EMITINDO O PRIMEIRO RG","Seus dados já foram confirmados. Aguarde enquanto o sistema conclui a emissão do documento.","AGUARDE","wait");primary.SetEnabled(false);StartCoroutine(SubmitMission("issue_rg"));}
+        else if(action=="mission3"&&Phase=="rg_issued"&&Near(config.cityHall))ShowMission3Dialog();
+        else if(action=="driving_finish"&&Phase=="driving_school"&&Near(config.drivingSchool)&&!(car&&car.Occupied))
+            ShowDialog("AUTOESCOLA · INSTRUTOR","E aí, futuro motorista! Você chegou direitinho à autoescola. Vamos registrar o trajeto e preparar seu primeiro teste de habilitação.","CONCLUIR TRAJETO","finish_driving_school");
     }
     bool Near(Vector3 point)=>Vector3.Distance(player.transform.position,point)<2.8f;
     void FacePlayer(GameObject npc)
@@ -122,19 +149,8 @@ public sealed class TutorialJourney : MonoBehaviour
     internal IEnumerator SubmitMission(string action)
     {
         if(busy)yield break;busy=true;primary.SetEnabled(false);dialogError.text="";
-        ApiReply reply=null;
-        if(rehearsal)
-        {
-            var local=action=="start"
-                ?new ArrivalState{phase="borrowed",loanId="teste-local",loanExpiresAt=DateTime.UtcNow.AddHours(2).ToString("O"),config=config}
-                :new ArrivalState{phase="completed",config=config};
-            reply=new ApiReply{mission=local,state=AccountSession.Instance.State};yield return null;
-        }
-        else
-        {
-            yield return AccountSession.Instance.Save();
-            yield return AccountSession.Instance.ArrivalRequest(action,r=>reply=r);
-        }
+        ApiReply reply=null;yield return AccountSession.Instance.Save();
+        yield return AccountSession.Instance.ArrivalRequest(action,r=>reply=r);
         busy=false;primary.SetEnabled(true);
         if(reply?.mission==null){dialogError.text=AccountSession.Instance.LastError??"Não foi possível confirmar. Tente novamente.";yield break;}
         Apply(reply.mission);
@@ -143,10 +159,39 @@ public sealed class TutorialJourney : MonoBehaviour
             tutorialPage=4;ShowTutorialPage();
             GameHud.Instance?.ShowToast("Missão iniciada. Use o carro do morador; o empréstimo não é uma compra.");
         }
+        else if(action=="finish")
+        {
+            GameHud.Instance?.ShowToast("Missão 01 concluída: +"+config.rewardXp+" XP e +R$ "+(config.rewardCashCents/100));
+            ShowRgDialog();
+        }
+        else if(action=="confirm_rg")
+        {
+            ShowDialog("EMITINDO O PRIMEIRO RG","Dados confirmados. Aguarde a confirmação segura do sistema...","AGUARDE","wait");
+            primary.SetEnabled(false);yield return new WaitForSecondsRealtime(1.35f);StartCoroutine(SubmitMission("issue_rg"));
+        }
+        else if(action=="issue_rg")
+        {
+            GameHud.Instance?.ShowToast("RG emitido: +"+config.rgRewardXp+" XP e +R$ "+(config.rgRewardCashCents/100));
+            ShowMission3Dialog();
+        }
+        else if(action=="start_driving_school")
+            ShowDialog("MISSÃO 03 · INDO ATÉ A AUTOESCOLA","Entre no carro emprestado, siga a seta do GPS e pare próximo ao instrutor. Chegar ao local não conclui a missão: fale com ele para continuar.","FECHAR","close");
+        else if(action=="finish_driving_school")
+        {
+            GameHud.Instance?.ShowToast("Missão 03 concluída: +"+config.drivingRewardXp+" XP");
+            ShowDialog("MISSÃO 03 CONCLUÍDA","Você chegou à autoescola e devolveu o veículo emprestado. A Missão 04 — Tirando a primeira CNH — está cadastrada e será liberada quando o teste prático estiver pronto.","CONTINUAR","close");
+        }
         else HideDialog();
-        if(action=="finish")ShowDialog("MISSÃO CONCLUÍDA",rehearsal
-            ?"Teste concluído. O carro foi devolvido ao NPC e a recompensa não foi repetida, pois esta conta já concluiu a missão oficial."
-            :"Você recebeu "+config.rewardXp+" XP e R$ "+(config.rewardCashCents/100)+". O carro foi devolvido ao NPC. O próximo atendimento na Prefeitura será a continuação da sua jornada.","CONTINUAR","close");
+    }
+
+    void ShowRgDialog()
+    {
+        ShowDialog("MISSÃO 02 · EMITINDO O PRIMEIRO RG","Boa, chegou direitinho! Agora vamos cuidar da sua documentação. Aqui na Prefeitura você vai emitir seu primeiro RG, que será sua identificação na cidade. Confirma seus dados comigo e vamos deixar tudo certinho!\n\nNOME: "+AccountSession.Instance.State.name+"\nSEXO: "+(AccountSession.Instance.State.gender=="female"?"FEMININO":"MASCULINO"),"CONFIRMAR DADOS","confirm_rg");
+    }
+
+    void ShowMission3Dialog()
+    {
+        ShowDialog("MISSÃO 03 · INDO ATÉ A AUTOESCOLA","Pronto, cria! Seu RG já tá emitido. Agora vamos cuidar da sua habilitação. Entra no carro que te emprestei, abre o GPS e segue até a autoescola. Quando chegar, procura o instrutor e interage com ele pra continuar!","INICIAR MISSÃO","start_driving_school");
     }
     void CreateUI()
     {
@@ -183,27 +228,44 @@ public sealed class TutorialJourney : MonoBehaviour
     void RefreshObjective()
     {
         if(title==null||detail==null||reward==null||config==null||player==null)return;
-        reward.text="RECOMPENSA  ·  "+config.rewardXp+" XP  +  R$ "+(config.rewardCashCents/100);
         if(Phase=="available")
         {
+            reward.text="RECOMPENSA  ·  "+config.rewardXp+" XP  +  R$ "+(config.rewardCashCents/100);
             title.text="MISSÃO 01 · PRIMEIRO CORRE  1/6";
             detail.text="Aproximar-se do NPC inicial  ·  "+Mathf.CeilToInt(Vector3.Distance(player.transform.position,config.giver))+" m";
             return;
         }
-        if(Phase!="borrowed")return;
-        float cityDistance=Vector3.Distance(player.transform.position,config.cityHall);
-        if(cityDistance<12&&(car==null||!car.Occupied))
+        if(Phase=="borrowed")
         {
-            title.text="MISSÃO 01 · PRIMEIRO CORRE  6/6";detail.text="Conversar com o NPC da Prefeitura";
+            reward.text="RECOMPENSA  ·  "+config.rewardXp+" XP  +  R$ "+(config.rewardCashCents/100);
+            float cityDistance=Vector3.Distance(player.transform.position,config.cityHall);
+            if(cityDistance<12&&(car==null||!car.Occupied))
+            {title.text="MISSÃO 01 · PRIMEIRO CORRE  6/6";detail.text="Conversar com o NPC da Prefeitura";}
+            else if(enteredLoanCar)
+            {title.text="MISSÃO 01 · PRIMEIRO CORRE  5/6";detail.text="Seguir o GPS até a Prefeitura  ·  "+Mathf.CeilToInt(cityDistance)+" m"+(car&&car.Occupied?"  ·  "+Mathf.RoundToInt(Mathf.Abs(car.Speed)*3.6f)+" km/h":"");}
+            else
+            {title.text="MISSÃO 01 · PRIMEIRO CORRE  4/6";detail.text="Entrar no carro emprestado";}
+            return;
         }
-        else if(enteredLoanCar)
+        if(Phase=="rg_pending"||Phase=="rg_processing")
         {
-            title.text="MISSÃO 01 · PRIMEIRO CORRE  5/6";
-            detail.text="Seguir o GPS até a Prefeitura  ·  "+Mathf.CeilToInt(cityDistance)+" m"+(car&&car.Occupied?"  ·  "+Mathf.RoundToInt(Mathf.Abs(car.Speed)*3.6f)+" km/h":"");
+            reward.text="RECOMPENSA  ·  "+config.rgRewardXp+" XP  +  R$ "+(config.rgRewardCashCents/100);
+            title.text="MISSÃO 02 · EMITINDO O PRIMEIRO RG  "+(Phase=="rg_processing"?"3/4":"1/4");
+            detail.text=Phase=="rg_processing"?"Aguardar a confirmação do sistema":"Interagir com o atendente e confirmar os dados";
+            return;
         }
-        else
+        if(Phase=="rg_issued")
         {
-            title.text="MISSÃO 01 · PRIMEIRO CORRE  4/6";detail.text="Entrar no carro emprestado";
+            reward.text="RECOMPENSA  ·  "+config.drivingRewardXp+" XP";
+            title.text="MISSÃO 03 · INDO ATÉ A AUTOESCOLA  1/5";detail.text="Conversar com o atendente para iniciar";return;
+        }
+        if(Phase=="driving_school")
+        {
+            reward.text="RECOMPENSA  ·  "+config.drivingRewardXp+" XP";
+            float distance=Vector3.Distance(player.transform.position,config.drivingSchool);
+            if(distance<12&&(car==null||!car.Occupied)){title.text="MISSÃO 03 · INDO ATÉ A AUTOESCOLA  5/5";detail.text="Interagir com o instrutor";}
+            else if(enteredLoanCar){title.text="MISSÃO 03 · INDO ATÉ A AUTOESCOLA  3/5";detail.text="Seguir o GPS até a autoescola  ·  "+Mathf.CeilToInt(distance)+" m"+(car&&car.Occupied?"  ·  "+Mathf.RoundToInt(Mathf.Abs(car.Speed)*3.6f)+" km/h":"");}
+            else{title.text="MISSÃO 03 · INDO ATÉ A AUTOESCOLA  2/5";detail.text="Entrar no carro emprestado";}
         }
     }
     void HideDialog(){modalOpen=false;modal.style.display=DisplayStyle.None;narration.Stop();if(player)player.CombatLocked=previousCombat;nextInteraction=Time.unscaledTime+.35f;}
@@ -229,13 +291,14 @@ public sealed class TutorialJourney : MonoBehaviour
     }
     void UpdateGps()
     {
-        if(!gpsObject||config.route==null||config.route.Length==0)return;
+        Vector3[] route=Phase=="driving_school"?config.drivingRoute:config.route;
+        if(!gpsObject||route==null||route.Length==0)return;
         Vector3 origin=player.transform.position;
-        Vector3 target=car&&!enteredLoanCar&&!car.Occupied?car.transform.position:config.route[Mathf.Clamp(waypoint,0,config.route.Length-1)];
+        Vector3 target=car&&!enteredLoanCar&&!car.Occupied?car.transform.position:route[Mathf.Clamp(waypoint,0,route.Length-1)];
         if(enteredLoanCar||car&&car.Occupied)
         {
-            while(waypoint<config.route.Length-1&&Vector3.Distance(origin,config.route[waypoint])<5)waypoint++;
-            target=config.route[waypoint];
+            while(waypoint<route.Length-1&&Vector3.Distance(origin,route[waypoint])<5)waypoint++;
+            target=route[waypoint];
         }
         Vector3 direction=Vector3.ProjectOnPlane(target-origin,Vector3.up);
         gpsObject.SetActive(direction.sqrMagnitude>.25f);
@@ -260,6 +323,6 @@ public sealed class TutorialJourney : MonoBehaviour
         var point=RuntimePanelUtils.ScreenToPanel(document.rootVisualElement.panel,new Vector2(screen.x,Screen.height-screen.y));
         return (quest.resolvedStyle.display!=DisplayStyle.None&&quest.worldBound.Contains(point))||(prompt.resolvedStyle.display!=DisplayStyle.None&&prompt.worldBound.Contains(point));
     }
-    void OnDestroy(){RemoveCar();if(giver)Destroy(giver);if(cityHall)Destroy(cityHall);if(gpsObject)Destroy(gpsObject);if(modalOpen&&player)player.CombatLocked=previousCombat;if(Instance==this)Instance=null;}
+    void OnDestroy(){RemoveCar();if(giver)Destroy(giver);if(cityHall)Destroy(cityHall);if(instructor)Destroy(instructor);if(gpsObject)Destroy(gpsObject);if(modalOpen&&player)player.CombatLocked=previousCombat;if(Instance==this)Instance=null;}
 }
 public sealed class ArrivalBillboard:MonoBehaviour{void LateUpdate(){if(Camera.main)transform.rotation=Camera.main.transform.rotation;}}

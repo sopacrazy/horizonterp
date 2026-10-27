@@ -113,13 +113,34 @@ public sealed class ArrivalVerification:MonoBehaviour
         Check(Vector3.Angle(tutorial.CityHallNpc.transform.forward,attendantDirection)<8,
             "NPC da Prefeitura vira suavemente para olhar o jogador");
         Press(ui.Q<Button>("arrival-start"));
-        yield return Wait(()=>tutorial.Phase=="completed","Atendimento conclui missão");yield return null;
-        Check(rewards==1&&state.xp=="100"&&state.cashCents=="15000"&&player.Cash==150,"Servidor confirma 100 XP e 150 reais uma única vez");
-        Check(!tutorial.LoanCar&&!MissionVehicle.Driver&&mission.loanId==null,"Conclusão devolve o carro ao NPC sem propriedade permanente");yield return Capture("mission-completed");
+        yield return Wait(()=>tutorial.Phase=="rg_pending","Missão 01 conclui e libera a emissão do RG");yield return null;
+        Check(rewards==1&&state.xp=="100"&&state.cashCents=="15000"&&player.Cash==150,"Missão 01 confirma 100 XP e 150 reais uma única vez");
+        Check(tutorial.LoanCar&&mission.loanId!=null,"Carro permanece emprestado para a continuação do tutorial");
+        Check(dialogueTitle.text.StartsWith("MISSÃO 02")&&dialogueText.text.Contains("Confirma seus dados"),"Missão 02 apresenta o diálogo de emissão do RG");
+        Press(ui.Q<Button>("arrival-start"));
+        yield return Wait(()=>tutorial.Phase=="rg_issued","Sistema confirma e emite o RG",10);yield return null;
+        Check(rewards==2&&tutorial.HasRG&&state.xp=="200"&&state.cashCents=="30000"&&player.Cash==300,"RG persiste e recompensa a Missão 02 uma única vez");
+        Check(dialogueTitle.text.StartsWith("MISSÃO 03")&&dialogueText.text.Contains("autoescola"),"RG emitido apresenta a orientação para a autoescola");
+        Press(ui.Q<Button>("arrival-start"));
+        yield return Wait(()=>tutorial.Phase=="driving_school"&&tutorial.LoanCar,"Missão 03 inicia com carro e GPS para a autoescola");
+        Press(ui.Q<Button>("arrival-start"));yield return null;
+        Position(tutorial.Config.drivingSchool+Vector3.left);yield return new WaitForSecondsRealtime(.5f);tutorial.Interact("driving_finish");yield return null;
+        Check(tutorial.ModalOpen&&dialogueTitle.text.Contains("AUTOESCOLA"),"Instrutor exige interação separada ao chegar à autoescola");
+        Press(ui.Q<Button>("arrival-start"));
+        yield return Wait(()=>tutorial.Phase=="completed","Instrutor conclui o trajeto da Missão 03");yield return null;
+        Check(rewards==3&&state.xp=="300"&&state.cashCents=="30000","Missão 03 concede apenas XP e não duplica dinheiro");
+        Check(!tutorial.LoanCar&&!MissionVehicle.Driver&&mission.loanId==null,"Conclusão da Missão 03 devolve o carro temporário");yield return Capture("mission-completed");
+        Check(MissionCatalog.Data.missions.Length==17&&MissionCatalog.Data.missions.Count(item=>item.category=="tutorial")==10&&
+            MissionCatalog.Data.missions.Count(item=>item.category=="normal")==7,"Catálogo contém as 10 missões de tutorial e 7 missões normais");
+        Check(MissionCatalog.Data.missions.Count(item=>item.implemented)==3&&
+            MissionCatalog.Data.missions.Where(item=>!item.implemented).All(item=>item.rewardXp>=0&&item.rewardCashCents>=0),
+            "Somente as três mecânicas validadas ficam ativas; demais recompensas permanecem protegidas");
+        GameHud.Instance.OpenPanel("missions");yield return null;
+        Check(GameHud.Instance.CurrentPanel=="missions","Painel de missões abre no HUD e lista a jornada");
+        GameHud.Instance.ClosePanel();
         yield return tutorial.ReloadForTest();
-        Check(tutorial.Phase=="available","Tutorial concluído reinicia no passo 1 ao entrar novamente para permitir testes");
-        yield return tutorial.SubmitMission("start");yield return tutorial.SubmitMission("finish");
-        Check(starts==1&&rewards==1&&state.xp=="100"&&state.cashCents=="15000","Repetição de teste não grava a missão nem duplica dinheiro ou XP");
+        Check(tutorial.Phase=="completed"&&tutorial.HasRG,"Progresso concluído permanece salvo ao entrar novamente");
+        Check(starts==1&&rewards==3&&state.xp=="300"&&state.cashCents=="30000","Recarregar a jornada não duplica dinheiro ou XP");
         yield return account.VerifyRememberedAccess(Check,Capture);
     }
     IEnumerator Fake(string method,string path,string body,bool authenticated,Action<ApiReply,string> done)
@@ -143,7 +164,11 @@ public sealed class ArrivalVerification:MonoBehaviour
             {
                 string action=JsonUtility.FromJson<ArrivalAction>(body).action;
                 if(action=="start"&&mission.phase=="available"){starts++;mission.phase="borrowed";mission.loanId=Guid.NewGuid().ToString();mission.loanExpiresAt=DateTime.UtcNow.AddMinutes(30).ToString("o");}
-                if(action=="finish"&&mission.phase=="borrowed"){rewards++;mission.phase="completed";mission.loanId=null;state.xp="100";state.cashCents="15000";}
+                if(action=="finish"&&mission.phase=="borrowed"){rewards++;mission.phase="rg_pending";state.xp="100";state.cashCents="15000";}
+                if(action=="confirm_rg"&&mission.phase=="rg_pending")mission.phase="rg_processing";
+                if(action=="issue_rg"&&mission.phase=="rg_processing"){rewards++;mission.phase="rg_issued";mission.hasRG=true;state.xp="200";state.cashCents="30000";}
+                if(action=="start_driving_school"&&mission.phase=="rg_issued"){mission.phase="driving_school";if(string.IsNullOrEmpty(mission.loanId))mission.loanId=Guid.NewGuid().ToString();mission.loanExpiresAt=DateTime.UtcNow.AddMinutes(30).ToString("o");}
+                if(action=="finish_driving_school"&&mission.phase=="driving_school"){rewards++;mission.phase="completed";mission.loanId=null;mission.loanExpiresAt=null;state.xp="300";}
             }
             reply=new ApiReply{mission=JsonUtility.FromJson<ArrivalState>(JsonUtility.ToJson(mission)),state=state};
         }

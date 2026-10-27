@@ -198,7 +198,7 @@ return async(req,res)=>{
    const body=await readBody(req);
    const identity=await requireCharacter(pool,auth.account_id);
    if(path.endsWith('/sync')&&body.driving===true){
-    const loan=await pool.query("SELECT 1 FROM hbrp.character_progress WHERE character_id=$1 AND category='mission' AND code=$2 AND state->>'phase'='borrowed' AND (state->>'loanExpiresAt')::timestamptz>now()",[identity.characterId,arrivalConfig.code]);
+    const loan=await pool.query("SELECT 1 FROM hbrp.character_progress WHERE character_id=$1 AND category='mission' AND code=$2 AND state->>'phase' IN ('borrowed','rg_pending','rg_processing','rg_issued','driving_school') AND (state->>'loanExpiresAt')::timestamptz>now()",[identity.characterId,arrivalConfig.code]);
     if(!loan.rowCount)fail(403,'O empréstimo do veículo não está ativo.','MISSION_VEHICLE_UNAVAILABLE');
    }
    if(path.endsWith('/chat'))return send(200,await room.chat(identity,auth.id,body,
