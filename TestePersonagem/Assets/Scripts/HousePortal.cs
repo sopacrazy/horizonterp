@@ -7,7 +7,8 @@ public sealed class HousePortal : MonoBehaviour
 {
     const float InteriorY = -60f;
     static readonly Vector3 InteriorCenter = new Vector3(0, InteriorY, 0);
-    static readonly Vector3 InteriorSpawn = InteriorCenter + new Vector3(0, .08f, 1.25f);
+    static readonly Vector3 InteriorMarkerLocal = new Vector3(0, .04f, -3.95f);
+    static readonly Vector3 InteriorSpawn = InteriorCenter + InteriorMarkerLocal;
     static readonly Vector3 ExteriorMarkerPosition = new Vector3(-24.282f, -.649f, 1.255f);
     const float ExteriorMarkerYaw = 326f;
     const string PrefsPrefix = "house-test.entrance.";
@@ -31,6 +32,8 @@ public sealed class HousePortal : MonoBehaviour
     public VisualElement PromptElement => prompt;
     public Vector3 ExteriorPosition => exterior ? exterior.transform.position : ExteriorMarkerPosition;
     public float ExteriorYaw => exterior ? exterior.transform.eulerAngles.y : ExteriorMarkerYaw;
+    public Vector3 InteriorArrivalPosition => InteriorSpawn;
+    public Vector3 InteriorMarkerPosition => exitMarker ? exitMarker.transform.position : InteriorSpawn;
 
     public static void Create(ThirdPersonPlayer target)
     {
@@ -285,7 +288,7 @@ public sealed class HousePortal : MonoBehaviour
         light.intensity = 3;
         exitMarker = new GameObject("Saída da casa de teste");
         exitMarker.transform.SetParent(t, false);
-        exitMarker.transform.localPosition = new Vector3(0, .04f, -3.95f);
+        exitMarker.transform.localPosition = InteriorMarkerLocal;
         BuildArrowMarker(exitMarker.transform, out exitArrow);
         exitMarker.SetActive(false);
     }
