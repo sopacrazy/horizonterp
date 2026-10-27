@@ -23,6 +23,7 @@ public sealed class ShootingRange : MonoBehaviour
     const string SpeedParameter = "ShootingSpeed";
     const float AimPoseTime = .08f;
     const float FirePoseTime = .22f;
+    const float WeaponYawOffset = -8f;
     ThirdPersonPlayer player;
     ThirdPersonCamera orbit;
     Animator animator;
@@ -274,7 +275,7 @@ public sealed class ShootingRange : MonoBehaviour
         var camera=Camera.main;
         Vector3 direction=camera?camera.transform.forward:transform.forward;
         pistol.SetPositionAndRotation(weaponHand.position+direction*.015f+transform.up*.012f,
-            Quaternion.LookRotation(direction,transform.up));
+            Quaternion.LookRotation(direction,transform.up)*Quaternion.Euler(0,WeaponYawOffset,0));
     }
 
     void CreateInterface()
