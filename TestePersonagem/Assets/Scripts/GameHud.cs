@@ -26,7 +26,7 @@ public sealed class GameHud : MonoBehaviour
     ThirdPersonCamera orbit;
     CityDayNight dayNight;
     UIDocument document;
-    VisualElement root,drawer,content,toast,speedFill,miniViewport,mapArea;
+    VisualElement root,drawer,content,toast,speedFill,miniViewport,mapArea,coordinatePanel;
     Label avatarLabel,playerNameLabel,uidLabel,speedLabel,motionLabel,coordinates,clock,heading,drawerTitle,toastLabel,cloudSaveLabel,minimapNorth;
     Label distanceMetric,timeMetric,topSpeedMetric;
     Button sprint,adminButton;
@@ -168,6 +168,15 @@ public sealed class GameHud : MonoBehaviour
         var compass=Element("compass");compass.name="hud-compass";heading=Text("","",compass);
         var motion=Element("locomotion");motion.name="hud-motion";motion.style.display=DisplayStyle.None;
         speedLabel=Text("0.0","",motion);motionLabel=Text("PARADO","",motion);speedFill=Element("speed-fill",motion);
+
+        coordinatePanel=Element("coordinate-panel");coordinatePanel.name="coordinate-panel";Block(coordinatePanel);
+        var coordinateHeader=Element("coordinate-header",coordinatePanel);
+        Text("POSIÇÃO DO PLAYER","coordinate-title",coordinateHeader);
+        Text("F3","coordinate-shortcut",coordinateHeader);
+        coordinates=Text("","coordinate-values",coordinatePanel);coordinates.name="coordinate-values";
+        var copyCoordinates=new Button(CopyCoordinates){text="COPIAR COORDENADAS",name="copy-coordinates"};
+        copyCoordinates.AddToClassList("coordinate-copy");coordinatePanel.Add(copyCoordinates);
+        coordinatePanel.style.display=DisplayStyle.None;
 
         drawer=Element("drawer");drawer.name="hud-drawer";Block(drawer);drawer.style.display=DisplayStyle.None;
         var header=Element("drawer-header",drawer);var titleGroup=Element("drawer-titles",header);
@@ -394,6 +403,27 @@ public sealed class GameHud : MonoBehaviour
         lastPosition=player.transform.position;SprintRequested=false;
     }
 
+    string CoordinateSnapshot()
+    {
+        Vector3 position=player.transform.position;
+        return string.Format(System.Globalization.CultureInfo.InvariantCulture,
+            "X: {0:0.000}\nY: {1:0.000}\nZ: {2:0.000}\nROTAÇÃO Y: {3:0.0}°\nCÂMERA: {4:0.0}°",
+            position.x,position.y,position.z,Mathf.Repeat(player.transform.eulerAngles.y,360),Mathf.Repeat(orbit.yaw,360));
+    }
+    public void ToggleCoordinates()
+    {
+        bool show=coordinatePanel.resolvedStyle.display==DisplayStyle.None;
+        coordinatePanel.style.display=show?DisplayStyle.Flex:DisplayStyle.None;
+        if(show)coordinates.text=CoordinateSnapshot();
+        ShowToast(show?"Coordenadas ativadas · F3 para fechar":"Coordenadas ocultadas");
+    }
+    void CopyCoordinates()
+    {
+        string value=CoordinateSnapshot().Replace("\n","  |  ");
+        GUIUtility.systemCopyBuffer=value;
+        ShowToast("Coordenadas copiadas");
+    }
+
     public bool BlocksPointer(Vector2 screen)
     {
         if(InGameChat.BlocksPointer(screen))return true;
@@ -437,6 +467,7 @@ public sealed class GameHud : MonoBehaviour
             if(Input.GetKeyDown(KeyCode.Tab))OpenPanel("menu");
             if(Input.GetKeyDown(KeyCode.M))OpenPanel("map");
             if(Input.GetKeyDown(KeyCode.P))OpenPanel("player");
+            if(Input.GetKeyDown(KeyCode.F3))ToggleCoordinates();
             if(Input.GetKeyDown(KeyCode.H))SetVisible(!visible);
             if(Input.GetKeyDown(KeyCode.C)&&!IsPanelOpen)TriggerAction("camera");
             if(Input.GetKeyDown(KeyCode.N)&&!IsPanelOpen)TriggerAction("day-night");
@@ -457,7 +488,8 @@ public sealed class GameHud : MonoBehaviour
         if(cloudSaveLabel!=null && AccountSession.Instance)cloudSaveLabel.text=AccountSession.Instance.SaveStatus;
         energyFill.style.width=Length.Percent(Mathf.Clamp(player.Hunger,0,100));energyLabel.text=Mathf.RoundToInt(player.Hunger).ToString();
         waterFill.style.width=Length.Percent(Mathf.Clamp(player.Hydration,0,100));waterLabel.text=Mathf.RoundToInt(player.Hydration).ToString();
-        var pos=player.transform.position;if(coordinates!=null)coordinates.text=$"X {pos.x:0.0}    /    Z {pos.z:0.0}";
+        var pos=player.transform.position;
+        if(coordinates!=null&&coordinatePanel.resolvedStyle.display!=DisplayStyle.None)coordinates.text=CoordinateSnapshot();
         int serverHour=MultiplayerWorld.Instance?MultiplayerWorld.Instance.ServerHour:-1;
         if(clock!=null)clock.text=serverHour>=0?serverHour.ToString("D2")+":00":DateTime.Now.ToString("HH:mm");
         if(dateLabel!=null)dateLabel.text=DateTime.Now.ToString("dd/MM/yyyy");

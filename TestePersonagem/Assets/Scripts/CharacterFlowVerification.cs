@@ -286,6 +286,14 @@ public sealed class CharacterFlowVerification : MonoBehaviour
             var button=ui.Q<Button>(name);button.Focus();Dispatch(button);yield return null;
             Check(hud.IsPanelOpen,"Atalho do HUB2 abre painel: "+name);hud.ClosePanel();
         }
+        hud.ToggleCoordinates();yield return null;
+        Check(ui.Q("coordinate-panel").resolvedStyle.display==DisplayStyle.Flex&&
+            ui.Q<Label>("coordinate-values").text.Contains("X:")&&
+            ui.Q<Label>("coordinate-values").text.Contains("Y:")&&
+            ui.Q<Label>("coordinate-values").text.Contains("Z:")&&ui.Q<Button>("copy-coordinates")!=null,
+            "F3 exibe posição completa e botão para copiar coordenadas");
+        hud.ToggleCoordinates();yield return null;
+        Check(ui.Q("coordinate-panel").resolvedStyle.display==DisplayStyle.None,"F3 fecha o painel de coordenadas");
         yield return VerifyActionSpacing();
         SetFixtureRole(layoutRole,layoutLevel);yield return null;
         var controls=FindAnyObjectByType<MobileControls>();
