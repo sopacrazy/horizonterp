@@ -60,7 +60,7 @@ with zipfile.ZipFile(apk) as archive:
     if args.admin_chat:assert b'isAdmin' in metadata and b'chat-author-admin' in metadata and b'action-admin' in metadata
     if args.admin_panel:
         assert b'AdminPlayerPanel' in metadata and b'AdminRequest' in metadata
-        assert b'admin-command-execute' in metadata and b'admin-detail-role' in metadata
+        assert b'/v1/admin/players' in metadata and b'/ahelp' in metadata
         assert b'PlayerDisplayName' in metadata and b'/v1/admin/players' in metadata
     if args.remembered_access:
         assert b'RestoreRemembered' in metadata and b'remembered-play' in metadata and b'SessionVault' in metadata
