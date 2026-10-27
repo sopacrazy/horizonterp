@@ -210,24 +210,41 @@ public sealed class ShootingRange : MonoBehaviour
         if(prefab)
         {
             var model=Instantiate(prefab,pistol,false);model.name="Colt Pocket Hammer";
-            model.transform.localPosition=Vector3.zero;model.transform.localRotation=Quaternion.Euler(0,-90f,0);
+            model.transform.localPosition=Vector3.zero;model.transform.localRotation=Quaternion.identity;
             foreach(var importedCamera in model.GetComponentsInChildren<Camera>(true))
                 importedCamera.gameObject.SetActive(false);
             foreach(var importedLight in model.GetComponentsInChildren<Light>(true))
                 importedLight.gameObject.SetActive(false);
+            var gripBone=model.transform.Find("Armature/body/mag");
+            var slideBone=model.transform.Find("Armature/body/slide");
+            var muzzleBone=model.transform.Find("Armature/body/slide/slide_end");
+            if(slideBone&&muzzleBone)
+            {
+                Vector3 barrelAxis=model.transform.InverseTransformDirection(muzzleBone.position-slideBone.position);
+                if(barrelAxis.sqrMagnitude>.000001f)
+                    model.transform.localRotation=Quaternion.FromToRotation(barrelAxis.normalized,Vector3.forward);
+            }
             var renderers=model.GetComponentsInChildren<Renderer>(false);
             if(renderers.Length>0)
             {
                 Bounds bounds=renderers[0].bounds;for(int i=1;i<renderers.Length;i++)bounds.Encapsulate(renderers[i].bounds);
                 float largest=Mathf.Max(bounds.size.x,Mathf.Max(bounds.size.y,bounds.size.z));
                 if(largest>.0001f)model.transform.localScale=Vector3.one*(.27f/largest);
-                bounds=LocalBounds(pistol,renderers);
-                Vector3 grip=new Vector3(bounds.center.x,bounds.min.y+bounds.size.y*.32f,bounds.min.z+bounds.size.z*.22f);
-                model.transform.localPosition-=grip;
+                if(gripBone)model.transform.localPosition-=pistol.InverseTransformPoint(gripBone.position);
+                else
+                {
+                    bounds=LocalBounds(pistol,renderers);
+                    Vector3 grip=new Vector3(bounds.center.x,bounds.min.y+bounds.size.y*.32f,bounds.min.z+bounds.size.z*.22f);
+                    model.transform.localPosition-=grip;
+                }
                 foreach(var renderer in renderers)renderer.gameObject.layer=2;
-                bounds=LocalBounds(pistol,renderers);
                 muzzle=new GameObject("Boca do cano").transform;muzzle.SetParent(pistol,false);
-                muzzle.localPosition=new Vector3(bounds.center.x,bounds.min.y+bounds.size.y*.72f,bounds.max.z+.015f);
+                if(muzzleBone)muzzle.localPosition=pistol.InverseTransformPoint(muzzleBone.position)+Vector3.forward*.018f;
+                else
+                {
+                    bounds=LocalBounds(pistol,renderers);
+                    muzzle.localPosition=new Vector3(bounds.center.x,bounds.min.y+bounds.size.y*.72f,bounds.max.z+.015f);
+                }
             }
         }
         else
