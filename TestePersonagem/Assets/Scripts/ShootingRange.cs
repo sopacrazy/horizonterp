@@ -14,7 +14,7 @@ public sealed class ShootingRange : MonoBehaviour
     public int Ammo { get; private set; } = MagazineSize;
     public int TargetCount => targets.Count;
     public VisualElement OverlayElement => overlay;
-    public bool UsesImportedPistol => pistol&&pistol.Find("Makarov MK");
+    public bool UsesImportedPistol => pistol&&pistol.Find("Colt Pocket Hammer");
     public bool WaitingForShot => animator&&animator.GetFloat(SpeedParameter)<.01f;
 
     const int MagazineSize = 12;
@@ -206,22 +206,28 @@ public sealed class ShootingRange : MonoBehaviour
         weaponHand=hand;
         pistol=new GameObject("Pistola de treino").transform;pistol.SetParent(transform,true);
         pistol.position=hand.position;pistol.rotation=transform.rotation;
-        var prefab=Resources.Load<GameObject>("Weapons/Pistol_MK/Makarov");
+        var prefab=Resources.Load<GameObject>("Weapons/ColtPocket/ColtPocketHammer");
         if(prefab)
         {
-            var model=Instantiate(prefab,pistol,false);model.name="Makarov MK";
-            model.transform.localPosition=Vector3.zero;model.transform.localRotation=Quaternion.Euler(0,180f,0);
-            var looseMagazine=model.transform.Find("Magazine");
-            if(looseMagazine){looseMagazine.gameObject.SetActive(false);Destroy(looseMagazine.gameObject);}
+            var model=Instantiate(prefab,pistol,false);model.name="Colt Pocket Hammer";
+            model.transform.localPosition=Vector3.zero;model.transform.localRotation=Quaternion.Euler(0,-90f,0);
+            foreach(var importedCamera in model.GetComponentsInChildren<Camera>(true))
+                importedCamera.gameObject.SetActive(false);
+            foreach(var importedLight in model.GetComponentsInChildren<Light>(true))
+                importedLight.gameObject.SetActive(false);
             var renderers=model.GetComponentsInChildren<Renderer>(false);
             if(renderers.Length>0)
             {
                 Bounds bounds=renderers[0].bounds;for(int i=1;i<renderers.Length;i++)bounds.Encapsulate(renderers[i].bounds);
                 float largest=Mathf.Max(bounds.size.x,Mathf.Max(bounds.size.y,bounds.size.z));
-                if(largest>.0001f)model.transform.localScale=Vector3.one*(.31f/largest);
-                model.transform.localPosition=new Vector3(0,.10f,.17f);
-                var material=CreatePistolMaterial();
-                foreach(var renderer in renderers){renderer.sharedMaterial=material;renderer.gameObject.layer=2;}
+                if(largest>.0001f)model.transform.localScale=Vector3.one*(.27f/largest);
+                bounds=LocalBounds(pistol,renderers);
+                Vector3 grip=new Vector3(bounds.center.x,bounds.min.y+bounds.size.y*.32f,bounds.min.z+bounds.size.z*.22f);
+                model.transform.localPosition-=grip;
+                foreach(var renderer in renderers)renderer.gameObject.layer=2;
+                bounds=LocalBounds(pistol,renderers);
+                muzzle=new GameObject("Boca do cano").transform;muzzle.SetParent(pistol,false);
+                muzzle.localPosition=new Vector3(bounds.center.x,bounds.min.y+bounds.size.y*.72f,bounds.max.z+.015f);
             }
         }
         else
@@ -230,8 +236,20 @@ public sealed class ShootingRange : MonoBehaviour
             Part("Ferrolho",pistol,new Vector3(0,.025f,.14f),new Vector3(.09f,.10f,.29f),metal);
             Part("Empunhadura",pistol,new Vector3(0,-.09f,.035f),new Vector3(.075f,.20f,.085f),metal,Quaternion.Euler(-12,0,0));
         }
-        muzzle=new GameObject("Boca do cano").transform;muzzle.SetParent(pistol,false);muzzle.localPosition=new Vector3(0,.08f,.43f);
+        if(!muzzle){muzzle=new GameObject("Boca do cano").transform;muzzle.SetParent(pistol,false);muzzle.localPosition=new Vector3(0,.08f,.31f);}
         AlignPistol();
+    }
+
+    static Bounds LocalBounds(Transform root,Renderer[] renderers)
+    {
+        Bounds result=new Bounds(root.InverseTransformPoint(renderers[0].bounds.center),Vector3.zero);
+        foreach(var renderer in renderers)
+        {
+            Bounds world=renderer.bounds;Vector3 min=world.min,max=world.max;
+            for(int x=0;x<2;x++)for(int y=0;y<2;y++)for(int z=0;z<2;z++)
+                result.Encapsulate(root.InverseTransformPoint(new Vector3(x==0?min.x:max.x,y==0?min.y:max.y,z==0?min.z:max.z)));
+        }
+        return result;
     }
 
     void AlignPistol()
@@ -240,20 +258,6 @@ public sealed class ShootingRange : MonoBehaviour
         Vector3 direction=camera?camera.transform.forward:transform.forward;
         pistol.SetPositionAndRotation(weaponHand.position+direction*.015f+transform.up*.012f,
             Quaternion.LookRotation(direction,transform.up));
-    }
-
-    static Material CreatePistolMaterial()
-    {
-        var material=MaterialColor(Color.white);
-        var albedo=Resources.Load<Texture2D>("Weapons/Pistol_MK/Mat.2_Base_Color");
-        var normal=Resources.Load<Texture2D>("Weapons/Pistol_MK/Mat.2_Normal");
-        var metallic=Resources.Load<Texture2D>("Weapons/Pistol_MK/Mat.2_Metallic");
-        if(albedo){material.mainTexture=albedo;if(material.HasProperty("_BaseMap"))material.SetTexture("_BaseMap",albedo);}
-        if(normal){material.EnableKeyword("_NORMALMAP");if(material.HasProperty("_BumpMap"))material.SetTexture("_BumpMap",normal);}
-        if(metallic){material.EnableKeyword("_METALLICGLOSSMAP");if(material.HasProperty("_MetallicGlossMap"))material.SetTexture("_MetallicGlossMap",metallic);}
-        if(material.HasProperty("_Metallic"))material.SetFloat("_Metallic",.72f);
-        if(material.HasProperty("_Glossiness"))material.SetFloat("_Glossiness",.42f);
-        return material;
     }
 
     void CreateInterface()

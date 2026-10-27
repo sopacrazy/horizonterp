@@ -236,8 +236,8 @@ public sealed class OfficialCityVerification : MonoBehaviour
         Check(aimCamera.AimActive&&aimCamera.pitch<=20f&&aimCamera.distance>.65f&&aimCamera.distance<.85f&&
               player.animator.GetLayerWeight(player.animator.GetLayerIndex("SocoParteSuperior"))>.9f,
             "Câmera de ombro mantém ângulo baixo atrás do personagem");
-        Check(shootingRange.UsesImportedPistol,"Personagem usa o modelo Makarov MK no treino");
-        Check(!GameObject.Find("Magazine"),"Carregador solto do modelo Makarov permanece oculto");
+        Check(shootingRange.UsesImportedPistol,"Personagem usa a Colt Pocket Hammer no treino");
+        Check(!GameObject.Find("Makarov MK"),"Modelo antigo e seu carregador solto não aparecem no treino");
         Check(shootingRange.WaitingForShot,"Animação Shooting fica parada na pose de mira antes do disparo");
         int ammoBefore=shootingRange.Ammo;shootingRange.RequestFire();
         yield return new WaitForSecondsRealtime(.08f);
