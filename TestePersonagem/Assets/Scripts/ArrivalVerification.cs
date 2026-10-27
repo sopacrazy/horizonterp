@@ -15,7 +15,8 @@ public sealed class ArrivalVerification:MonoBehaviour
     ThirdPersonPlayer player;
     string saved,oldEmail;
     bool hadEmail,finished;
-    int starts,rewards;
+    int starts,rewards,saveConflicts;
+    bool conflictNextSave;
     [Serializable]class Report{public bool passed;public List<string> checks,errors;public int remoteRequests;}
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void Boot(){if(Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-arrival")>=0)new GameObject("QA chegada sem rede").AddComponent<ArrivalVerification>();}
@@ -68,10 +69,13 @@ public sealed class ArrivalVerification:MonoBehaviour
         Press(ui.Q<Button>("arrival-start"));yield return null;Check(dialogueTitle.text=="APRENDENDO OS COMANDOS"&&ui.Q<Button>("arrival-start").text=="ENTENDI"&&objective.text.Contains("2/6"),"Etapa 2 ensina os comandos e atualiza o objetivo");
         Press(ui.Q<Button>("arrival-start"));yield return null;Check(dialogueTitle.text=="COMEÇANDO A VIDA NA CIDADE"&&ui.Q<Button>("arrival-start").text=="PRÓXIMO","Etapa 3 apresenta a vida na cidade");
         Press(ui.Q<Button>("arrival-start"));yield return null;Check(dialogueTitle.text=="O CARRO EMPRESTADO"&&ui.Q<Button>("arrival-start").text=="INICIAR MISSÃO"&&objective.text.Contains("3/6"),"Etapa 4 explica que o carro é somente emprestado");
-        Press(ui.Q<Button>("arrival-start"));
+        conflictNextSave=true;Press(ui.Q<Button>("arrival-start"));
         yield return Wait(()=>tutorial.Phase=="borrowed"&&tutorial.LoanCar,"Iniciar missão concede o carro temporário");
+        Check(saveConflicts==1&&AccountSession.HasCharacter,"Conflito de checkpoint atualiza a versão e repete o salvamento sem apagar a sessão");
         Check(dialogueTitle.text=="RUMO À PREFEITURA"&&ui.Q<Button>("arrival-start").text=="FECHAR"&&objective.text.Contains("4/6"),"Etapa 5 orienta a entrar no carro e seguir o GPS");
         Check(starts==1&&rewards==0&&state.cashCents=="0","Empréstimo não é compra nem recompensa antecipada");yield return Capture("loan-and-gps");Press(ui.Q<Button>("arrival-start"));yield return null;
+        Vector3 walkStart=player.transform.position;player.DemoInput=Vector2.up;yield return new WaitForSecondsRealtime(.65f);player.DemoInput=Vector2.zero;
+        Check(Vector3.Distance(walkStart,player.transform.position)>.25f&&!AccountSession.InputBlocked&&!player.CombatLocked,"Movimento permanece liberado depois da recuperação do checkpoint");
         Position(tutorial.LoanCar.transform.position+Vector3.left*2);yield return new WaitForSecondsRealtime(.4f);tutorial.Interact("enter");yield return null;
         Check(MissionVehicle.Driver==player&&!player.GetComponent<CharacterController>().enabled,"Entrar no veículo troca os controles e oculta o personagem");
         var car=tutorial.LoanCar;Vector3 initial=car.transform.position;MissionVehicle.VerificationInput=Vector2.up;yield return new WaitForSecondsRealtime(2);MissionVehicle.VerificationInput=Vector2.zero;
@@ -89,8 +93,14 @@ public sealed class ArrivalVerification:MonoBehaviour
         if(path=="/v1/auth/login")reply=new ApiReply{token=new string('A',43),state=state};
         else if(path=="/v1/player/checkpoint")
         {
+            if(conflictNextSave)
+            {
+                conflictNextSave=false;saveConflicts++;state.version=(int.Parse(state.version)+1).ToString();
+                done(new ApiReply{code="SAVE_CONFLICT"},"Os dados foram atualizados em outra sessão.");yield break;
+            }
             var save=JsonUtility.FromJson<CheckpointBody>(body);state.x=save.x;state.y=save.y;state.z=save.z;state.version=(int.Parse(state.version)+1).ToString();reply=new ApiReply{state=state};
         }
+        else if(method=="GET"&&path=="/v1/player")reply=new ApiReply{state=state};
         else if(path=="/v1/missions/arrival")
         {
             if(mission==null)mission=new ArrivalState{phase="available",config=JsonUtility.FromJson<ArrivalConfig>(Resources.Load<TextAsset>("Arrival/Config").text)};

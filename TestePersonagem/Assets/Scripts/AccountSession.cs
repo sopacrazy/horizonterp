@@ -140,6 +140,12 @@ public sealed partial class AccountSession : MonoBehaviour
     }
     void Update()
     {
+        if(VerificationTransport==null&&ReadyToEnterCity&&!HasCharacter&&!AuthVisible&&!leaving)
+        {
+            ReadyToEnterCity=false;
+            ShowLogin(string.IsNullOrEmpty(LastError)?"Sua sessão foi encerrada. Entre novamente para continuar.":LastError);
+            return;
+        }
         if(HasCharacter&&ReadyToEnterCity&&player&&!StartupLoader.IsLoading&&!AuthVisible&&!busy&&!leaving&&Time.realtimeSinceStartup>=nextSave)
             StartCoroutine(Save());
     }
@@ -154,6 +160,19 @@ public sealed partial class AccountSession : MonoBehaviour
         }
         busy=true;SaveStatus="Salvando...";ApiReply reply=null;
         yield return Request("PUT","/v1/player/checkpoint",JsonUtility.ToJson(pending),true,r=>reply=r);
+        if(reply?.state==null&&Authenticated&&LastErrorCode=="SAVE_CONFLICT")
+        {
+            ApiReply current=null;
+            yield return Request("GET","/v1/player",null,true,r=>current=r);
+            if(current?.state!=null&&Authenticated)
+            {
+                State=current.state;
+                pending.version=State.version;
+                pending.requestId=Guid.NewGuid().ToString();
+                SaveStatus="Sincronizando progresso...";
+                yield return Request("PUT","/v1/player/checkpoint",JsonUtility.ToJson(pending),true,r=>reply=r);
+            }
+        }
         busy=false;nextSave=Time.realtimeSinceStartup+15;
         if(reply?.state!=null){State=reply.state;pending=null;SaveStatus="Progresso salvo";}
         else SaveStatus="Sem salvar: "+LastError;
@@ -203,7 +222,7 @@ public sealed partial class AccountSession : MonoBehaviour
             {LastError="Modo de verificação local não autorizado.";done(null);yield break;}
             yield return VerificationTransport(method,path,body,authenticated,(reply,error)=>
             {LastError=error??"";LastErrorCode=reply?.code??"";
-                if(authenticated&&!string.IsNullOrEmpty(error)&&(reply?.code=="UNAUTHORIZED"||reply?.code=="CHARACTER_BLOCKED"||reply?.code=="SAVE_CONFLICT"))InvalidateSession(LastError);
+                if(authenticated&&!string.IsNullOrEmpty(error)&&(reply?.code=="UNAUTHORIZED"||reply?.code=="CHARACTER_BLOCKED"))InvalidateSession(LastError);
                 done(string.IsNullOrEmpty(error)?reply:null);});
             yield break;
         }
@@ -217,16 +236,16 @@ public sealed partial class AccountSession : MonoBehaviour
             ApiReply reply=null;
             if(!string.IsNullOrEmpty(request.downloadHandler.text))
                 try{reply=JsonUtility.FromJson<ApiReply>(request.downloadHandler.text);}catch{}
-            if(request.result==UnityWebRequest.Result.Success){done(reply);yield break;}
+            if(request.result==UnityWebRequest.Result.Success){LastError=LastErrorCode="";done(reply);yield break;}
             LastError=reply?.error??"Não foi possível conectar ao HBRP. Verifique sua internet e tente novamente.";
             LastErrorCode=reply?.code??"";
-            if(authenticated&&(request.responseCode==401||reply?.code=="SAVE_CONFLICT"||reply?.code=="CHARACTER_BLOCKED"))
-            {SessionVault.Clear();token=null;State=null;pending=null;ReadyToEnterCity=false;if(document)ShowLogin(LastError);}
+            if(authenticated&&(request.responseCode==401||reply?.code=="CHARACTER_BLOCKED"))
+            {Debug.LogWarning("ACCOUNT_SESSION_INVALIDATED status="+request.responseCode+" code="+LastErrorCode+" error="+LastError);SessionVault.Clear();token=null;State=null;pending=null;ReadyToEnterCity=false;if(document)ShowLogin(LastError);}
             done(null);
         }
     }
     internal void InvalidateSession(string message)
-    {SessionVault.Clear();token=null;State=null;pending=null;ReadyToEnterCity=false;if(document)ShowLogin(message);}
+    {Debug.LogWarning("ACCOUNT_SESSION_INVALIDATED_EXTERNAL error="+message);SessionVault.Clear();token=null;State=null;pending=null;ReadyToEnterCity=false;if(document)ShowLogin(message);}
     sealed class PinnedCertificate:CertificateHandler
     {
         readonly string expected;
