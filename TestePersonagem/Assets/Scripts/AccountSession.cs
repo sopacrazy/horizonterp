@@ -16,7 +16,7 @@ using UnityEngine.UIElements;
     public float health,energy,hunger,thirst,x,y,z,yaw,cameraYaw,cameraPitch;
     public int level;
 }
-[Serializable] public class ApiReply {public string token,error,code;public ApiPlayerState state;public bool needsCharacter;}
+[Serializable] public class ApiReply {public string token,error,code;public ApiPlayerState state;public ArrivalState mission;public bool needsCharacter;}
 [Serializable] public class ApiPublicConfig {public string baseUrl,certificateSha256;}
 [Serializable] public class AuthBody {public string email,password;}
 [Serializable] public class LoginBody {public string email,password;}
@@ -198,6 +198,7 @@ public sealed partial class AccountSession : MonoBehaviour
             if(Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-character-flow")<0&&
                 Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-neighborhood")<0&&
                 Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-official-city")<0&&
+                Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-arrival")<0&&
                 Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-landing")<0)
             {LastError="Modo de verificação local não autorizado.";done(null);yield break;}
             yield return VerificationTransport(method,path,body,authenticated,(reply,error)=>

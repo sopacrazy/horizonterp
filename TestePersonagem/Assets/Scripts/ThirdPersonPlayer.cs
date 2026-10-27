@@ -71,6 +71,7 @@ public class ThirdPersonPlayer : MonoBehaviour
 
     void Update()
     {
+        if(MissionVehicle.Driver==this){CurrentSpeed=0;jumpRequested=false;return;}
         if (!HasAdminAccess) adminSpeedMultiplier = 1;
         if(StartupLoader.IsLoading || AccountSession.InputBlocked || teleporting || IsSpectating)
         {jumpRequested=false;CurrentSpeed=0;animator.SetFloat("Speed",0);return;}

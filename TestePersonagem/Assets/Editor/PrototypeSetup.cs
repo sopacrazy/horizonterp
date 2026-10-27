@@ -224,6 +224,7 @@ public static class PrototypeSetup
     [MenuItem("Teste/Gerar executavel Windows")]
     public static void BuildWindows()
     {
+        ArrivalMissionSetup.Prepare();
         GameVersionBuildSetup.Apply();
         FighterCombatSetup.Apply();
         Directory.CreateDirectory("Builds/Windows");

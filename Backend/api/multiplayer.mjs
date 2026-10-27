@@ -18,11 +18,12 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2}={}){
   for(const [key,result] of commandResults)if(clock()-result.sentAt>900000)commandResults.delete(key);}
  function sync(identity,sessionId,body){
   prune();
-  const keys=['clientId','sequence','x','y','z','yaw','speed','jumping','jumpPhase','afterChat','afterTeleport'];
+  const keys=['clientId','sequence','x','y','z','yaw','speed','jumping','jumpPhase','afterChat','afterTeleport','driving'];
   if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).some(k=>!keys.includes(k))||
     !/^[a-f0-9-]{36}$/i.test(body.clientId||'')||!Number.isSafeInteger(body.sequence)||body.sequence<0||body.sequence>2147483647)
    reject(400,'INVALID_FRAME','Atualização de movimento inválida.');
   if(body.afterChat!==undefined&&(!Number.isSafeInteger(body.afterChat)||body.afterChat<0))reject(400,'INVALID_FRAME','Cursor de chat inválido.');
+  if(body.driving!==undefined&&typeof body.driving!=='boolean')reject(400,'INVALID_FRAME','Estado do veículo inválido.');
   if(body.afterTeleport!==undefined&&(!Number.isSafeInteger(body.afterTeleport)||body.afterTeleport<0))reject(400,'INVALID_FRAME','Cursor de teleporte inválido.');
   for(const key of ['x','y','z','yaw','speed','jumpPhase'])if(typeof body[key]!=='number'||!Number.isFinite(body[key]))reject(400,'INVALID_FRAME','Movimento inválido.');
   if(body.yaw<0||body.yaw>=360||
@@ -46,7 +47,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2}={}){
    messages:messages.filter(m=>m.id>(body.afterChat??0)&&(m.channel!=='admin'||member.adminLevel>0)).slice(-20).map(publicMessage),
    peers:[...members.values()].filter(m=>m.characterId!==identity.characterId&&(!m.invisible||member.adminLevel>0)).map(m=>({
     characterId:m.characterId,uid:m.uid,name:m.name,firstName:m.firstName,model:m.model,x:m.x,y:m.y,z:m.z,
-    yaw:m.yaw,speed:m.speed,jumping:m.jumping,jumpPhase:m.jumpPhase,sequence:m.sequence,updatedAt:m.seen
+    yaw:m.yaw,speed:m.speed,jumping:m.jumping,jumpPhase:m.jumpPhase,driving:m.driving===true,sequence:m.sequence,updatedAt:m.seen
    }))};
  }
  function publicMessage({characterId,clientId,sessionId,...message}){return message;}

@@ -7,6 +7,7 @@ import pg from 'pg';
 import {createRoom,RoomError} from './multiplayer.mjs';
 import {createPlayerAdmin,AdminError} from './player-admin.mjs';
 import {getWorldBounds,isPositionWithinWorld} from './world-bounds.mjs';
+import {createArrivalMission,ArrivalError,arrivalConfig} from './arrival-mission.mjs';
 
 const scrypt=promisify(scryptCb);
 const hash=x=>createHash('sha256').update(x).digest();
@@ -31,6 +32,7 @@ export function characterIdentity(body){
 function password(value){if(typeof value!=='string'||value.length<10||value.length>128||!value.trim())fail(400,'A senha precisa ter entre 10 e 128 caracteres.');return value;}
 export function createApiHandler(pool,{log=console.log,errorLog=console.error}={}){
 const room=createRoom({capacity:10});
+const arrival=createArrivalMission({pool,session,transaction,requireCharacter});
 const administration=createPlayerAdmin({pool,session,transaction,removeSession:id=>room.removeSession(id)});
 let cryptoJobs=0;
 async function derive(pass,salt){
@@ -184,6 +186,8 @@ return async(req,res)=>{
   rate(req.socket.remoteAddress,path==='/v1/multiplayer/sync'?'multiplayer':'all',path==='/v1/multiplayer/sync'?6000:240,60000);
   if(req.method==='GET'&&path==='/health'){await pool.query('SELECT 1');return send(200,{status:'ok',service:'hbrp-api',version:'0.3.0'});}
   const token=req.headers.authorization?.startsWith('Bearer ')?req.headers.authorization.substring(7):null;
+  if(req.method==='GET'&&path==='/v1/missions/arrival')return send(200,await arrival.read(token));
+  if(req.method==='POST'&&path==='/v1/missions/arrival')return send(200,await arrival.update(token,await readBody(req)));
   if(req.method==='GET'&&path==='/v1/admin/players'){
    const query=new URL(req.url,'https://hbrp.local').searchParams;
    return send(200,await administration.list(token,query.get('q')??'',Number(query.get('offset')??0)));
@@ -194,6 +198,10 @@ return async(req,res)=>{
    const auth=await session(pool,token);
    const body=await readBody(req);
    const identity=await requireCharacter(pool,auth.account_id);
+   if(path.endsWith('/sync')&&body.driving===true){
+    const loan=await pool.query("SELECT 1 FROM hbrp.character_progress WHERE character_id=$1 AND category='mission' AND code=$2 AND state->>'phase'='borrowed' AND (state->>'loanExpiresAt')::timestamptz>now()",[identity.characterId,arrivalConfig.code]);
+    if(!loan.rowCount)fail(403,'O empréstimo do veículo não está ativo.','MISSION_VEHICLE_UNAVAILABLE');
+   }
    if(path.endsWith('/chat'))return send(200,await room.chat(identity,auth.id,body,
     request=>administration.command(token,request,room)));
    if(path.endsWith('/leave')){exact(body,['clientId']);return send(200,room.leave(identity.characterId,auth.id,body.clientId));}
@@ -211,7 +219,7 @@ return async(req,res)=>{
   fail(404,'Rota não encontrada.','NOT_FOUND');
  }catch(error){
   if(error.code==='23505')send(409,{error:'E-mail ou nome de personagem já cadastrado.',code:'ALREADY_EXISTS'});
-  else if(error instanceof ApiError||error instanceof RoomError||error instanceof AdminError)send(error.status,{error:error.message,code:error.code});
+  else if(error instanceof ApiError||error instanceof RoomError||error instanceof AdminError||error instanceof ArrivalError)send(error.status,{error:error.message,code:error.code});
   else{errorLog(JSON.stringify({event:'request_error',requestId,code:error.code||'INTERNAL'}));send(500,{error:'Não foi possível concluir. Tente novamente.',code:'INTERNAL'});}
  }finally{if(path!=='/v1/multiplayer/sync'||status!==200)log(JSON.stringify({requestId,method:req.method,path,status,ms:Date.now()-started}));}
 };

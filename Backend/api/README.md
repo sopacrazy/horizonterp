@@ -221,7 +221,15 @@ Já funcionam: `/coords`, `/mystats`, `/astats`, `/alist`, `/a` (privado entre a
 
 Comandos que dependem de sistemas ainda ausentes, como veículos, facções, armas, prisões, denúncias e guerras, são aceitos apenas para informar qual sistema falta. Eles não executam efeitos simulados. A API valida níveis e hierarquia. Banimentos com prazo exigem a migração `007_admin_chat.sql`, que acrescenta `characters.blocked_until`. Aplique a migração antes de publicar o backend atualizado. As migrações 005 e 006 continuam pré-requisitos. `npm test` valida o backend com banco local em memória.
 
-## Cinco bots de teste persistentes
+## Missão inicial: empréstimo até a Prefeitura
+
+`GET /v1/missions/arrival` recupera o andamento do personagem autenticado. `POST /v1/missions/arrival` aceita somente `{action:"start"}` ou `{action:"finish"}`. A configuração única em `arrival-config.json` define NPCs, percurso, duração do empréstimo e recompensa. A proximidade usa a posição salva pela API; o cliente deve confirmar seu checkpoint antes da interação. A rede continua com movimento simulado pelo cliente, sem física autoritativa.
+
+O andamento usa `character_progress` existente, categoria `mission`, código `arrival_welcome_v1`; não há tabela de propriedade para o carro emprestado. A conclusão concede 100 XP e 15000 centavos por transação, usando `change_balance` e uma chave idempotente. A fase concluída impede repetição, inclusive concorrente, e encerra a autorização de dirigir no multiplayer. As mensagens de presença aceitam o campo visual opcional `driving`; a API exige empréstimo ativo para transmiti-lo como verdadeiro.
+
+Publicar `arrival-mission.mjs` e `arrival-config.json` junto aos módulos atuais. A migração 007 da versão 0.5.8 foi aplicada como pré-requisito aditivo; a missão utiliza tabelas já existentes e não requer migração 008. Manter TLS, credenciais e demais serviços. `node --test test/arrival.test.mjs` cobre empréstimo, proximidade, isolamento, autorização do veículo, expiração, recompensa única e rollback. Na VPS, `python3 /srv/hbrp/api/verify_arrival.py` usa uma conta temporária e remove seu andamento e histórico financeiro na limpeza. O cliente mobile só receberá essa interface em um APK futuro solicitado explicitamente.
+
+## Operação dos bots preservados
 
 `test_bots.py --provision` cria ou verifica exatamente cinco contas normais com personagens BotLucas, BotMarina, BotRafael, BotJulia e BotPedro. Usa o cadastro e a criação de personagem oficiais da API; não injeta identidades no multiplayer nem concede admin. Credenciais aleatórias ficam somente em `/srv/hbrp/bots/accounts.json` (root:hbrp-api, 0640), fora do Git. Não executar o provisionamento repetidamente: os limites normais de login/cadastro se aplicam.
 

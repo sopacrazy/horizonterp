@@ -44,7 +44,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
             var position=player.transform.position;
             var frame=new MultiplayerFrame {clientId=clientId,sequence=++sequence,
                 x=position.x,y=position.y,z=position.z,yaw=Mathf.Repeat(player.transform.eulerAngles.y,360),
-                speed=Mathf.Clamp(player.CurrentSpeed,0,8),jumping=player.IsJumping,jumpPhase=player.JumpPhase,
+                speed=Mathf.Clamp(MissionVehicle.Driver==player?MissionVehicle.DriverSpeed:player.CurrentSpeed,0,8),driving=MissionVehicle.Driver==player,jumping=player.IsJumping,jumpPhase=player.JumpPhase,
                 afterChat=LastChatId};
             MultiplayerReply reply=null;
             yield return AccountSession.Instance.MultiplayerRequest("/v1/multiplayer/sync",JsonUtility.ToJson(frame),r=>reply=r);
@@ -160,6 +160,8 @@ public sealed class MultiplayerWorld : MonoBehaviour
     sealed class Remote
     {
         readonly GameObject root;
+        GameObject avatar,vehicle;
+        bool driving;
         readonly Animator animator;
         readonly RemoteAvatarAnimation animation;
         readonly TextMesh nameplate;
@@ -179,6 +181,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
             // Clone only the visual child: never clone the local controller, camera or save scripts.
             if(local.animator.gameObject==local.gameObject)throw new InvalidOperationException("O visual precisa ser um filho separado do controlador.");
             var visual=UnityEngine.Object.Instantiate(local.animator.gameObject,root.transform,false);
+            avatar=visual;
             visual.name="ByBeyby remoto";animator=visual.GetComponent<Animator>();
             animation=new RemoteAvatarAnimation(animator);
             foreach(var collider in visual.GetComponentsInChildren<Collider>())collider.enabled=false;
@@ -195,6 +198,9 @@ public sealed class MultiplayerWorld : MonoBehaviour
         }
         public void Apply(MultiplayerPeer peer,long serverTime,float roundTrip)
         {
+            driving=peer.driving;avatar.SetActive(!driving);
+            if(driving&&!vehicle){vehicle=MissionVehicle.CreateRemoteVisual();vehicle.transform.SetParent(root.transform,false);}
+            if(vehicle)vehicle.SetActive(driving);
             Uid=peer.uid;
             if(peer.sequence==lastSequence)return;
             // Sync requests are serialized. A lower sequence means that the other client restarted.
@@ -218,7 +224,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
             if(motion.Sample(Time.unscaledTime,out var position,out var rotation))
             {
                 root.transform.SetPositionAndRotation(position,rotation);
-                animation.Apply(motion.Speed,motion.Jumping,motion.JumpPhase,Time.unscaledDeltaTime);
+                if(!driving)animation.Apply(motion.Speed,motion.Jumping,motion.JumpPhase,Time.unscaledDeltaTime);
             }
             if(Camera.main)nameplate.transform.rotation=Camera.main.transform.rotation;
         }

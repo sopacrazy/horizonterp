@@ -11,6 +11,7 @@ public static class AndroidSetup
 {
     public static void Build()
     {
+        ArrivalMissionSetup.Prepare();
         HudSetup.Prepare();
         BrandingSetup.Prepare();
 #if UNITY_ANDROID

@@ -9,7 +9,7 @@ using UnityEngine.Networking;
     public string clientId;
     public int sequence;
     public float x,y,z,yaw,speed,jumpPhase;
-    public bool jumping;
+    public bool jumping,driving;
     public int afterChat;
 }
 [Serializable] public class MultiplayerPeer
@@ -18,7 +18,7 @@ using UnityEngine.Networking;
     public int sequence;
     public long updatedAt;
     public float x,y,z,yaw,speed,jumpPhase;
-    public bool jumping;
+    public bool jumping,driving;
 }
 [Serializable] public class AdminCommandReply
 {
