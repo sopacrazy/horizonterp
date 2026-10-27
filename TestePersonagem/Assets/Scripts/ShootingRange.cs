@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
+[DefaultExecutionOrder(100)]
 [RequireComponent(typeof(ThirdPersonPlayer))]
 public sealed class ShootingRange : MonoBehaviour
 {
@@ -23,7 +24,6 @@ public sealed class ShootingRange : MonoBehaviour
     const string SpeedParameter = "ShootingSpeed";
     const float AimPoseTime = .08f;
     const float FirePoseTime = .22f;
-    const float WeaponYawOffset = -8f;
     ThirdPersonPlayer player;
     ThirdPersonCamera orbit;
     Animator animator;
@@ -40,6 +40,8 @@ public sealed class ShootingRange : MonoBehaviour
     AudioSource audioSource;
     AudioClip shotSound;
     Coroutine shootingAnimation;
+    ShootingGrip grip;
+    float recoilStarted = -10f;
 
     public static ShootingRange Create(ThirdPersonPlayer target,Transform roomRoot)
     {
@@ -119,7 +121,7 @@ public sealed class ShootingRange : MonoBehaviour
         orbit?.EndAim();
         FindAnyObjectByType<HousePortal>()?.SetInteriorArrowVisible(true);
         if(pistol)Destroy(pistol.gameObject);
-        pistol=muzzle=weaponHand=null;
+        pistol=muzzle=weaponHand=null;grip=null;
         if(overlay!=null)overlay.style.display=DisplayStyle.None;
     }
 
@@ -128,7 +130,7 @@ public sealed class ShootingRange : MonoBehaviour
         if(!IsActive||reloading||Time.unscaledTime<nextShot||StartupLoader.IsLoading||
             AccountSession.InputBlocked||InGameChat.Editing||(GameHud.Instance&&GameHud.Instance.IsPanelOpen))return;
         if(Ammo<=0){StartCoroutine(Reload());return;}
-        nextShot=Time.unscaledTime+.18f;Ammo--;Shots++;
+        nextShot=Time.unscaledTime+.18f;Ammo--;Shots++;recoilStarted=Time.unscaledTime;
         if(shootingAnimation!=null)StopCoroutine(shootingAnimation);
         shootingAnimation=StartCoroutine(PlayShotAnimation());
         if(audioSource&&shotSound)audioSource.PlayOneShot(shotSound,.32f);
@@ -255,6 +257,8 @@ public sealed class ShootingRange : MonoBehaviour
             Part("Empunhadura",pistol,new Vector3(0,-.09f,.035f),new Vector3(.075f,.20f,.085f),metal,Quaternion.Euler(-12,0,0));
         }
         if(!muzzle){muzzle=new GameObject("Boca do cano").transform;muzzle.SetParent(pistol,false);muzzle.localPosition=new Vector3(0,.08f,.31f);}
+        grip=new ShootingGrip();
+        if(!grip.Configure(animator,pistol,muzzle,transform))grip=null;
         AlignPistol();
     }
 
@@ -274,8 +278,10 @@ public sealed class ShootingRange : MonoBehaviour
     {
         var camera=Camera.main;
         Vector3 direction=camera?camera.transform.forward:transform.forward;
-        pistol.SetPositionAndRotation(weaponHand.position+direction*.015f+transform.up*.012f,
-            Quaternion.LookRotation(direction,transform.up)*Quaternion.Euler(0,WeaponYawOffset,0));
+        float elapsed=Time.unscaledTime-recoilStarted;
+        float recoil=elapsed<.06f?Mathf.Clamp01(elapsed/.06f):1f-Mathf.Clamp01((elapsed-.06f)/.16f);
+        if(grip!=null)grip.ApplyPose(direction,recoil);
+        else pistol.SetPositionAndRotation(weaponHand.position,Quaternion.LookRotation(direction,transform.up));
     }
 
     void CreateInterface()
