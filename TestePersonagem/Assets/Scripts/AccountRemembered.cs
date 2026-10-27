@@ -38,18 +38,33 @@ public sealed partial class AccountSession
         if(string.IsNullOrEmpty(stored)||!Regex.IsMatch(stored,"^[A-Za-z0-9_-]{43}$"))
         {SessionVault.Clear();ShowLogin();yield break;}
         busy=true;token=stored;ShowRemembered("Verificando seu acesso...");
-        ApiReply reply=null;yield return Request("GET","/v1/player",null,true,r=>reply=r);
+        ApiReply reply=null;yield return Request("GET","/v1/player",null,true,r=>reply=r,false);
+        // Some mobile networks briefly replay an unauthorized response while the
+        // connection is being restored. Confirm it once before discarding access.
+        if(reply==null&&LastErrorCode=="UNAUTHORIZED")
+        {
+            yield return new WaitForSecondsRealtime(.4f);
+            token=stored;
+            yield return Request("GET","/v1/player",null,true,r=>reply=r,false);
+        }
         busy=false;
         if(reply!=null&&(reply.needsCharacter||!string.IsNullOrEmpty(reply.state?.characterId)))
         {
             State=reply.state;pending=null;leaving=false;
             if(HasCharacter)ShowRemembered();else {HideRemembered();ShowAccountCharacter();}
         }
+        else if(LastErrorCode=="CHARACTER_BLOCKED")
+        {
+            SessionVault.Clear();token=null;State=null;HideRemembered();ShowLogin(LastError);
+        }
         else if(Authenticated)
         {
             // A network outage must not discard a valid saved session or allow offline entry.
             token=null;State=null;ShowRemembered("Não foi possível verificar o acesso. Confira a conexão e toque em Jogar para tentar novamente.");
         }
-        else {HideRemembered();ShowLogin(string.IsNullOrEmpty(LastError)?"Entre novamente na sua conta.":LastError);}
+        else
+        {
+            SessionVault.Clear();HideRemembered();ShowLogin(string.IsNullOrEmpty(LastError)?"Entre novamente na sua conta.":LastError);
+        }
     }
 }

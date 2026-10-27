@@ -209,7 +209,7 @@ public sealed partial class AccountSession : MonoBehaviour
     }
     IEnumerator QuitAfterSaving(){leaving=true;yield return Save();if(MultiplayerWorld.Instance)yield return MultiplayerWorld.Instance.Leave();allowQuit=true;Application.Quit();}
     void OnDestroy(){Application.wantsToQuit-=WantsToQuit;if(Instance==this)Instance=null;}
-    IEnumerator Request(string method,string path,string body,bool authenticated,Action<ApiReply> done)
+    IEnumerator Request(string method,string path,string body,bool authenticated,Action<ApiReply> done,bool invalidateUnauthorized=true)
     {
         RequestCount++;LastError="";LastErrorCode="";
         if(VerificationTransport!=null)
@@ -222,7 +222,7 @@ public sealed partial class AccountSession : MonoBehaviour
             {LastError="Modo de verificação local não autorizado.";done(null);yield break;}
             yield return VerificationTransport(method,path,body,authenticated,(reply,error)=>
             {LastError=error??"";LastErrorCode=reply?.code??"";
-                if(authenticated&&!string.IsNullOrEmpty(error)&&(reply?.code=="UNAUTHORIZED"||reply?.code=="CHARACTER_BLOCKED"))InvalidateSession(LastError);
+                if(invalidateUnauthorized&&authenticated&&!string.IsNullOrEmpty(error)&&(reply?.code=="UNAUTHORIZED"||reply?.code=="CHARACTER_BLOCKED"))InvalidateSession(LastError);
                 done(string.IsNullOrEmpty(error)?reply:null);});
             yield break;
         }
@@ -239,13 +239,18 @@ public sealed partial class AccountSession : MonoBehaviour
             if(request.result==UnityWebRequest.Result.Success){LastError=LastErrorCode="";done(reply);yield break;}
             LastError=reply?.error??"Não foi possível conectar ao HBRP. Verifique sua internet e tente novamente.";
             LastErrorCode=reply?.code??"";
-            if(authenticated&&(request.responseCode==401||reply?.code=="CHARACTER_BLOCKED"))
+            if(invalidateUnauthorized&&authenticated&&!leaving&&(request.responseCode==401||reply?.code=="CHARACTER_BLOCKED"))
             {Debug.LogWarning("ACCOUNT_SESSION_INVALIDATED status="+request.responseCode+" code="+LastErrorCode+" error="+LastError);SessionVault.Clear();token=null;State=null;pending=null;ReadyToEnterCity=false;if(document)ShowLogin(LastError);}
             done(null);
         }
     }
     internal void InvalidateSession(string message)
-    {Debug.LogWarning("ACCOUNT_SESSION_INVALIDATED_EXTERNAL error="+message);SessionVault.Clear();token=null;State=null;pending=null;ReadyToEnterCity=false;if(document)ShowLogin(message);}
+    {
+        // A delayed checkpoint/leave reply must never erase a still-valid remembered
+        // access while the application is closing. It is revalidated on next launch.
+        if(leaving){Debug.LogWarning("ACCOUNT_SESSION_INVALIDATION_IGNORED_WHILE_LEAVING error="+message);return;}
+        Debug.LogWarning("ACCOUNT_SESSION_INVALIDATED_EXTERNAL error="+message);SessionVault.Clear();token=null;State=null;pending=null;ReadyToEnterCity=false;if(document)ShowLogin(message);
+    }
     sealed class PinnedCertificate:CertificateHandler
     {
         readonly string expected;

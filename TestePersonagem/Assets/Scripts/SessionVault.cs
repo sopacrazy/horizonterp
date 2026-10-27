@@ -23,13 +23,35 @@ internal static class SessionVault
             using(var activity=unity.GetStatic<AndroidJavaObject>("currentActivity"))return bridge.CallStatic<string>("read",activity);
 #elif UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
             if(!CredRead(Target,1,0,out var pointer))return ReadProtectedFile();
-            try{var entry=Marshal.PtrToStructure<Credential>(pointer);if(entry.size!=43)return null;var bytes=new byte[entry.size];Marshal.Copy(entry.blob,bytes,0,bytes.Length);return Encoding.UTF8.GetString(bytes);}
+            try
+            {
+                var entry=Marshal.PtrToStructure<Credential>(pointer);
+                if(entry.size==43)
+                {
+                    var bytes=new byte[entry.size];Marshal.Copy(entry.blob,bytes,0,bytes.Length);
+                    string credential=Encoding.UTF8.GetString(bytes);
+                    if(IsToken(credential))return credential;
+                }
+                // A damaged/stale Credential Manager entry must not hide the newer
+                // DPAPI-protected fallback written at login.
+                return ReadProtectedFile();
+            }
             finally{CredFree(pointer);}
 #else
             return null;
 #endif
         }
-        catch{return null;}
+        catch(Exception error)
+        {
+            Debug.LogWarning("SESSION_VAULT_READ_FAILED type="+error.GetType().Name);
+            return null;
+        }
+    }
+    static bool IsToken(string value)
+    {
+        if(string.IsNullOrEmpty(value)||value.Length!=43)return false;
+        foreach(char c in value)if(!char.IsLetterOrDigit(c)&&c!='_'&&c!='-')return false;
+        return true;
     }
     internal static void Write(string value)
     {
@@ -122,7 +144,9 @@ internal static class SessionVault
     static string ReadProtectedFile()
     {
         if(!File.Exists(ProtectedPath))return null;
-        byte[] token=Protect(File.ReadAllBytes(ProtectedPath),false);return token.Length==43?Encoding.UTF8.GetString(token):null;
+        byte[] token=Protect(File.ReadAllBytes(ProtectedPath),false);
+        string value=Encoding.UTF8.GetString(token);
+        return IsToken(value)?value:null;
     }
     [DllImport("crypt32.dll",CharSet=CharSet.Unicode,SetLastError=true)]static extern bool CryptProtectData(ref Blob input,string description,IntPtr entropy,IntPtr reserved,IntPtr prompt,uint flags,out Blob output);
     [DllImport("crypt32.dll",SetLastError=true)]static extern bool CryptUnprotectData(ref Blob input,IntPtr description,IntPtr entropy,IntPtr reserved,IntPtr prompt,uint flags,out Blob output);
