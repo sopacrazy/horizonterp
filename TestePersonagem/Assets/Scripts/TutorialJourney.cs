@@ -5,7 +5,15 @@ using UnityEngine.UIElements;
 
 public sealed class TutorialJourney : MonoBehaviour
 {
-    public const string WelcomeText="Fala, cria! Seja bem-vindo ao Horizonte Brasil RP! Vi que você tá chegando agora na cidade, então vou te dar uma força nesse começo. Vou emprestar meu carro pessoal pra você conseguir se locomover e conhecer a cidade. Só preciso que cuide bem dele, fechou? Bora começar seguindo até a Prefeitura!";
+    static readonly string[] TutorialTitles={"BOAS-VINDAS","APRENDENDO OS COMANDOS","COMEÇANDO A VIDA NA CIDADE","O CARRO EMPRESTADO","RUMO À PREFEITURA"};
+    static readonly string[] TutorialTexts={
+        "Salve, meu cria! Bem-vindo ao Horizonte Brasil RP! Chega mais que eu vou te passar a visão de como funciona a cidade.",
+        "Primeiro aprende a se movimentar, olhar pros lados e interagir com a rapaziada. Testa aí pra tu pegar o jeito!",
+        "Aqui tu pode trampar, fazer tua grana, comprar tuas paradas e conquistar teu espaço. Mas tudo começa pelo primeiro corre!",
+        "Pra tu não ficar andando a pé, vou te fortalecer com minha nave. Mas ó, é emprestada, hein! Cuida direitinho!",
+        "Boa, cria! Agora entra na nave, segue o GPS e cola lá na Prefeitura. Troca uma ideia com o pessoal de lá pra tirar teu RG. Partiu!"
+    };
+    static readonly string[] TutorialButtons={"PRÓXIMO","ENTENDI","PRÓXIMO","INICIAR MISSÃO","FECHAR"};
     public static TutorialJourney Instance {get;private set;}
     internal static bool AllowVerification;
     public bool ModalOpen=>modalOpen;
@@ -24,13 +32,14 @@ public sealed class TutorialJourney : MonoBehaviour
     MissionVehicle car;
     UIDocument document;
     VisualElement quest,prompt,modal;
-    Label title,detail,promptTitle,dialogTitle,dialogText,dialogError;
-    Button promptButton,primary,retry;
+    Label title,detail,reward,promptTitle,dialogTitle,dialogText,dialogError;
+    Button promptButton,primary,secondary,retry;
     AudioSource narration;
     LineRenderer gps;
     string dialogAction;
     bool modalOpen,busy,previousCombat;
-    int waypoint;
+    int waypoint,tutorialPage;
+    bool enteredLoanCar;
     float nextInteraction,nextRefresh;
     public static void Create(ThirdPersonPlayer target)
     {
@@ -60,8 +69,7 @@ public sealed class TutorialJourney : MonoBehaviour
         if(Phase=="borrowed"&&!car){car=MissionVehicle.Create(config.car);waypoint=0;BuildGps();}
         if(Phase!="borrowed"){RemoveCar();if(gpsObject)Destroy(gpsObject);}
         quest.style.display=Phase=="completed"?DisplayStyle.None:DisplayStyle.Flex;
-        title.text=Phase=="borrowed"?"PRIMEIRA MISSÃO  ·  PREFEITURA":"BEM-VINDO AO HORIZONTE";
-        detail.text=Phase=="borrowed"?"Carro emprestado · siga o GPS":"Aproxime-se do morador e converse para começar.";
+        RefreshObjective();
         nextRefresh=Time.unscaledTime+5;
     }
     void Update()
@@ -72,15 +80,15 @@ public sealed class TutorialJourney : MonoBehaviour
         if(Phase=="available"&&Vector3.Distance(player.transform.position,config.giver)<2.8f){action="talk";caption="E  CONVERSAR";}
         if(Phase=="borrowed")
         {
-            if(car&&car.Occupied){action="exit";caption="F  SAIR DO CARRO";}
+            if(car&&car.Occupied){action="exit";caption="F  SAIR DO CARRO";enteredLoanCar=true;}
             else if(Vector3.Distance(player.transform.position,config.cityHall)<2.8f){action="finish";caption="E  FALAR COM ATENDENTE";}
             else if(car&&Vector3.Distance(player.transform.position,car.transform.position)<3.8f){action="enter";caption="E  ENTRAR NO CARRO";}
             UpdateGps();
-            detail.text=car&&car.Occupied?"Siga o GPS · Prefeitura a "+Mathf.CeilToInt(Vector3.Distance(player.transform.position,config.cityHall))+" m  ·  "+Mathf.RoundToInt(Mathf.Abs(car.Speed)*3.6f)+" km/h":"Pegue o carro emprestado e vá até a Prefeitura.";
+            RefreshObjective();
             if(Time.unscaledTime>=nextRefresh&&DateTime.TryParse(mission.loanExpiresAt,null,System.Globalization.DateTimeStyles.RoundtripKind,out var expires)&&expires.ToUniversalTime()<=DateTime.UtcNow)
             {nextRefresh=Time.unscaledTime+10;StartCoroutine(Load());}
         }
-        else if(Phase=="available")detail.text="Converse com o morador · "+Mathf.CeilToInt(Vector3.Distance(player.transform.position,config.giver))+" m";
+        else if(Phase=="available"&&!modalOpen)RefreshObjective();
         prompt.style.display=available&&action!=null?DisplayStyle.Flex:DisplayStyle.None;
         promptTitle.text=action=="finish"?"PREFEITURA":action=="talk"?"MORADOR DA CIDADE":"EMPRÉSTIMO TEMPORÁRIO";promptButton.text=caption;promptButton.userData=action;
         if(available&&action!=null&&Input.GetKeyDown(KeyCode.E)&&action!="exit")Interact(action);
@@ -88,7 +96,7 @@ public sealed class TutorialJourney : MonoBehaviour
     internal void Interact(string action)
     {
         if(busy||modalOpen||Time.unscaledTime<nextInteraction)return;
-        if(action=="talk"&&Phase=="available"&&Near(config.giver))ShowDialog("BOAS-VINDAS À CIDADE",WelcomeText,"INICIAR MISSÃO","start");
+        if(action=="talk"&&Phase=="available"&&Near(config.giver)){tutorialPage=0;ShowTutorialPage();}
         else if(action=="enter"&&car&&Phase=="borrowed"){if(car.Enter(player))nextInteraction=Time.unscaledTime+.4f;}
         else if(action=="exit"&&car){if(!car.Exit())GameHud.Instance?.ShowToast("Pare em um local livre para sair do carro.");}
         else if(action=="finish"&&Phase=="borrowed"&&Near(config.cityHall)&&!(car&&car.Occupied))
@@ -101,8 +109,13 @@ public sealed class TutorialJourney : MonoBehaviour
         yield return AccountSession.Instance.Save();ApiReply reply=null;
         yield return AccountSession.Instance.ArrivalRequest(action,r=>reply=r);busy=false;primary.SetEnabled(true);
         if(reply?.mission==null){dialogError.text=AccountSession.Instance.LastError??"Não foi possível confirmar. Tente novamente.";yield break;}
-        Apply(reply.mission);HideDialog();
-        if(action=="start")GameHud.Instance?.ShowToast("Missão iniciada. Use o carro do morador; o empréstimo não é uma compra.");
+        Apply(reply.mission);
+        if(action=="start")
+        {
+            tutorialPage=4;ShowTutorialPage();
+            GameHud.Instance?.ShowToast("Missão iniciada. Use o carro do morador; o empréstimo não é uma compra.");
+        }
+        else HideDialog();
         if(action=="finish")ShowDialog("MISSÃO CONCLUÍDA","Você recebeu "+config.rewardXp+" XP e R$ "+(config.rewardCashCents/100)+". O carro foi devolvido ao NPC. O próximo atendimento na Prefeitura será a continuação da sua jornada.","CONTINUAR","close");
     }
     void CreateUI()
@@ -110,20 +123,58 @@ public sealed class TutorialJourney : MonoBehaviour
         uiObject=new GameObject("Missão de chegada · interface");uiObject.transform.SetParent(transform,false);
         document=uiObject.AddComponent<UIDocument>();document.panelSettings=Resources.Load<PanelSettings>("HudPanel");document.sortingOrder=90;
         var root=document.rootVisualElement;root.styleSheets.Add(Resources.Load<StyleSheet>("ArrivalStyles"));
-        quest=Box("arrival-quest",root);quest.name="arrival-quest";title=Text("MISSÃO DE CHEGADA","arrival-title",quest);detail=Text("Carregando...","arrival-detail",quest);
+        quest=Box("arrival-quest",root);quest.name="arrival-quest";title=Text("MISSÃO 01 · PRIMEIRO CORRE  1/6","arrival-title",quest);title.name="arrival-objective-title";detail=Text("Carregando...","arrival-detail",quest);detail.name="arrival-objective-detail";reward=Text("RECOMPENSA  ·  100 XP  +  R$ 150","arrival-reward",quest);
         retry=Button("TENTAR NOVAMENTE",()=>StartCoroutine(Load()),quest);retry.style.display=DisplayStyle.None;
         prompt=Box("arrival-prompt",root);promptTitle=Text("","arrival-title",prompt);promptButton=Button("",()=>Interact(promptButton.userData as string),prompt);promptButton.name="arrival-interact";prompt.style.display=DisplayStyle.None;
-        modal=Box("arrival-shade",root);modal.name="arrival-dialog";var card=Box("arrival-dialog-card",modal);
-        Text("HORIZONTE BRASIL RP  ·  SUA CHEGADA","arrival-kicker",card);dialogTitle=Text("","arrival-dialog-title",card);dialogText=Text("","arrival-dialog-text",card);
-        dialogError=Text("","arrival-error",card);
-        primary=Button("",()=>{if(dialogAction=="close")HideDialog();else StartCoroutine(SubmitMission(dialogAction));},card);primary.name="arrival-start";
-        Button("AGORA NÃO",()=>{if(!busy)HideDialog();},card).name="arrival-cancel";modal.style.display=DisplayStyle.None;
+        modal=Box("arrival-shade",root);modal.name="arrival-dialog";var card=Box("arrival-dialog-card",modal);var content=Box("arrival-dialog-content",card);
+        Text("HORIZONTE BRASIL RP  ·  MISSÃO 01","arrival-kicker",content);dialogTitle=Text("","arrival-dialog-title",content);dialogTitle.name="arrival-dialog-title";dialogText=Text("","arrival-dialog-text",content);dialogText.name="arrival-dialog-text";
+        dialogError=Text("","arrival-error",content);var actions=Box("arrival-dialog-actions",content);
+        secondary=Button("FECHAR",()=>{if(!busy)HideDialog();},actions);secondary.name="arrival-cancel";
+        primary=Button("",()=>{if(dialogAction=="tutorial-next")AdvanceTutorial();else if(dialogAction=="close")HideDialog();else StartCoroutine(SubmitMission(dialogAction));},actions);primary.name="arrival-start";
+        modal.style.display=DisplayStyle.None;
     }
+    void ShowTutorialPage()
+    {
+        tutorialPage=Mathf.Clamp(tutorialPage,0,TutorialTitles.Length-1);
+        string action=tutorialPage<3?"tutorial-next":tutorialPage==3?"start":"close";
+        ShowDialog(TutorialTitles[tutorialPage],TutorialTexts[tutorialPage],TutorialButtons[tutorialPage],action);
+        secondary.style.display=tutorialPage<4?DisplayStyle.Flex:DisplayStyle.None;
+        if(tutorialPage>0&&tutorialPage<3){title.text="MISSÃO 01 · PRIMEIRO CORRE  2/6";detail.text="Conversar com o NPC e aprender os comandos";}
+        if(tutorialPage==3){title.text="MISSÃO 01 · PRIMEIRO CORRE  3/6";detail.text="Clicar em INICIAR MISSÃO";}
+    }
+    void AdvanceTutorial(){if(busy)return;tutorialPage++;ShowTutorialPage();}
     void ShowDialog(string caption,string body,string button,string action)
     {
-        modalOpen=true;dialogAction=action;dialogTitle.text=caption;dialogText.text=body;primary.text=button;dialogError.text="";modal.style.display=DisplayStyle.Flex;previousCombat=player.CombatLocked;player.CombatLocked=true;
-        var clip=action=="start"?Resources.Load<AudioClip>("Arrival/WelcomeVoice"):null;
+        if(!modalOpen)previousCombat=player.CombatLocked;
+        modalOpen=true;dialogAction=action;dialogTitle.text=caption;dialogText.text=body;primary.text=button;dialogError.text="";modal.style.display=DisplayStyle.Flex;secondary.style.display=action=="start"||action=="tutorial-next"?DisplayStyle.Flex:DisplayStyle.None;player.CombatLocked=true;
+        var clip=action=="tutorial-next"&&tutorialPage==0?Resources.Load<AudioClip>("Arrival/WelcomeVoice"):null;
         narration.Stop();if(clip){narration.clip=clip;narration.Play();}
+    }
+    void RefreshObjective()
+    {
+        if(title==null||detail==null||reward==null||config==null||player==null)return;
+        reward.text="RECOMPENSA  ·  "+config.rewardXp+" XP  +  R$ "+(config.rewardCashCents/100);
+        if(Phase=="available")
+        {
+            title.text="MISSÃO 01 · PRIMEIRO CORRE  1/6";
+            detail.text="Aproximar-se do NPC inicial  ·  "+Mathf.CeilToInt(Vector3.Distance(player.transform.position,config.giver))+" m";
+            return;
+        }
+        if(Phase!="borrowed")return;
+        float cityDistance=Vector3.Distance(player.transform.position,config.cityHall);
+        if(cityDistance<12&&(car==null||!car.Occupied))
+        {
+            title.text="MISSÃO 01 · PRIMEIRO CORRE  6/6";detail.text="Conversar com o NPC da Prefeitura";
+        }
+        else if(enteredLoanCar)
+        {
+            title.text="MISSÃO 01 · PRIMEIRO CORRE  5/6";
+            detail.text="Seguir o GPS até a Prefeitura  ·  "+Mathf.CeilToInt(cityDistance)+" m"+(car&&car.Occupied?"  ·  "+Mathf.RoundToInt(Mathf.Abs(car.Speed)*3.6f)+" km/h":"");
+        }
+        else
+        {
+            title.text="MISSÃO 01 · PRIMEIRO CORRE  4/6";detail.text="Entrar no carro emprestado";
+        }
     }
     void HideDialog(){modalOpen=false;modal.style.display=DisplayStyle.None;narration.Stop();if(player)player.CombatLocked=previousCombat;nextInteraction=Time.unscaledTime+.35f;}
     GameObject Npc(string caption,Vector3 position,Color color)

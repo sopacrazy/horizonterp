@@ -12,6 +12,14 @@ public static class ArrivalMissionSetup
     {
         Directory.CreateDirectory("Assets/Resources/Arrival");
         File.Copy("../Backend/api/arrival-config.json","Assets/Resources/Arrival/Config.json",true);
+        const string bannerPath="Assets/Resources/Arrival/DialogBanner.png";
+        File.Copy("../personagem/banner.png",bannerPath,true);
+        AssetDatabase.ImportAsset(bannerPath,ImportAssetOptions.ForceUpdate);
+        var bannerImporter=AssetImporter.GetAtPath(bannerPath) as TextureImporter;
+        if(bannerImporter!=null&&(bannerImporter.mipmapEnabled||!bannerImporter.alphaIsTransparency||bannerImporter.npotScale!=TextureImporterNPOTScale.None||bannerImporter.maxTextureSize<4096))
+        {
+            bannerImporter.mipmapEnabled=false;bannerImporter.alphaIsTransparency=true;bannerImporter.npotScale=TextureImporterNPOTScale.None;bannerImporter.maxTextureSize=4096;bannerImporter.SaveAndReimport();
+        }
         var mesh=AssetDatabase.LoadAssetAtPath<Mesh>("Assets/GTARecoveredMap/Mesh/SkyCarBody.asset");
         if(mesh&&!File.Exists("Assets/Resources/Arrival/CarBody.asset"))AssetDatabase.CreateAsset(UnityEngine.Object.Instantiate(mesh),"Assets/Resources/Arrival/CarBody.asset");
         var details=AssetDatabase.LoadAssetAtPath<Mesh>("Assets/GTARecoveredMap/Mesh/SkyCarComponents.asset");
