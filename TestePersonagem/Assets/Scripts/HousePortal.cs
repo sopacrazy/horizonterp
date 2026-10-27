@@ -8,6 +8,8 @@ public sealed class HousePortal : MonoBehaviour
     const float InteriorY = -60f;
     static readonly Vector3 InteriorCenter = new Vector3(0, InteriorY, 0);
     static readonly Vector3 InteriorSpawn = InteriorCenter + new Vector3(0, .08f, 1.25f);
+    static readonly Vector3 ExteriorMarkerPosition = new Vector3(-24.282f, -.649f, 1.255f);
+    const float ExteriorMarkerYaw = 326f;
     const string PrefsPrefix = "house-test.entrance.";
 
     ThirdPersonPlayer player;
@@ -27,6 +29,8 @@ public sealed class HousePortal : MonoBehaviour
 
     public Transform ActiveArrow => inside ? exitArrow : exteriorArrow;
     public VisualElement PromptElement => prompt;
+    public Vector3 ExteriorPosition => exterior ? exterior.transform.position : ExteriorMarkerPosition;
+    public float ExteriorYaw => exterior ? exterior.transform.eulerAngles.y : ExteriorMarkerYaw;
 
     public static void Create(ThirdPersonPlayer target)
     {
@@ -50,11 +54,10 @@ public sealed class HousePortal : MonoBehaviour
         while (player && (StartupLoader.IsLoading || AccountSession.InputBlocked)) yield return null;
         if (!player) yield break;
         inside = IsInside(player.transform.position);
-        var start = inside ? entrancePosition : player.transform.position;
         var streaming = FindAnyObjectByType<CitySectorStreaming>();
         float deadline = Time.realtimeSinceStartup + 8f;
         while (streaming && !streaming.Ready && Time.realtimeSinceStartup < deadline) yield return null;
-        BuildExterior(start, inside ? entranceYaw : player.transform.eulerAngles.y);
+        BuildExterior();
         CreatePrompt();
         CreateFade();
         RefreshVisibility();
@@ -96,8 +99,8 @@ public sealed class HousePortal : MonoBehaviour
         if (!arrow || !arrow.gameObject.activeInHierarchy) return;
         arrow.Rotate(Vector3.up, 72f * Time.deltaTime, Space.World);
         float wave = Mathf.Sin(Time.time * 2.8f + phase);
-        arrow.localPosition = new Vector3(0, 2.12f + wave * .09f, 0);
-        float scale = .72f * (1f + wave * .035f);
+        arrow.localPosition = new Vector3(0, 1.55f + wave * .045f, 0);
+        float scale = .34f * (1f + wave * .035f);
         arrow.localScale = Vector3.one * scale;
     }
 
@@ -237,32 +240,11 @@ public sealed class HousePortal : MonoBehaviour
         if (prompt != null) prompt.style.display = DisplayStyle.None;
     }
 
-    void BuildExterior(Vector3 near, float facingYaw)
+    void BuildExterior()
     {
-        var marker = EntranceThreshold(near, facingYaw);
         exterior = new GameObject("Entrada da casa de teste");
-        exterior.transform.position = marker;
+        exterior.transform.SetPositionAndRotation(ExteriorMarkerPosition, Quaternion.Euler(0, ExteriorMarkerYaw, 0));
         BuildArrowMarker(exterior.transform, out exteriorArrow);
-    }
-
-    // The player is facing the existing recessed entrance shown at this test spot.
-    // Put only the interaction effect at its threshold; never cover the facade with a generated door.
-    static Vector3 EntranceThreshold(Vector3 near, float facingYaw)
-    {
-        var point = near + Quaternion.Euler(0, facingYaw, 0) * Vector3.forward * 1.05f;
-        Physics.SyncTransforms();
-        var hits = Physics.RaycastAll(point + Vector3.up * 2f, Vector3.down, 5f, 1,
-            QueryTriggerInteraction.Ignore);
-        float nearestHeight = float.MaxValue;
-        foreach (var hit in hits)
-        {
-            float difference = Mathf.Abs(hit.point.y - near.y);
-            if (hit.normal.y < .7f || difference > 1.2f || difference >= nearestHeight) continue;
-            nearestHeight = difference;
-            point.y = hit.point.y + .04f;
-        }
-        if (nearestHeight == float.MaxValue) point.y = near.y - .04f;
-        return point;
     }
 
     void BuildInterior()
@@ -312,7 +294,7 @@ public sealed class HousePortal : MonoBehaviour
     {
         arrow = new GameObject("Seta 3D giratória de entrada").transform;
         arrow.SetParent(parent, false);
-        arrow.localPosition = new Vector3(0, 2.12f, 0);
+        arrow.localPosition = new Vector3(0, 1.55f, 0);
         var gold = MaterialColor(new Color(1f, .66f, .04f), true);
         var shaft = Box("Corpo da seta", arrow, new Vector3(0, .24f, 0),
             new Vector3(.24f, .52f, .22f), gold, false);

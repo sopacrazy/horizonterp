@@ -148,6 +148,9 @@ public sealed class OfficialCityVerification : MonoBehaviour
             "Entrada da casa cria o novo marcador e sua ação contextual");
         var housePortal = FindAnyObjectByType<HousePortal>();
         var portalArrow = housePortal.ActiveArrow;
+        Check(Vector3.Distance(housePortal.ExteriorPosition, new Vector3(-24.282f, -.649f, 1.255f)) < .001f &&
+            Mathf.Abs(Mathf.DeltaAngle(housePortal.ExteriorYaw, 326f)) < .01f,
+            "Entrada exterior fica nas coordenadas e rotação solicitadas");
         Check(portalArrow.name == "Seta 3D giratória de entrada" &&
             portalArrow.GetComponentsInChildren<MeshRenderer>().Length == 2,
             "Portal usa somente a seta 3D suspensa com corpo e ponta");
