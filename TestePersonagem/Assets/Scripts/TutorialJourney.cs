@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
 public sealed class TutorialJourney : MonoBehaviour
@@ -25,6 +26,7 @@ public sealed class TutorialJourney : MonoBehaviour
     public MissionVehicle LoanCar=>car;
     public ArrivalConfig Config=>config;
     public UIDocument Document=>document;
+    public GameObject GpsArrow=>gpsObject;
     ThirdPersonPlayer player;
     ArrivalConfig config;
     ArrivalState mission;
@@ -35,9 +37,8 @@ public sealed class TutorialJourney : MonoBehaviour
     Label title,detail,reward,promptTitle,dialogTitle,dialogText,dialogError;
     Button promptButton,primary,secondary,retry;
     AudioSource narration;
-    LineRenderer gps;
     string dialogAction;
-    bool modalOpen,busy,previousCombat;
+    bool modalOpen,busy,previousCombat,rehearsal;
     int waypoint,tutorialPage;
     bool enteredLoanCar;
     float nextInteraction,nextRefresh;
@@ -61,8 +62,10 @@ public sealed class TutorialJourney : MonoBehaviour
         if(busy)yield break;busy=true;ApiReply reply=null;
         yield return AccountSession.Instance.ArrivalRequest(null,r=>reply=r);busy=false;
         if(reply?.mission==null){title.text="MISSÃO DE CHEGADA";detail.text="Não foi possível carregar a missão. Tente novamente.";retry.style.display=DisplayStyle.Flex;yield break;}
-        Apply(reply.mission);
+        rehearsal=reply.mission.phase=="completed";
+        Apply(new ArrivalState{phase="available",config=reply.mission.config});
     }
+    internal IEnumerator ReloadForTest(){yield return Load();}
     void Apply(ArrivalState value)
     {
         mission=value;config=value.config??config;retry.style.display=DisplayStyle.None;
@@ -90,6 +93,7 @@ public sealed class TutorialJourney : MonoBehaviour
         }
         else if(Phase=="available"&&!modalOpen)RefreshObjective();
         prompt.style.display=available&&action!=null?DisplayStyle.Flex:DisplayStyle.None;
+        prompt.EnableInClassList("arrival-exit-prompt",action=="exit");
         promptTitle.text=action=="finish"?"PREFEITURA":action=="talk"?"MORADOR DA CIDADE":"EMPRÉSTIMO TEMPORÁRIO";promptButton.text=caption;promptButton.userData=action;
         if(available&&action!=null&&Input.GetKeyDown(KeyCode.E)&&action!="exit")Interact(action);
     }
@@ -105,9 +109,21 @@ public sealed class TutorialJourney : MonoBehaviour
     bool Near(Vector3 point)=>Vector3.Distance(player.transform.position,point)<2.8f;
     internal IEnumerator SubmitMission(string action)
     {
-        if(busy)yield break;busy=true;primary.SetEnabled(false);dialogError.text="Salvando...";
-        yield return AccountSession.Instance.Save();ApiReply reply=null;
-        yield return AccountSession.Instance.ArrivalRequest(action,r=>reply=r);busy=false;primary.SetEnabled(true);
+        if(busy)yield break;busy=true;primary.SetEnabled(false);dialogError.text="";
+        ApiReply reply=null;
+        if(rehearsal)
+        {
+            var local=action=="start"
+                ?new ArrivalState{phase="borrowed",loanId="teste-local",loanExpiresAt=DateTime.UtcNow.AddHours(2).ToString("O"),config=config}
+                :new ArrivalState{phase="completed",config=config};
+            reply=new ApiReply{mission=local,state=AccountSession.Instance.State};yield return null;
+        }
+        else
+        {
+            yield return AccountSession.Instance.Save();
+            yield return AccountSession.Instance.ArrivalRequest(action,r=>reply=r);
+        }
+        busy=false;primary.SetEnabled(true);
         if(reply?.mission==null){dialogError.text=AccountSession.Instance.LastError??"Não foi possível confirmar. Tente novamente.";yield break;}
         Apply(reply.mission);
         if(action=="start")
@@ -116,7 +132,9 @@ public sealed class TutorialJourney : MonoBehaviour
             GameHud.Instance?.ShowToast("Missão iniciada. Use o carro do morador; o empréstimo não é uma compra.");
         }
         else HideDialog();
-        if(action=="finish")ShowDialog("MISSÃO CONCLUÍDA","Você recebeu "+config.rewardXp+" XP e R$ "+(config.rewardCashCents/100)+". O carro foi devolvido ao NPC. O próximo atendimento na Prefeitura será a continuação da sua jornada.","CONTINUAR","close");
+        if(action=="finish")ShowDialog("MISSÃO CONCLUÍDA",rehearsal
+            ?"Teste concluído. O carro foi devolvido ao NPC e a recompensa não foi repetida, pois esta conta já concluiu a missão oficial."
+            :"Você recebeu "+config.rewardXp+" XP e R$ "+(config.rewardCashCents/100)+". O carro foi devolvido ao NPC. O próximo atendimento na Prefeitura será a continuação da sua jornada.","CONTINUAR","close");
     }
     void CreateUI()
     {
@@ -125,10 +143,10 @@ public sealed class TutorialJourney : MonoBehaviour
         var root=document.rootVisualElement;root.styleSheets.Add(Resources.Load<StyleSheet>("ArrivalStyles"));
         quest=Box("arrival-quest",root);quest.name="arrival-quest";title=Text("MISSÃO 01 · PRIMEIRO CORRE  1/6","arrival-title",quest);title.name="arrival-objective-title";detail=Text("Carregando...","arrival-detail",quest);detail.name="arrival-objective-detail";reward=Text("RECOMPENSA  ·  100 XP  +  R$ 150","arrival-reward",quest);
         retry=Button("TENTAR NOVAMENTE",()=>StartCoroutine(Load()),quest);retry.style.display=DisplayStyle.None;
-        prompt=Box("arrival-prompt",root);promptTitle=Text("","arrival-title",prompt);promptButton=Button("",()=>Interact(promptButton.userData as string),prompt);promptButton.name="arrival-interact";prompt.style.display=DisplayStyle.None;
+        prompt=Box("arrival-prompt",root);prompt.name="arrival-prompt";promptTitle=Text("","arrival-title",prompt);promptButton=Button("",()=>Interact(promptButton.userData as string),prompt);promptButton.name="arrival-interact";prompt.style.display=DisplayStyle.None;
         modal=Box("arrival-shade",root);modal.name="arrival-dialog";var card=Box("arrival-dialog-card",modal);var content=Box("arrival-dialog-content",card);
         Text("HORIZONTE BRASIL RP  ·  MISSÃO 01","arrival-kicker",content);dialogTitle=Text("","arrival-dialog-title",content);dialogTitle.name="arrival-dialog-title";dialogText=Text("","arrival-dialog-text",content);dialogText.name="arrival-dialog-text";
-        dialogError=Text("","arrival-error",content);var actions=Box("arrival-dialog-actions",content);
+        dialogError=Text("","arrival-error",content);dialogError.name="arrival-dialog-error";var actions=Box("arrival-dialog-actions",content);
         secondary=Button("FECHAR",()=>{if(!busy)HideDialog();},actions);secondary.name="arrival-cancel";
         primary=Button("",()=>{if(dialogAction=="tutorial-next")AdvanceTutorial();else if(dialogAction=="close")HideDialog();else StartCoroutine(SubmitMission(dialogAction));},actions);primary.name="arrival-start";
         modal.style.display=DisplayStyle.None;
@@ -191,14 +209,36 @@ public sealed class TutorialJourney : MonoBehaviour
     }
     void BuildGps()
     {
-        if(gpsObject)Destroy(gpsObject);gpsObject=new GameObject("GPS · rota até a Prefeitura");gpsObject.layer=2;gps=gpsObject.AddComponent<LineRenderer>();gps.useWorldSpace=true;gps.material=new Material(Shader.Find("Sprites/Default"));gps.startColor=gps.endColor=new Color(.12f,.74f,1,.85f);gps.widthMultiplier=.16f;
+        if(gpsObject)Destroy(gpsObject);
+        gpsObject=new GameObject("GPS · seta de direção");gpsObject.layer=2;
+        var filter=gpsObject.AddComponent<MeshFilter>();filter.sharedMesh=ArrowMesh();
+        var renderer=gpsObject.AddComponent<MeshRenderer>();renderer.shadowCastingMode=ShadowCastingMode.Off;renderer.receiveShadows=false;
+        var material=new Material(Shader.Find("Sprites/Default")){color=new Color(1f,.72f,.08f,1f)};renderer.sharedMaterial=material;
+        var beacon=GameObject.CreatePrimitive(PrimitiveType.Sphere);beacon.name="Luz da seta GPS";beacon.layer=2;Destroy(beacon.GetComponent<Collider>());
+        beacon.transform.SetParent(gpsObject.transform,false);beacon.transform.localPosition=Vector3.up*.11f;beacon.transform.localScale=Vector3.one*.16f;beacon.GetComponent<Renderer>().sharedMaterial=material;
     }
     void UpdateGps()
     {
-        if(!gps||config.route==null||config.route.Length==0)return;
-        while(waypoint<config.route.Length-1&&Vector3.Distance(player.transform.position,config.route[waypoint])<5)waypoint++;
-        gps.positionCount=config.route.Length-waypoint+1;gps.SetPosition(0,player.transform.position+Vector3.up*.15f);
-        for(int i=waypoint;i<config.route.Length;i++)gps.SetPosition(i-waypoint+1,config.route[i]+Vector3.up*.15f);
+        if(!gpsObject||config.route==null||config.route.Length==0)return;
+        Vector3 origin=player.transform.position;
+        Vector3 target=car&&!enteredLoanCar&&!car.Occupied?car.transform.position:config.route[Mathf.Clamp(waypoint,0,config.route.Length-1)];
+        if(enteredLoanCar||car&&car.Occupied)
+        {
+            while(waypoint<config.route.Length-1&&Vector3.Distance(origin,config.route[waypoint])<5)waypoint++;
+            target=config.route[waypoint];
+        }
+        Vector3 direction=Vector3.ProjectOnPlane(target-origin,Vector3.up);
+        gpsObject.SetActive(direction.sqrMagnitude>.25f);
+        if(direction.sqrMagnitude<=.25f)return;
+        gpsObject.transform.position=origin+Vector3.up*(car&&car.Occupied?2.65f:2.35f+Mathf.Sin(Time.time*3f)*.08f);
+        gpsObject.transform.rotation=Quaternion.LookRotation(direction.normalized,Vector3.up);
+        float pulse=1.12f+Mathf.Sin(Time.time*4f)*.09f;gpsObject.transform.localScale=new Vector3(pulse,pulse,pulse);
+    }
+    static Mesh ArrowMesh()
+    {
+        var mesh=new Mesh{name="Seta GPS flutuante"};
+        mesh.vertices=new[]{new Vector3(-.16f,0,-.58f),new Vector3(.16f,0,-.58f),new Vector3(.16f,0,.08f),new Vector3(-.16f,0,.08f),new Vector3(-.48f,0,.06f),new Vector3(.48f,0,.06f),new Vector3(0,0,.82f)};
+        mesh.triangles=new[]{0,2,1,0,3,2,4,6,5};mesh.RecalculateNormals();mesh.RecalculateBounds();return mesh;
     }
     void RemoveCar(){if(car){car.Exit(true);Destroy(car.gameObject);car=null;}}
     static VisualElement Box(string css,VisualElement parent){var value=new VisualElement();value.AddToClassList(css);parent.Add(value);return value;}

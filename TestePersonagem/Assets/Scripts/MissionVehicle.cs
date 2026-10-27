@@ -31,6 +31,7 @@ public sealed class MissionVehicle : MonoBehaviour
     Material Material(Color color){return new Material(Shader.Find("Standard")){color=color};}
     void BuildVisual()
     {
+        if(BuildMustang())return;
         var blue=Material(new Color(.08f,.22f,.37f));var black=Material(new Color(.035f,.045f,.055f));var metal=Material(new Color(.6f,.65f,.7f));
         Mesh mesh=Resources.Load<Mesh>("Arrival/CarBody");
         if(mesh)
@@ -59,6 +60,42 @@ public sealed class MissionVehicle : MonoBehaviour
         }
         Part("Farol esquerdo",new Vector3(-.55f,.65f,2.08f),new Vector3(.35f,.15f,.06f),metal);
         Part("Farol direito",new Vector3(.55f,.65f,2.08f),new Vector3(.35f,.15f,.06f),metal);
+    }
+    bool BuildMustang()
+    {
+        var source=Resources.Load<GameObject>("Vehicles/Mustang1969/FINAL_MODEL_302_69");
+        if(!source)return false;
+        var model=Instantiate(source,transform);model.name="Mustang Boss 302 1969";
+        model.transform.localPosition=Vector3.zero;model.transform.localRotation=Quaternion.identity;model.transform.localScale=Vector3.one;
+        SetLayer(model.transform,2);
+        if(!TryLocalBounds(model.transform,out var bounds)){Destroy(model);return false;}
+        if(bounds.size.x>bounds.size.z)model.transform.localRotation=Quaternion.Euler(0,90,0);
+        if(!TryLocalBounds(model.transform,out bounds)){Destroy(model);return false;}
+        float scale=4.45f/Mathf.Max(bounds.size.x,bounds.size.z);model.transform.localScale=Vector3.one*scale;
+        if(!TryLocalBounds(model.transform,out bounds)){Destroy(model);return false;}
+        model.transform.localPosition+=new Vector3(-bounds.center.x,.18f-bounds.min.y,-bounds.center.z);
+        wheels=System.Array.Empty<Transform>();
+        return true;
+    }
+    bool TryLocalBounds(Transform model,out Bounds result)
+    {
+        result=default;bool found=false;
+        foreach(var filter in model.GetComponentsInChildren<MeshFilter>(true))
+        {
+            if(!filter.sharedMesh)continue;
+            Bounds meshBounds=filter.sharedMesh.bounds;Matrix4x4 matrix=transform.worldToLocalMatrix*filter.transform.localToWorldMatrix;
+            Vector3 min=meshBounds.min,max=meshBounds.max;
+            for(int x=0;x<2;x++)for(int y=0;y<2;y++)for(int z=0;z<2;z++)
+            {
+                Vector3 point=matrix.MultiplyPoint3x4(new Vector3(x==0?min.x:max.x,y==0?min.y:max.y,z==0?min.z:max.z));
+                if(!found){result=new Bounds(point,Vector3.zero);found=true;}else result.Encapsulate(point);
+            }
+        }
+        return found;
+    }
+    static void SetLayer(Transform root,int layer)
+    {
+        root.gameObject.layer=layer;foreach(Transform child in root)SetLayer(child,layer);
     }
     void Part(string name,Vector3 position,Vector3 scale,Material material)
     {

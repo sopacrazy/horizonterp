@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -73,11 +74,16 @@ public sealed class ArrivalVerification:MonoBehaviour
         yield return Wait(()=>tutorial.Phase=="borrowed"&&tutorial.LoanCar,"Iniciar missão concede o carro temporário");
         Check(saveConflicts==1&&AccountSession.HasCharacter,"Conflito de checkpoint atualiza a versão e repete o salvamento sem apagar a sessão");
         Check(dialogueTitle.text=="RUMO À PREFEITURA"&&ui.Q<Button>("arrival-start").text=="FECHAR"&&objective.text.Contains("4/6"),"Etapa 5 orienta a entrar no carro e seguir o GPS");
+        Check(tutorial.GpsArrow&&tutorial.GpsArrow.GetComponent<LineRenderer>()==null,"Rota usa seta flutuante e não desenha linha azul");
+        Check(tutorial.LoanCar.GetComponentsInChildren<Transform>(true).Any(item=>item.name=="Mustang Boss 302 1969"),"Carro emprestado usa o Mustang Boss 302 1969 importado");
         Check(starts==1&&rewards==0&&state.cashCents=="0","Empréstimo não é compra nem recompensa antecipada");yield return Capture("loan-and-gps");Press(ui.Q<Button>("arrival-start"));yield return null;
+        if(Environment.GetCommandLineArgs().Contains("--inspect-arrival"))yield return new WaitForSecondsRealtime(30);
         Vector3 walkStart=player.transform.position;player.DemoInput=Vector2.up;yield return new WaitForSecondsRealtime(.65f);player.DemoInput=Vector2.zero;
         Check(Vector3.Distance(walkStart,player.transform.position)>.25f&&!AccountSession.InputBlocked&&!player.CombatLocked,"Movimento permanece liberado depois da recuperação do checkpoint");
         Position(tutorial.LoanCar.transform.position+Vector3.left*2);yield return new WaitForSecondsRealtime(.4f);tutorial.Interact("enter");yield return null;
         Check(MissionVehicle.Driver==player&&!player.GetComponent<CharacterController>().enabled,"Entrar no veículo troca os controles e oculta o personagem");
+        yield return null;Check(ui.Q<VisualElement>("arrival-prompt").ClassListContains("arrival-exit-prompt"),"Sair do carro aparece como botão compacto acima do pulo");
+        if(Environment.GetCommandLineArgs().Contains("--inspect-arrival"))yield return new WaitForSecondsRealtime(30);
         var car=tutorial.LoanCar;Vector3 initial=car.transform.position;MissionVehicle.VerificationInput=Vector2.up;yield return new WaitForSecondsRealtime(2);MissionVehicle.VerificationInput=Vector2.zero;
         Check(Vector3.Distance(car.transform.position,initial)>2,"Carro emprestado percorre a rua com direção funcional");yield return Capture("driving");
         Check(car.Exit(),"É possível sair em um local livre");Position(tutorial.Config.cityHall+Vector3.left);yield return new WaitForSecondsRealtime(.5f);tutorial.Interact("finish");
@@ -85,6 +91,10 @@ public sealed class ArrivalVerification:MonoBehaviour
         yield return Wait(()=>tutorial.Phase=="completed","Atendimento conclui missão");yield return null;
         Check(rewards==1&&state.xp=="100"&&state.cashCents=="15000"&&player.Cash==150,"Servidor confirma 100 XP e 150 reais uma única vez");
         Check(!tutorial.LoanCar&&!MissionVehicle.Driver&&mission.loanId==null,"Conclusão devolve o carro ao NPC sem propriedade permanente");yield return Capture("mission-completed");
+        yield return tutorial.ReloadForTest();
+        Check(tutorial.Phase=="available","Tutorial concluído reinicia no passo 1 ao entrar novamente para permitir testes");
+        yield return tutorial.SubmitMission("start");yield return tutorial.SubmitMission("finish");
+        Check(starts==1&&rewards==1&&state.xp=="100"&&state.cashCents=="15000","Repetição de teste não grava a missão nem duplica dinheiro ou XP");
         yield return account.VerifyRememberedAccess(Check,Capture);
     }
     IEnumerator Fake(string method,string path,string body,bool authenticated,Action<ApiReply,string> done)
