@@ -22,6 +22,8 @@ public sealed class CityDayNight : MonoBehaviour
 
     void Awake()
     {
+        var afternoonSky = Resources.Load<Material>("Environment/LateAfternoonSkyMaterial");
+        if (afternoonSky) daySky = afternoonSky;
         QualitySettings.pixelLightCount = Mathf.Max(8, QualitySettings.pixelLightCount);
         SetNight(startAtNight);
     }
@@ -37,12 +39,12 @@ public sealed class CityDayNight : MonoBehaviour
         RenderSettings.ambientIntensity = 1;
         // A visible ambient floor keeps unlit sidewalks and the player readable on mobile.
         // The sky stays dark; warm local lights provide the street-light contrast.
-        RenderSettings.ambientSkyColor = night ? new Color(.34f, .38f, .49f) : new Color(.64f, .71f, .82f);
-        RenderSettings.ambientEquatorColor = night ? new Color(.25f, .28f, .34f) : new Color(.44f, .46f, .47f);
-        RenderSettings.ambientGroundColor = night ? new Color(.16f, .18f, .22f) : new Color(.28f, .27f, .25f);
-        RenderSettings.fogColor = night ? new Color(.055f, .075f, .115f) : new Color(.7f, .77f, .82f);
-        RenderSettings.reflectionIntensity = night ? .48f : .7f;
-        if (sun) { sun.enabled = !night; sun.intensity = 1.12f; }
+        RenderSettings.ambientSkyColor = night ? new Color(.34f, .38f, .49f) : new Color(.59f, .67f, .78f);
+        RenderSettings.ambientEquatorColor = night ? new Color(.25f, .28f, .34f) : new Color(.62f, .58f, .52f);
+        RenderSettings.ambientGroundColor = night ? new Color(.16f, .18f, .22f) : new Color(.32f, .29f, .26f);
+        RenderSettings.fogColor = night ? new Color(.055f, .075f, .115f) : new Color(.68f, .72f, .76f);
+        RenderSettings.reflectionIntensity = night ? .48f : .76f;
+        if (sun) { sun.enabled = !night; sun.intensity = 1f; sun.color = new Color(1f,.88f,.72f); }
         if (moon) { moon.enabled = night; moon.intensity = .6f; moon.color = new Color(.68f, .75f, .88f); }
         RenderSettings.sun = night ? moon : sun;
         foreach (var light in streetLights) if (light) light.enabled = night;

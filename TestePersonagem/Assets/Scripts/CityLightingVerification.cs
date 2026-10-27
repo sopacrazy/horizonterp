@@ -138,9 +138,12 @@ public sealed class CityLightingVerification : MonoBehaviour
         yield return new WaitForSecondsRealtime(.4f);
         Check(!lighting.IsNight, "Controle de iluminação alterna da noite para o dia");
         Check(RenderSettings.skybox == lighting.daySky && ValidShader(lighting.daySky), "Modo diurno aplica céu válido");
+        Check(lighting.daySky.shader.name=="Skybox/Panoramic"&&lighting.daySky.HasProperty("_MainTex")&&
+              lighting.daySky.GetTexture("_MainTex")!=null,
+            "Modo diurno usa panorama com nuvens de fim de tarde");
         Check(lighting.sun && lighting.sun.enabled && lighting.sun.intensity > 0 &&
-              lighting.moon && !lighting.moon.enabled,
-            "Dia ativa o sol direcional e desativa a iluminação da lua");
+              lighting.sun.color.r>lighting.sun.color.b&&lighting.moon && !lighting.moon.enabled,
+            "Tarde ativa o sol direcional quente e desativa a iluminação da lua");
         Check(StreetLightsOff(), "Postes apagam no modo diurno");
         var dayEmission = ReadLuminaireEmission();
         Check(EmissionReduced(nightEmission, dayEmission), "Emissão das luminárias apaga ou reduz no modo diurno");

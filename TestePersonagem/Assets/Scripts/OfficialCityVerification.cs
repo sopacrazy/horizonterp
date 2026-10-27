@@ -178,6 +178,10 @@ public sealed class OfficialCityVerification : MonoBehaviour
         originalNight = lighting.IsNight; lightingSaved = true;
         lighting.SetNight(false); yield return new WaitForSecondsRealtime(.4f);
         Check(!lighting.IsNight && lighting.sun.enabled && !lighting.moon.enabled, "Modo diurno acende o sol e desliga a lua");
+        Check(lighting.daySky&&lighting.daySky.shader.name=="Skybox/Panoramic"&&
+              lighting.daySky.HasProperty("_MainTex")&&lighting.daySky.GetTexture("_MainTex")&&
+              lighting.sun.color.r>lighting.sun.color.b&&RenderSettings.fog&&RenderSettings.fogColor.maxColorComponent>.65f,
+            "Cidade oficial usa céu com nuvens, sol quente e neblina de fim de tarde");
         Capture(Camera.main, "official-day");
         lighting.SetNight(true); yield return new WaitForSecondsRealtime(.5f);
         Check(lighting.IsNight && !lighting.sun.enabled && lighting.moon.enabled, "Modo noturno preserva a alternância para a lua");
