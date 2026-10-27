@@ -12,6 +12,7 @@ public sealed class HousePortal : MonoBehaviour
     const float InteriorSpawnYaw = 0f;
     static readonly Vector3 ExteriorMarkerPosition = new Vector3(-24.282f, -.649f, 1.255f);
     const float ExteriorMarkerYaw = 326f;
+    const float ExteriorArrivalYawValue = 146f;
     const string PrefsPrefix = "house-test.entrance.";
 
     ThirdPersonPlayer player;
@@ -36,7 +37,7 @@ public sealed class HousePortal : MonoBehaviour
     public Vector3 InteriorArrivalPosition => InteriorSpawn;
     public Vector3 InteriorMarkerPosition => exitMarker ? exitMarker.transform.position : InteriorSpawn;
     public float InteriorArrivalYaw => InteriorSpawnYaw;
-    public float ExteriorArrivalYaw => ExteriorMarkerYaw;
+    public float ExteriorArrivalYaw => ExteriorArrivalYawValue;
 
     public static void Create(ThirdPersonPlayer target)
     {
@@ -52,7 +53,7 @@ public sealed class HousePortal : MonoBehaviour
         BuildInterior();
         entrancePosition = new Vector3(PlayerPrefs.GetFloat(PrefsPrefix + "x", 0),
             PlayerPrefs.GetFloat(PrefsPrefix + "y", .08f), PlayerPrefs.GetFloat(PrefsPrefix + "z", 0));
-        entranceYaw = ExteriorMarkerYaw;
+        entranceYaw = ExteriorArrivalYawValue;
     }
 
     IEnumerator Start()
@@ -130,7 +131,7 @@ public sealed class HousePortal : MonoBehaviour
         if (entering)
         {
             entrancePosition = player.transform.position;
-            entranceYaw = ExteriorMarkerYaw;
+            entranceYaw = ExteriorArrivalYawValue;
             PlayerPrefs.SetFloat(PrefsPrefix + "x", entrancePosition.x);
             PlayerPrefs.SetFloat(PrefsPrefix + "y", entrancePosition.y);
             PlayerPrefs.SetFloat(PrefsPrefix + "z", entrancePosition.z);

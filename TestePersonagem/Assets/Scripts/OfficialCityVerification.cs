@@ -155,8 +155,8 @@ public sealed class OfficialCityVerification : MonoBehaviour
             "Entrada na casa posiciona o personagem no mesmo ponto da seta interna");
         Check(Mathf.Abs(Mathf.DeltaAngle(housePortal.InteriorArrivalYaw, 0f)) < .01f,
             "Personagem entra olhando para o interior e fica de costas para a porta");
-        Check(Mathf.Abs(Mathf.DeltaAngle(housePortal.ExteriorArrivalYaw, 326f)) < .01f,
-            "Personagem sai voltado para a porta e fica de costas para a rua");
+        Check(Mathf.Abs(Mathf.DeltaAngle(housePortal.ExteriorArrivalYaw, 146f)) < .01f,
+            "Personagem sai olhando para a rua e fica de costas para a porta");
         Check(portalArrow.localPosition.y > 1.7f,
             "Seta pequena permanece mais alta sobre o ponto de entrada");
         Check(portalArrow.name == "Seta 3D giratória de entrada" &&
