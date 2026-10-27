@@ -153,6 +153,8 @@ public sealed class OfficialCityVerification : MonoBehaviour
             "Entrada exterior fica nas coordenadas e rotação solicitadas");
         Check(Vector3.Distance(housePortal.InteriorArrivalPosition, housePortal.InteriorMarkerPosition) < .001f,
             "Entrada na casa posiciona o personagem no mesmo ponto da seta interna");
+        Check(Mathf.Abs(Mathf.DeltaAngle(housePortal.InteriorArrivalYaw, 0f)) < .01f,
+            "Personagem entra olhando para o interior e fica de costas para a porta");
         Check(portalArrow.name == "Seta 3D giratória de entrada" &&
             portalArrow.GetComponentsInChildren<MeshRenderer>().Length == 2,
             "Portal usa somente a seta 3D suspensa com corpo e ponta");

@@ -9,6 +9,7 @@ public sealed class HousePortal : MonoBehaviour
     static readonly Vector3 InteriorCenter = new Vector3(0, InteriorY, 0);
     static readonly Vector3 InteriorMarkerLocal = new Vector3(0, .04f, -3.95f);
     static readonly Vector3 InteriorSpawn = InteriorCenter + InteriorMarkerLocal;
+    const float InteriorSpawnYaw = 0f;
     static readonly Vector3 ExteriorMarkerPosition = new Vector3(-24.282f, -.649f, 1.255f);
     const float ExteriorMarkerYaw = 326f;
     const string PrefsPrefix = "house-test.entrance.";
@@ -34,6 +35,7 @@ public sealed class HousePortal : MonoBehaviour
     public float ExteriorYaw => exterior ? exterior.transform.eulerAngles.y : ExteriorMarkerYaw;
     public Vector3 InteriorArrivalPosition => InteriorSpawn;
     public Vector3 InteriorMarkerPosition => exitMarker ? exitMarker.transform.position : InteriorSpawn;
+    public float InteriorArrivalYaw => InteriorSpawnYaw;
 
     public static void Create(ThirdPersonPlayer target)
     {
@@ -133,7 +135,8 @@ public sealed class HousePortal : MonoBehaviour
             PlayerPrefs.SetFloat(PrefsPrefix + "z", entrancePosition.z);
             PlayerPrefs.SetFloat(PrefsPrefix + "yaw", entranceYaw);
             PlayerPrefs.Save();
-            player.TeleportTo(InteriorSpawn, 180f);
+            // The exit door is behind the actor; arrive looking into the room.
+            player.TeleportTo(InteriorSpawn, InteriorSpawnYaw);
         }
         else player.TeleportTo(entrancePosition, entranceYaw);
 
