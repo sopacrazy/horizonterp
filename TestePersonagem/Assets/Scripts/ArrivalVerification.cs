@@ -91,6 +91,7 @@ public sealed class ArrivalVerification:MonoBehaviour
         yield return null;Check(ui.Q<VisualElement>("arrival-prompt").ClassListContains("arrival-exit-prompt"),"Sair do carro aparece como botão compacto acima do pulo");
         if(Environment.GetCommandLineArgs().Contains("--inspect-arrival"))yield return new WaitForSecondsRealtime(30);
         var car=tutorial.LoanCar;var vehicleCamera=UnityEngine.Object.FindAnyObjectByType<ThirdPersonCamera>();
+        var hud=GameHud.Instance;hud.RefreshMaps();float initialMinimapYaw=hud.MinimapYaw;
         Vector3 initial=car.transform.position;Quaternion initialWheel=car.VisualWheels[0].localRotation;
         MissionVehicle.VerificationInput=Vector2.up;yield return new WaitForSecondsRealtime(1.2f);
         MissionVehicle.VerificationInput=new Vector2(.55f,1);yield return new WaitForSecondsRealtime(.8f);MissionVehicle.VerificationInput=Vector2.zero;
@@ -98,6 +99,10 @@ public sealed class ArrivalVerification:MonoBehaviour
         Check(Quaternion.Angle(initialWheel,car.VisualWheels[0].localRotation)>10,"Pneus giram visualmente enquanto o Mustang anda");
         Check(vehicleCamera.VehicleFollowActive&&Mathf.Abs(Mathf.DeltaAngle(vehicleCamera.yaw,car.transform.eulerAngles.y))<12,
             "Câmera acompanha automaticamente a direção do carro nas curvas");
+        hud.RefreshMaps();
+        Check(Mathf.Abs(Mathf.DeltaAngle(hud.MinimapYaw,car.transform.eulerAngles.y))<1&&
+            Mathf.Abs(hud.MinimapArrowYaw)<.1f&&Mathf.Abs(Mathf.DeltaAngle(initialMinimapYaw,hud.MinimapYaw))>10,
+            "Minimapa gira com o veículo enquanto a seta do jogador permanece fixa para cima");
         Check(car.Exit(),"É possível sair em um local livre");
         Check(!vehicleCamera.VehicleFollowActive&&vehicleCamera.target==player.transform,
             "Sair do carro restaura a câmera do personagem");

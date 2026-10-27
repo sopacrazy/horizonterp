@@ -15,6 +15,8 @@ public sealed class GameHud : MonoBehaviour
     public string PlayerName { get; private set; }
     public float DistanceTravelled { get; private set; }
     public float TopSpeed { get; private set; }
+    public float MinimapYaw => miniCamera?Mathf.Repeat(miniCamera.transform.eulerAngles.y,360):0;
+    public float MinimapArrowYaw => miniMarker==null?float.NaN:miniMarker.resolvedStyle.rotate.angle.value;
 
     static readonly Color Mint=new Color(1f,.79f,.15f);
     float MapCameraHeight => NeighborhoodMap.Active?NeighborhoodMap.Active.mapCameraHeight:60f;
@@ -25,7 +27,7 @@ public sealed class GameHud : MonoBehaviour
     CityDayNight dayNight;
     UIDocument document;
     VisualElement root,drawer,content,toast,speedFill,miniViewport,mapArea;
-    Label avatarLabel,playerNameLabel,uidLabel,speedLabel,motionLabel,coordinates,clock,heading,drawerTitle,toastLabel,cloudSaveLabel;
+    Label avatarLabel,playerNameLabel,uidLabel,speedLabel,motionLabel,coordinates,clock,heading,drawerTitle,toastLabel,cloudSaveLabel,minimapNorth;
     Label distanceMetric,timeMetric,topSpeedMetric;
     Button sprint,adminButton;
     HudIcon miniMarker,mapMarker;
@@ -134,7 +136,7 @@ public sealed class GameHud : MonoBehaviour
         miniViewport=Element("mini-viewport",miniButton);
         miniImage=new Image{image=miniTexture,pickingMode=PickingMode.Ignore};miniImage.AddToClassList("mini-image");miniViewport.Add(miniImage);
         miniMarker=new HudIcon("arrow");miniMarker.AddToClassList("marker");miniMarker.SetInk(Color.white);miniViewport.Add(miniMarker);
-        Text("N","h2-north",miniButton);
+        minimapNorth=Text("N","h2-north",miniButton);
 
         var nav=Element("h2-nav");Block(nav);
         AtlasButton("h2_menu","h2-nav-button","Menu [Tab]",()=>OpenPanel("menu"),nav).name="nav-menu";
@@ -462,7 +464,7 @@ public sealed class GameHud : MonoBehaviour
         float yaw=Mathf.Repeat(orbit.yaw,360);
         string direction=yaw<22.5f||yaw>=337.5f?"N":yaw<67.5f?"NE":yaw<112.5f?"L":yaw<157.5f?"SE":yaw<202.5f?"S":yaw<247.5f?"SO":yaw<292.5f?"O":"NO";
         heading.text=direction+"  ·  "+Mathf.RoundToInt(yaw).ToString("D3")+"°";
-        miniMarker.style.rotate=new Rotate(new Angle(player.transform.eulerAngles.y,AngleUnit.Degree));
+        miniMarker.style.rotate=new Rotate(new Angle(0,AngleUnit.Degree));
         if(mapMarker!=null)
         {
             Vector3 viewport=mapCamera.WorldToViewportPoint(pos);
@@ -515,7 +517,16 @@ public sealed class GameHud : MonoBehaviour
         if(!miniCamera||miniImage==null)return;
         if(!miniTexture.IsCreated())miniTexture.Create();
         var p=player.transform.position;
-        miniCamera.transform.position=new Vector3(p.x,MapCameraHeight,p.z);miniCamera.farClipPlane=MapFarClip(miniCamera.orthographicSize);
+        float playerYaw=Mathf.Repeat(player.transform.eulerAngles.y,360);
+        miniCamera.transform.position=new Vector3(p.x,MapCameraHeight,p.z);
+        miniCamera.transform.rotation=Quaternion.Euler(90,playerYaw,0);
+        miniCamera.farClipPlane=MapFarClip(miniCamera.orthographicSize);
+        if(minimapNorth!=null)
+        {
+            float radians=playerYaw*Mathf.Deg2Rad;
+            minimapNorth.style.left=75-Mathf.Sin(radians)*70;
+            minimapNorth.style.top=80-Mathf.Cos(radians)*70;
+        }
         miniCamera.Render();miniImage.MarkDirtyRepaint();
         if(CurrentPanel=="map")
         {
