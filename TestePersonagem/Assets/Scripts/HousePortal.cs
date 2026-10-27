@@ -36,6 +36,7 @@ public sealed class HousePortal : MonoBehaviour
     public Vector3 InteriorArrivalPosition => InteriorSpawn;
     public Vector3 InteriorMarkerPosition => exitMarker ? exitMarker.transform.position : InteriorSpawn;
     public float InteriorArrivalYaw => InteriorSpawnYaw;
+    public float ExteriorArrivalYaw => ExteriorMarkerYaw;
 
     public static void Create(ThirdPersonPlayer target)
     {
@@ -51,7 +52,7 @@ public sealed class HousePortal : MonoBehaviour
         BuildInterior();
         entrancePosition = new Vector3(PlayerPrefs.GetFloat(PrefsPrefix + "x", 0),
             PlayerPrefs.GetFloat(PrefsPrefix + "y", .08f), PlayerPrefs.GetFloat(PrefsPrefix + "z", 0));
-        entranceYaw = PlayerPrefs.GetFloat(PrefsPrefix + "yaw", 0);
+        entranceYaw = ExteriorMarkerYaw;
     }
 
     IEnumerator Start()
@@ -104,7 +105,7 @@ public sealed class HousePortal : MonoBehaviour
         if (!arrow || !arrow.gameObject.activeInHierarchy) return;
         arrow.Rotate(Vector3.up, 72f * Time.deltaTime, Space.World);
         float wave = Mathf.Sin(Time.time * 2.8f + phase);
-        arrow.localPosition = new Vector3(0, 1.55f + wave * .045f, 0);
+        arrow.localPosition = new Vector3(0, 1.8f + wave * .045f, 0);
         float scale = .34f * (1f + wave * .035f);
         arrow.localScale = Vector3.one * scale;
     }
@@ -129,7 +130,7 @@ public sealed class HousePortal : MonoBehaviour
         if (entering)
         {
             entrancePosition = player.transform.position;
-            entranceYaw = player.transform.eulerAngles.y;
+            entranceYaw = ExteriorMarkerYaw;
             PlayerPrefs.SetFloat(PrefsPrefix + "x", entrancePosition.x);
             PlayerPrefs.SetFloat(PrefsPrefix + "y", entrancePosition.y);
             PlayerPrefs.SetFloat(PrefsPrefix + "z", entrancePosition.z);
@@ -300,7 +301,7 @@ public sealed class HousePortal : MonoBehaviour
     {
         arrow = new GameObject("Seta 3D giratória de entrada").transform;
         arrow.SetParent(parent, false);
-        arrow.localPosition = new Vector3(0, 1.55f, 0);
+        arrow.localPosition = new Vector3(0, 1.8f, 0);
         var gold = MaterialColor(new Color(1f, .66f, .04f), true);
         var shaft = Box("Corpo da seta", arrow, new Vector3(0, .24f, 0),
             new Vector3(.24f, .52f, .22f), gold, false);
