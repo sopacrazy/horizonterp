@@ -22,12 +22,13 @@ public sealed class ShootingRange : MonoBehaviour
     const string LayerName = "SocoParteSuperior";
     const string SpeedParameter = "ShootingSpeed";
     const float AimPoseTime = .08f;
+    const float FirePoseTime = .22f;
     ThirdPersonPlayer player;
     ThirdPersonCamera orbit;
     Animator animator;
     FighterCombo fighter;
     Transform room;
-    Transform pistol,muzzle;
+    Transform pistol,muzzle,weaponHand;
     readonly List<RangeTarget> targets=new List<RangeTarget>();
     UIDocument document;
     VisualElement overlay,fireButton;
@@ -83,6 +84,11 @@ public sealed class ShootingRange : MonoBehaviour
         if(Input.GetKeyDown(KeyCode.F))RequestFire();
     }
 
+    void LateUpdate()
+    {
+        if(IsActive&&pistol&&weaponHand)AlignPistol();
+    }
+
     void Activate()
     {
         IsActive=true;Hits=Shots=0;Ammo=MagazineSize;reloading=false;
@@ -112,6 +118,7 @@ public sealed class ShootingRange : MonoBehaviour
         orbit?.EndAim();
         FindAnyObjectByType<HousePortal>()?.SetInteriorArrowVisible(true);
         if(pistol)Destroy(pistol.gameObject);
+        pistol=muzzle=weaponHand=null;
         if(overlay!=null)overlay.style.display=DisplayStyle.None;
     }
 
@@ -142,9 +149,10 @@ public sealed class ShootingRange : MonoBehaviour
     IEnumerator PlayShotAnimation()
     {
         if(!animator||shootingLayer<0)yield break;
-        animator.SetFloat(SpeedParameter,1f);
-        animator.Play("Shooting",shootingLayer,.10f);
-        yield return new WaitForSecondsRealtime(.48f);
+        animator.SetFloat(SpeedParameter,1.45f);
+        animator.Play("Shooting",shootingLayer,FirePoseTime);
+        animator.Update(0f);
+        yield return new WaitForSecondsRealtime(.32f);
         if(!IsActive)yield break;
         animator.SetFloat(SpeedParameter,0f);
         animator.Play("Shooting",shootingLayer,AimPoseTime);
@@ -195,19 +203,23 @@ public sealed class ShootingRange : MonoBehaviour
     {
         if(pistol||!animator||!animator.isHuman)return;
         var hand=animator.GetBoneTransform(HumanBodyBones.RightHand);if(!hand)return;
-        pistol=new GameObject("Pistola de treino").transform;pistol.SetParent(hand,false);
-        pistol.localPosition=new Vector3(.015f,.055f,.085f);pistol.localRotation=Quaternion.Euler(82f,2f,0);
+        weaponHand=hand;
+        pistol=new GameObject("Pistola de treino").transform;pistol.SetParent(transform,true);
+        pistol.position=hand.position;pistol.rotation=transform.rotation;
         var prefab=Resources.Load<GameObject>("Weapons/Pistol_MK/Makarov");
         if(prefab)
         {
             var model=Instantiate(prefab,pistol,false);model.name="Makarov MK";
-            model.transform.localPosition=Vector3.zero;model.transform.localRotation=Quaternion.Euler(0,-90f,0);
-            var renderers=model.GetComponentsInChildren<Renderer>(true);
+            model.transform.localPosition=Vector3.zero;model.transform.localRotation=Quaternion.Euler(0,180f,0);
+            var looseMagazine=model.transform.Find("Magazine");
+            if(looseMagazine){looseMagazine.gameObject.SetActive(false);Destroy(looseMagazine.gameObject);}
+            var renderers=model.GetComponentsInChildren<Renderer>(false);
             if(renderers.Length>0)
             {
                 Bounds bounds=renderers[0].bounds;for(int i=1;i<renderers.Length;i++)bounds.Encapsulate(renderers[i].bounds);
                 float largest=Mathf.Max(bounds.size.x,Mathf.Max(bounds.size.y,bounds.size.z));
                 if(largest>.0001f)model.transform.localScale=Vector3.one*(.31f/largest);
+                model.transform.localPosition=new Vector3(0,.10f,.17f);
                 var material=CreatePistolMaterial();
                 foreach(var renderer in renderers){renderer.sharedMaterial=material;renderer.gameObject.layer=2;}
             }
@@ -218,7 +230,16 @@ public sealed class ShootingRange : MonoBehaviour
             Part("Ferrolho",pistol,new Vector3(0,.025f,.14f),new Vector3(.09f,.10f,.29f),metal);
             Part("Empunhadura",pistol,new Vector3(0,-.09f,.035f),new Vector3(.075f,.20f,.085f),metal,Quaternion.Euler(-12,0,0));
         }
-        muzzle=new GameObject("Boca do cano").transform;muzzle.SetParent(pistol,false);muzzle.localPosition=new Vector3(0,.025f,.31f);
+        muzzle=new GameObject("Boca do cano").transform;muzzle.SetParent(pistol,false);muzzle.localPosition=new Vector3(0,.08f,.43f);
+        AlignPistol();
+    }
+
+    void AlignPistol()
+    {
+        var camera=Camera.main;
+        Vector3 direction=camera?camera.transform.forward:transform.forward;
+        pistol.SetPositionAndRotation(weaponHand.position+direction*.015f+transform.up*.012f,
+            Quaternion.LookRotation(direction,transform.up));
     }
 
     static Material CreatePistolMaterial()
@@ -252,7 +273,8 @@ public sealed class ShootingRange : MonoBehaviour
         card.style.borderTopLeftRadius=card.style.borderTopRightRadius=10;card.pickingMode=PickingMode.Ignore;
         status=new Label("MODO DE TREINO");status.style.color=new Color(1f,.78f,.18f);status.style.fontSize=13;status.style.unityFontStyleAndWeight=FontStyle.Bold;card.Add(status);
         score=new Label("ACERTOS 0 / DISPAROS 0");score.style.color=Color.white;score.style.fontSize=16;score.style.marginTop=4;card.Add(score);overlay.Add(card);
-        fireButton=new Button(RequestFire){name="shooting-fire"};fireButton.style.position=Position.Absolute;fireButton.style.right=34;fireButton.style.bottom=248;
+        fireButton=new Button{name="shooting-fire"};fireButton.RegisterCallback<PointerDownEvent>(_=>RequestFire());
+        fireButton.style.position=Position.Absolute;fireButton.style.right=34;fireButton.style.bottom=248;
         fireButton.style.width=fireButton.style.height=92;fireButton.style.borderTopLeftRadius=fireButton.style.borderTopRightRadius=46;
         fireButton.style.borderBottomLeftRadius=fireButton.style.borderBottomRightRadius=46;fireButton.style.backgroundColor=new Color(.055f,.065f,.08f,.94f);
         fireButton.style.borderTopWidth=fireButton.style.borderBottomWidth=fireButton.style.borderLeftWidth=fireButton.style.borderRightWidth=2;
