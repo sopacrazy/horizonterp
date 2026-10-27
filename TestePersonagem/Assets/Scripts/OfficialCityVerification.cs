@@ -148,14 +148,14 @@ public sealed class OfficialCityVerification : MonoBehaviour
             "Entrada da casa cria o novo marcador e sua ação contextual");
         var housePortal = FindAnyObjectByType<HousePortal>();
         var portalArrow = housePortal.ActiveArrow;
-        Check(Vector3.Distance(housePortal.ExteriorPosition, new Vector3(-24.282f, -.649f, 1.255f)) < .001f &&
-            Mathf.Abs(Mathf.DeltaAngle(housePortal.ExteriorYaw, 326f)) < .01f,
+        Check(Vector3.Distance(housePortal.ExteriorPosition, new Vector3(-22.171f, -.673f, -2.399f)) < .001f &&
+            Mathf.Abs(Mathf.DeltaAngle(housePortal.ExteriorYaw, 325.6f)) < .01f,
             "Entrada exterior fica nas coordenadas e rotação solicitadas");
         Check(Vector3.Distance(housePortal.InteriorArrivalPosition, housePortal.InteriorMarkerPosition) < .001f,
             "Entrada na casa posiciona o personagem no mesmo ponto da seta interna");
         Check(Mathf.Abs(Mathf.DeltaAngle(housePortal.InteriorArrivalYaw, 0f)) < .01f,
             "Personagem entra olhando para o interior e fica de costas para a porta");
-        Check(Mathf.Abs(Mathf.DeltaAngle(housePortal.ExteriorArrivalYaw, 146f)) < .01f,
+        Check(Mathf.Abs(Mathf.DeltaAngle(housePortal.ExteriorArrivalYaw, 145.6f)) < .01f,
             "Personagem sai olhando para a rua e fica de costas para a porta");
         Check(portalArrow.localPosition.y > 1.7f,
             "Seta pequena permanece mais alta sobre o ponto de entrada");
