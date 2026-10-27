@@ -39,7 +39,8 @@ public static class GangsterMusculoSetup
             }
             foreach (var path in new[] { ModelPath, "Assets/Resources/GangsterMusculo/Animations/Walking.fbx",
                          "Assets/Resources/GangsterMusculo/Animations/Running.fbx",
-                         "Assets/Resources/GangsterMusculo/Animations/Jump.fbx" })
+                         "Assets/Resources/GangsterMusculo/Animations/Jump.fbx",
+                         "Assets/Resources/GangsterMusculo/Animations/Shooting.fbx" })
             {
                 var clips = AssetDatabase.LoadAllAssetsAtPath(path).OfType<AnimationClip>()
                     .Where(clip => !clip.name.StartsWith("__preview")).ToArray();
@@ -154,6 +155,8 @@ public sealed class GangsterMusculoModelImport : AssetPostprocessor
         {
             if (assetPath.EndsWith("Punching.fbx", StringComparison.OrdinalIgnoreCase))
                 clip.name = "Punching";
+            if (assetPath.EndsWith("Shooting.fbx", StringComparison.OrdinalIgnoreCase))
+                clip.name = "Shooting";
             clip.loopTime = !assetPath.EndsWith("Jump.fbx", StringComparison.OrdinalIgnoreCase) &&
                 !assetPath.EndsWith("Punching.fbx", StringComparison.OrdinalIgnoreCase);
             clip.loopPose = clip.loopTime;

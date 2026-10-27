@@ -13,6 +13,8 @@ public class ThirdPersonCamera : MonoBehaviour
     bool dragAllowed;
     float vehicleYawOffset,vehicleLastLook;
     public bool VehicleFollowActive {get;private set;}
+    public bool AimActive {get;private set;}
+    float aimPreviousDistance,aimPreviousPitch;
 
     void Start()
     {
@@ -27,9 +29,9 @@ public class ThirdPersonCamera : MonoBehaviour
         Vector3 mouse = Input.mousePosition;
         float yawDelta=0;
         var hud=GameHud.Instance;
-        if(Input.GetMouseButtonDown(0)||Input.GetMouseButtonDown(1))
+        if((!AimActive&&Input.GetMouseButtonDown(0))||Input.GetMouseButtonDown(1))
             dragAllowed=!(hud&&(hud.IsPanelOpen||hud.BlocksPointer(mouse)));
-        if (!MobileControls.HasTouches && (Input.GetMouseButton(0) || Input.GetMouseButton(1)) && dragAllowed && !(hud&&hud.IsPanelOpen) && !Input.GetMouseButtonDown(0) && !Input.GetMouseButtonDown(1))
+        if (!MobileControls.HasTouches && ((!AimActive&&Input.GetMouseButton(0)) || Input.GetMouseButton(1)) && dragAllowed && !(hud&&hud.IsPanelOpen) && !Input.GetMouseButtonDown(0) && !Input.GetMouseButtonDown(1))
         {
             Vector3 delta = mouse - lastMouse;
             yawDelta += delta.x * .2f * sensitivity;
@@ -66,6 +68,19 @@ public class ThirdPersonCamera : MonoBehaviour
         Place(true);
     }
 
+    public void BeginAim()
+    {
+        if(AimActive)return;
+        AimActive=true;aimPreviousDistance=distance;aimPreviousPitch=pitch;
+        distance=2.15f;pitch=9f;yaw=target.eulerAngles.y;Place(true);
+    }
+
+    public void EndAim()
+    {
+        if(!AimActive)return;
+        AimActive=false;distance=Mathf.Clamp(aimPreviousDistance,2f,6f);pitch=aimPreviousPitch;Place(true);
+    }
+
     public void BeginVehicleFollow(Transform vehicle)
     {
         if(!vehicle)return;
@@ -81,7 +96,8 @@ public class ThirdPersonCamera : MonoBehaviour
 
     void Place(bool snap)
     {
-        Vector3 focus = target.position + Vector3.up * 1.25f;
+        Vector3 focus = target.position + Vector3.up * (AimActive?1.48f:1.25f);
+        if(AimActive)focus+=Quaternion.Euler(0,yaw,0)*Vector3.right*.46f;
         smoothFocus = snap ? focus : Vector3.Lerp(smoothFocus, focus, 1 - Mathf.Exp(-14 * Time.deltaTime));
         Quaternion rotation = Quaternion.Euler(pitch, yaw, 0);
         Vector3 backward = rotation * Vector3.back;

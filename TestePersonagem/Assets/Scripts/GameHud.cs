@@ -406,7 +406,10 @@ public sealed class GameHud : MonoBehaviour
     {
         switch(action)
         {
-            case "attack": player.GetComponent<FighterCombo>()?.Trigger();break;
+            case "attack":
+                if(ShootingRange.Instance&&ShootingRange.Instance.IsActive)ShootingRange.Instance.RequestFire();
+                else player.GetComponent<FighterCombo>()?.Trigger();
+                break;
             case "sprint": SprintRequested=!SprintRequested;ShowToast(SprintRequested?"Corrida ativada · mova-se para correr":"Modo caminhada ativado");break;
             case "jump": player.RequestJump();break;
             case "camera": orbit.ResetView();ShowToast("Câmera centralizada");break;

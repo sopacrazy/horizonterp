@@ -7,7 +7,7 @@ public sealed class HousePortal : MonoBehaviour
 {
     const float InteriorY = -60f;
     static readonly Vector3 InteriorCenter = new Vector3(0, InteriorY, 0);
-    static readonly Vector3 InteriorMarkerLocal = new Vector3(0, .04f, -3.95f);
+    static readonly Vector3 InteriorMarkerLocal = new Vector3(0, .04f, -10.7f);
     static readonly Vector3 InteriorSpawn = InteriorCenter + InteriorMarkerLocal;
     const float InteriorSpawnYaw = 0f;
     static readonly Vector3 ExteriorMarkerPosition = new Vector3(-24.282f, -.649f, 1.255f);
@@ -38,6 +38,7 @@ public sealed class HousePortal : MonoBehaviour
     public Vector3 InteriorMarkerPosition => exitMarker ? exitMarker.transform.position : InteriorSpawn;
     public float InteriorArrivalYaw => InteriorSpawnYaw;
     public float ExteriorArrivalYaw => ExteriorArrivalYawValue;
+    public void SetInteriorArrowVisible(bool value){if(exitArrow)exitArrow.gameObject.SetActive(value);}
 
     public static void Create(ThirdPersonPlayer target)
     {
@@ -93,7 +94,7 @@ public sealed class HousePortal : MonoBehaviour
     }
 
     static bool IsInside(Vector3 position) => position.y < -45f &&
-        Mathf.Abs(position.x - InteriorCenter.x) < 8f && Mathf.Abs(position.z - InteriorCenter.z) < 8f;
+        Mathf.Abs(position.x - InteriorCenter.x) < 7f && Mathf.Abs(position.z - InteriorCenter.z) < 12.5f;
 
     static float FlatDistance(Vector3 a, Vector3 b)
     {
@@ -154,7 +155,7 @@ public sealed class HousePortal : MonoBehaviour
         player.CombatLocked = previousCombatLock;
         transitioning = false;
         nextInteraction = Time.unscaledTime + .45f;
-        GameHud.Instance?.ShowToast(entering ? "Você entrou na casa de teste" : "Você saiu da casa");
+        GameHud.Instance?.ShowToast(entering ? "Você entrou no clube de tiro" : "Você saiu do clube de tiro");
     }
 
     IEnumerator Fade(float from, float to, float seconds)
@@ -257,45 +258,69 @@ public sealed class HousePortal : MonoBehaviour
 
     void BuildInterior()
     {
-        interior = new GameObject("Casa de teste · interior");
+        interior = new GameObject("Clube de tiro · interior");
         interior.transform.position = InteriorCenter;
         var t = interior.transform;
-        var floor = MaterialColor(new Color(.42f, .34f, .27f));
-        var wall = MaterialColor(new Color(.81f, .79f, .7f));
-        var trim = MaterialColor(new Color(.23f, .18f, .15f));
-        var rug = MaterialColor(new Color(.28f, .43f, .53f));
-        Box("Piso", t, new Vector3(0, -.14f, 0), new Vector3(11, .28f, 11), floor, true);
-        Box("Parede esquerda", t, new Vector3(-5.5f, 1.6f, 0), new Vector3(.25f, 3.2f, 11), wall, true);
-        Box("Parede direita", t, new Vector3(5.5f, 1.6f, 0), new Vector3(.25f, 3.2f, 11), wall, true);
-        Box("Parede da frente", t, new Vector3(0, 1.6f, 5.5f), new Vector3(11, 3.2f, .25f), wall, true);
-        Box("Parede da saída", t, new Vector3(0, 1.6f, -5.5f), new Vector3(11, 3.2f, .25f), wall, true);
-        Box("Teto", t, new Vector3(0, 3.22f, 0), new Vector3(11, .22f, 11), wall, true);
-        Box("Rodapé esquerdo", t, new Vector3(-5.3f, .12f, 0), new Vector3(.12f, .24f, 10.6f), trim, false);
-        Box("Rodapé direito", t, new Vector3(5.3f, .12f, 0), new Vector3(.12f, .24f, 10.6f), trim, false);
-        Box("Tapete", t, new Vector3(0, .018f, 2.3f), new Vector3(4, .035f, 2.5f), rug, false);
-        Box("Sofá", t, new Vector3(-3.6f, .42f, 2.4f), new Vector3(1.5f, .7f, 2.8f), rug, true);
-        Box("Encosto do sofá", t, new Vector3(-4.3f, .9f, 2.4f), new Vector3(.32f, 1.1f, 2.8f), rug, true);
-        Box("Mesa", t, new Vector3(1.7f, .52f, 2.3f), new Vector3(1.8f, .12f, 1.2f), trim, true);
-        for (int x = -1; x <= 1; x += 2)
-            for (int z = -1; z <= 1; z += 2)
-                Box("Pé da mesa", t, new Vector3(1.7f + x * .72f, .25f, 2.3f + z * .42f),
-                    new Vector3(.12f, .5f, .12f), trim, false);
-        Box("Quadro", t, new Vector3(0, 1.75f, 5.32f), new Vector3(2.8f, 1.3f, .09f), rug, false);
-        Box("Janela iluminada", t, new Vector3(5.3f, 1.85f, 1.3f), new Vector3(.08f, 1.35f, 2.1f),
-            MaterialColor(new Color(.48f, .7f, .77f), true), false);
-        var lightObject = new GameObject("Luz da casa");
-        lightObject.transform.SetParent(t, false);
-        lightObject.transform.localPosition = new Vector3(0, 2.65f, 0);
-        var light = lightObject.AddComponent<Light>();
-        light.type = LightType.Point;
-        light.color = new Color(1f, .89f, .72f);
-        light.range = 14;
-        light.intensity = 3;
-        exitMarker = new GameObject("Saída da casa de teste");
+        var floor = PatternMaterial(new Color(.09f,.105f,.12f),new Color(.15f,.17f,.19f),8,true);
+        var wall = PatternMaterial(new Color(.10f,.14f,.18f),new Color(.15f,.22f,.29f),12,false);
+        var ceiling = MaterialColor(new Color(.035f,.045f,.06f));
+        var steel = MaterialColor(new Color(.055f,.065f,.08f));
+        var blue = MaterialColor(new Color(.08f,.38f,.63f),true);
+        var gold = MaterialColor(new Color(1f,.65f,.06f),true);
+        Box("Piso antiderrapante",t,new Vector3(0,-.14f,0),new Vector3(13,.28f,24),floor,true);
+        Box("Parede acústica esquerda",t,new Vector3(-6.5f,2f,0),new Vector3(.25f,4f,24),wall,true);
+        Box("Parede acústica direita",t,new Vector3(6.5f,2f,0),new Vector3(.25f,4f,24),wall,true);
+        Box("Parede dos alvos",t,new Vector3(0,2f,12f),new Vector3(13,4f,.25f),wall,true);
+        Box("Parede da saída",t,new Vector3(0,2f,-12f),new Vector3(13,4f,.25f),wall,true);
+        Box("Teto escuro",t,new Vector3(0,4.05f,0),new Vector3(13,.22f,24),ceiling,true);
+        Box("Linha de tiro",t,new Vector3(0,.025f,-3.5f),new Vector3(12.5f,.035f,.12f),gold,false);
+        Box("Balcão de apoio",t,new Vector3(0,.82f,-3.2f),new Vector3(12.2f,.12f,.56f),steel,true);
+        for(int lane=0;lane<5;lane++)
+        {
+            float x=-6f+lane*3f;
+            Box("Divisória da baia "+lane,t,new Vector3(x,1.48f,-3.05f),new Vector3(.12f,1.35f,1.5f),steel,true);
+            if(lane<4)CreateLaneNumber(t,lane+1,x+1.5f,blue);
+        }
+        for(int z=-1;z<=9;z+=2)
+            Box("Faixa acústica "+z,t,new Vector3(0,3.45f,z),new Vector3(12.5f,.12f,.7f),steel,false);
+        for(int index=0;index<5;index++)
+        {
+            var lightObject=new GameObject("Luz azul da pista "+index);lightObject.transform.SetParent(t,false);
+            lightObject.transform.localPosition=new Vector3(0,3.45f,-6f+index*4f);
+            var light=lightObject.AddComponent<Light>();light.type=LightType.Point;
+            light.color=new Color(.30f,.62f,1f);light.range=9;light.intensity=2.2f;
+        }
+        exitMarker = new GameObject("Saída do clube de tiro");
         exitMarker.transform.SetParent(t, false);
         exitMarker.transform.localPosition = InteriorMarkerLocal;
         BuildArrowMarker(exitMarker.transform, out exitArrow);
         exitMarker.SetActive(false);
+        ShootingRange.Create(player,t);
+    }
+
+    static void CreateLaneNumber(Transform parent,int number,float x,Material material)
+    {
+        var plate=Box("Número da baia "+number,parent,new Vector3(x,3.35f,-3.1f),new Vector3(.8f,.55f,.08f),material,false);
+        var textObject=new GameObject("Texto "+number);textObject.transform.SetParent(plate.transform,false);
+        textObject.transform.localPosition=new Vector3(0,0,-.56f);textObject.transform.localRotation=Quaternion.identity;
+        var text=textObject.AddComponent<TextMesh>();text.text=number.ToString();text.anchor=TextAnchor.MiddleCenter;
+        text.alignment=TextAlignment.Center;text.fontSize=64;text.characterSize=.2f;text.color=Color.white;
+    }
+
+    static Material PatternMaterial(Color a,Color b,int cells,bool metallic)
+    {
+        const int size=64;var texture=new Texture2D(size,size,TextureFormat.RGBA32,false){wrapMode=TextureWrapMode.Repeat,filterMode=FilterMode.Bilinear};
+        var pixels=new Color[size*size];
+        for(int y=0;y<size;y++)for(int x=0;x<size;x++)
+        {
+            bool alternate=((x*cells/size)+(y*cells/size))%2==0;
+            float grain=.94f+Mathf.PerlinNoise(x*.23f,y*.19f)*.1f;pixels[y*size+x]=(alternate?a:b)*grain;
+        }
+        texture.SetPixels(pixels);texture.Apply();
+        var material=MaterialColor(Color.white);material.mainTexture=texture;material.mainTextureScale=new Vector2(5,8);
+        if(material.HasProperty("_Metallic"))material.SetFloat("_Metallic",metallic?.25f:.05f);
+        if(material.HasProperty("_Glossiness"))material.SetFloat("_Glossiness",metallic?.35f:.12f);
+        return material;
     }
 
     static void BuildArrowMarker(Transform parent, out Transform arrow)

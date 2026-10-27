@@ -171,6 +171,12 @@ public sealed class OfficialCityVerification : MonoBehaviour
             "Seta 3D gira continuamente para sinalizar a entrada");
         Check(portalArrow.parent.GetComponentInChildren<Light>() == null,
             "Portal antigo, brilho no piso e luz amarela foram removidos");
+        var shootingRange = FindAnyObjectByType<ShootingRange>();
+        Check(shootingRange && shootingRange.TargetCount == 4 && shootingRange.OverlayElement != null,
+            "Interior possui quatro alvos móveis e interface própria do treino de tiro");
+        Check(Array.Exists(player.animator.runtimeAnimatorController.animationClips,
+                clip => clip && clip.name == "Shooting"),
+            "Animação Shooting Humanoid está ligada ao personagem");
         Check(Camera.main && Camera.main.GetComponent<ThirdPersonCamera>() && player.cameraTransform == Camera.main.transform,
             "Câmera em terceira pessoa acompanha o personagem atual");
         if (!map || !environment || !controller || !Camera.main) throw new InvalidOperationException("Cidade oficial incompleta.");
@@ -221,6 +227,21 @@ public sealed class OfficialCityVerification : MonoBehaviour
         yield return new WaitForSecondsRealtime(.1f);
         Check(lighting.IsNight == originalNight && Camera.main.enabled && GameHud.Instance.Root.resolvedStyle.display != DisplayStyle.None,
             "Estado de iluminação, câmera e HUD é restaurado após as imagens");
+        Vector3 cityPosition=player.transform.position;Quaternion cityRotation=player.transform.rotation;
+        controller.enabled=false;player.transform.SetPositionAndRotation(housePortal.InteriorArrivalPosition,
+            Quaternion.Euler(0,housePortal.InteriorArrivalYaw,0));controller.enabled=true;Physics.SyncTransforms();
+        yield return WaitUntil(()=>shootingRange.IsActive,5,"Entrada no clube ativa automaticamente o modo de mira");
+        yield return new WaitForSecondsRealtime(.35f);
+        Check(Camera.main.GetComponent<ThirdPersonCamera>().AimActive&&
+              player.animator.GetLayerWeight(player.animator.GetLayerIndex("SocoParteSuperior"))>.9f,
+            "Câmera de ombro e animação Shooting entram juntas");
+        int ammoBefore=shootingRange.Ammo;shootingRange.RequestFire();
+        yield return new WaitForSecondsRealtime(.08f);
+        Check(shootingRange.Shots==1&&shootingRange.Ammo==ammoBefore-1,
+            "Disparo do treino consome uma munição e atualiza o contador");
+        Capture(Camera.main,"shooting-range");
+        controller.enabled=false;player.transform.SetPositionAndRotation(cityPosition,cityRotation);controller.enabled=true;Physics.SyncTransforms();
+        yield return WaitUntil(()=>!shootingRange.IsActive,5,"Saída do clube encerra o modo de mira");
         yield return account.Save();
         Check(localRequests.Contains("PUT /v1/player/checkpoint"), "Checkpoint oficial foi validado somente em memória");
         account.Logout();
