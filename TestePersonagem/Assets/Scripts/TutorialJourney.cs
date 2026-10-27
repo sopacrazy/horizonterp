@@ -213,9 +213,7 @@ public sealed class TutorialJourney : MonoBehaviour
         gpsObject=new GameObject("GPS · seta de direção");gpsObject.layer=2;
         var filter=gpsObject.AddComponent<MeshFilter>();filter.sharedMesh=ArrowMesh();
         var renderer=gpsObject.AddComponent<MeshRenderer>();renderer.shadowCastingMode=ShadowCastingMode.Off;renderer.receiveShadows=false;
-        var material=new Material(Shader.Find("Sprites/Default")){color=new Color(1f,.72f,.08f,1f)};renderer.sharedMaterial=material;
-        var beacon=GameObject.CreatePrimitive(PrimitiveType.Sphere);beacon.name="Luz da seta GPS";beacon.layer=2;Destroy(beacon.GetComponent<Collider>());
-        beacon.transform.SetParent(gpsObject.transform,false);beacon.transform.localPosition=Vector3.up*.11f;beacon.transform.localScale=Vector3.one*.16f;beacon.GetComponent<Renderer>().sharedMaterial=material;
+        renderer.sharedMaterial=new Material(Shader.Find("Sprites/Default")){color=new Color(1f,.72f,.08f,1f)};
     }
     void UpdateGps()
     {

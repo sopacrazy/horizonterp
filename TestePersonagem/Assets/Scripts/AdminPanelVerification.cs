@@ -51,6 +51,17 @@ internal static class AdminPanelVerification
                 GameHud.Instance.IsPanelOpen, "/apanel abre a lista de jogadores");
             check(ui.Q("admin-row-42") != null && ui.Q("admin-row-43") != null,
                 "Lista carrega jogadores da API simulada");
+            var speed4 = ui.Q<Button>("admin-speed-4");
+            var speed1 = ui.Q<Button>("admin-speed-1");
+            check(speed4 != null && speed1 != null, "Painel exibe controle de velocidade administrativo");
+            Press(speed4);
+            yield return null;
+            check(GameHud.Instance.Player.AdminSpeedMultiplier == 4,
+                "Controle administrativo acelera o jogador");
+            Press(speed1);
+            yield return null;
+            check(GameHud.Instance.Player.AdminSpeedMultiplier == 1,
+                "Controle administrativo restaura a velocidade normal");
             check(ui.Q("admin-actions-card") == null && ui.Q("admin-command-preview") == null &&
                 ui.Q<Button>("admin-role-42") == null && ui.Q<Button>("admin-block-43") == null,
                 "Painel não oferece comandos nem ações administrativas");

@@ -61,9 +61,8 @@ async function session(client,token,lock=false){
  return result.rows[0];
 }
 async function issueSession(client,accountId){
- await client.query('UPDATE hbrp.sessions SET revoked_at=now() WHERE account_id=$1 AND revoked_at IS NULL',[accountId]);
  const token=randomBytes(32).toString('base64url');
- await client.query("INSERT INTO hbrp.sessions(account_id,token_hash,expires_at) VALUES($1,$2,now()+interval '7 days')",[accountId,hash(token)]);
+ await client.query("INSERT INTO hbrp.sessions(account_id,token_hash,expires_at) VALUES($1,$2,now()+interval '30 days')",[accountId,hash(token)]);
  await client.query('UPDATE hbrp.accounts SET last_login_at=now() WHERE id=$1',[accountId]);return token;
 }
 async function state(client,accountId){

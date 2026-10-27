@@ -27,7 +27,7 @@ public sealed class GameHud : MonoBehaviour
     VisualElement root,drawer,content,toast,speedFill,miniViewport,mapArea;
     Label avatarLabel,playerNameLabel,uidLabel,speedLabel,motionLabel,coordinates,clock,heading,drawerTitle,toastLabel,cloudSaveLabel;
     Label distanceMetric,timeMetric,topSpeedMetric;
-    Button sprint;
+    Button sprint,adminButton;
     HudIcon miniMarker,mapMarker;
     Image sprintArtwork;
     Label levelLabel,cashLabel,dateLabel,healthLabel,energyLabel,waterLabel;
@@ -88,7 +88,9 @@ public sealed class GameHud : MonoBehaviour
     }
     Button IconButton(string icon,string css,string tooltip,Action action,VisualElement parent)
     {
-        var button=new Button(action){tooltip=tooltip};button.AddToClassList(css);parent.Add(button);
+        var button=new Button(action){tooltip=tooltip};
+        foreach(var styleClass in css.Split(' '))if(styleClass!="")button.AddToClassList(styleClass);
+        parent.Add(button);
         button.Add(new HudIcon(icon));return button;
     }
     void Block(VisualElement e)=>pointerBlockers.Add(e);
@@ -139,7 +141,9 @@ public sealed class GameHud : MonoBehaviour
         AtlasButton("h2_tasks","h2-nav-button","Dados da sessão",()=>OpenPanel("session"),nav).name="nav-session";
         AtlasButton("h2_phone","h2-nav-button","Celular",()=>OpenPanel("phone"),nav).name="nav-phone";
         var top=Element("h2-top");Block(top);
-        var rewards=AtlasButton("h2_rewards","h2-top-button","Recompensas ainda indisponíveis",()=>{},top);rewards.SetEnabled(false);
+        adminButton=IconButton("admin","h2-top-button h2-admin","Painel administrativo",()=>AdminPlayerPanel.Open(this),top);
+        adminButton.name="action-admin";
+        adminButton.Q<HudIcon>().SetInk(new Color(1f,.82f,.28f));
         var inventory=AtlasButton("h2_inventory","h2-top-button","Inventário",()=>OpenPanel("inventory"),top);inventory.name="atlas-inventory";
         var store=AtlasButton("h2_store","h2-top-button","Loja ainda indisponível",()=>{},top);store.SetEnabled(false);
         var tools=Element("h2-tools");Block(tools);
@@ -334,6 +338,13 @@ public sealed class GameHud : MonoBehaviour
         if(playerNameLabel!=null)playerNameLabel.text=PlayerName.ToUpperInvariant();
         if(avatarLabel!=null)avatarLabel.text=PlayerName.Substring(0,1).ToUpperInvariant();
         if(uidLabel!=null)uidLabel.text="ID: "+AccountSession.Instance.State.uid;
+        RefreshAdminAccess();
+    }
+    void RefreshAdminAccess()
+    {
+        if(adminButton==null)return;
+        bool admin=AccountSession.HasCharacter&&AccountSession.Instance.State.accountRole=="admin"&&AccountSession.Instance.State.adminLevel>0;
+        adminButton.style.display=admin?DisplayStyle.Flex:DisplayStyle.None;
     }
     public void ShowAccountMessage(string message)=>ShowToast(message);
     public void ClosePanel()
@@ -411,6 +422,7 @@ public sealed class GameHud : MonoBehaviour
     void Update()
     {
         if(!player)return;
+        RefreshAdminAccess();
         root.style.visibility=StartupLoader.IsLoading||CityEntryLoading.Active||
             (AccountSession.Instance&&AccountSession.Instance.AuthVisible)?Visibility.Hidden:Visibility.Visible;
         root.SetEnabled(!StartupLoader.IsLoading && !AccountSession.InputBlocked);

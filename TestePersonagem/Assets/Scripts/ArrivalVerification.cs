@@ -76,6 +76,8 @@ public sealed class ArrivalVerification:MonoBehaviour
         Check(dialogueTitle.text=="RUMO À PREFEITURA"&&ui.Q<Button>("arrival-start").text=="FECHAR"&&objective.text.Contains("4/6"),"Etapa 5 orienta a entrar no carro e seguir o GPS");
         Check(tutorial.GpsArrow&&tutorial.GpsArrow.GetComponent<LineRenderer>()==null,"Rota usa seta flutuante e não desenha linha azul");
         Check(tutorial.LoanCar.GetComponentsInChildren<Transform>(true).Any(item=>item.name=="Mustang Boss 302 1969"),"Carro emprestado usa o Mustang Boss 302 1969 importado");
+        Check(tutorial.LoanCar.VisualGroundClearance>=-.03f&&tutorial.LoanCar.VisualGroundClearance<=.08f,"Pneus do Mustang permanecem apoiados no chão");
+        Check(tutorial.LoanCar.VisualWheels.Length==4,"Mustang identifica as quatro rodas para animação");
         Check(starts==1&&rewards==0&&state.cashCents=="0","Empréstimo não é compra nem recompensa antecipada");yield return Capture("loan-and-gps");Press(ui.Q<Button>("arrival-start"));yield return null;
         if(Environment.GetCommandLineArgs().Contains("--inspect-arrival"))yield return new WaitForSecondsRealtime(30);
         Vector3 walkStart=player.transform.position;player.DemoInput=Vector2.up;yield return new WaitForSecondsRealtime(.65f);player.DemoInput=Vector2.zero;
@@ -84,8 +86,9 @@ public sealed class ArrivalVerification:MonoBehaviour
         Check(MissionVehicle.Driver==player&&!player.GetComponent<CharacterController>().enabled,"Entrar no veículo troca os controles e oculta o personagem");
         yield return null;Check(ui.Q<VisualElement>("arrival-prompt").ClassListContains("arrival-exit-prompt"),"Sair do carro aparece como botão compacto acima do pulo");
         if(Environment.GetCommandLineArgs().Contains("--inspect-arrival"))yield return new WaitForSecondsRealtime(30);
-        var car=tutorial.LoanCar;Vector3 initial=car.transform.position;MissionVehicle.VerificationInput=Vector2.up;yield return new WaitForSecondsRealtime(2);MissionVehicle.VerificationInput=Vector2.zero;
+        var car=tutorial.LoanCar;Vector3 initial=car.transform.position;Quaternion initialWheel=car.VisualWheels[0].localRotation;MissionVehicle.VerificationInput=Vector2.up;yield return new WaitForSecondsRealtime(2);MissionVehicle.VerificationInput=Vector2.zero;
         Check(Vector3.Distance(car.transform.position,initial)>2,"Carro emprestado percorre a rua com direção funcional");yield return Capture("driving");
+        Check(Quaternion.Angle(initialWheel,car.VisualWheels[0].localRotation)>10,"Pneus giram visualmente enquanto o Mustang anda");
         Check(car.Exit(),"É possível sair em um local livre");Position(tutorial.Config.cityHall+Vector3.left);yield return new WaitForSecondsRealtime(.5f);tutorial.Interact("finish");
         Check(tutorial.ModalOpen,"Prefeitura exige aproximação e diálogo com o atendente");Press(ui.Q<Button>("arrival-start"));
         yield return Wait(()=>tutorial.Phase=="completed","Atendimento conclui missão");yield return null;

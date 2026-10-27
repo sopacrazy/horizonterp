@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 using System.Linq;
 
 // A mission loan. Never creates a garage entry or permanent player vehicle.
@@ -7,6 +8,8 @@ public sealed class MissionVehicle : MonoBehaviour
     public static ThirdPersonPlayer Driver {get;private set;}
     public float Speed {get;private set;}
     public bool Occupied=>driver;
+    public Transform[] VisualWheels=>wheels??System.Array.Empty<Transform>();
+    public float VisualGroundClearance {get;private set;}
     internal static Vector2? VerificationInput;
     public static float DriverSpeed=>Driver&&TutorialJourney.Instance&&TutorialJourney.Instance.LoanCar?Mathf.Abs(TutorialJourney.Instance.LoanCar.Speed):0;
     ThirdPersonPlayer driver;
@@ -73,8 +76,10 @@ public sealed class MissionVehicle : MonoBehaviour
         if(!TryLocalBounds(model.transform,out bounds)){Destroy(model);return false;}
         float scale=4.45f/Mathf.Max(bounds.size.x,bounds.size.z);model.transform.localScale=Vector3.one*scale;
         if(!TryLocalBounds(model.transform,out bounds)){Destroy(model);return false;}
-        model.transform.localPosition+=new Vector3(-bounds.center.x,.18f-bounds.min.y,-bounds.center.z);
-        wheels=System.Array.Empty<Transform>();
+        model.transform.localPosition+=new Vector3(-bounds.center.x,.02f-bounds.min.y,-bounds.center.z);
+        TryLocalBounds(model.transform,out bounds);VisualGroundClearance=bounds.min.y;
+        wheels=model.GetComponentsInChildren<Transform>(true)
+            .Where(item=>item.name.StartsWith("3DWheel ",StringComparison.OrdinalIgnoreCase)).ToArray();
         return true;
     }
     bool TryLocalBounds(Transform model,out Bounds result)
@@ -147,7 +152,7 @@ public sealed class MissionVehicle : MonoBehaviour
         Vector3 before=transform.position;controller.Move((transform.forward*Speed+Vector3.up*vertical)*Time.deltaTime);
         float moved=Vector3.ProjectOnPlane(transform.position-before,Vector3.up).magnitude;
         if(Mathf.Abs(Speed)>1&&moved<.001f)Speed=0;
-        foreach(var wheel in wheels)wheel.Rotate(0,Speed*180*Time.deltaTime,0,Space.Self);
+        foreach(var wheel in wheels)wheel.Rotate(Vector3.right,Speed/.34f*Mathf.Rad2Deg*Time.deltaTime,Space.Self);
     }
     void LateUpdate(){if(driver)driver.transform.SetPositionAndRotation(transform.position+Vector3.up*.08f,transform.rotation);}
     void OnDestroy(){Exit(true);}

@@ -83,7 +83,8 @@ test('account -> character -> persisted state over local HTTP and real SQL',{tim
    const pending=await request('GET','/v1/player',undefined,oldToken);assert.equal(pending.needsCharacter,true);assert.equal(pending.state,null);
    const login=await request('POST','/v1/auth/login',{email:'pending@example.invalid',password:pass});
    assert.equal(login.status,200);assert.equal(login.needsCharacter,true);assert.equal(login.state,null);token=login.token;
-   assert.equal((await request('GET','/v1/player',undefined,oldToken)).status,401);
+   const firstDevice=await request('GET','/v1/player',undefined,oldToken);
+   assert.equal(firstDevice.status,200);assert.equal(firstDevice.needsCharacter,true);
    assert.equal((await request('PUT','/v1/player/profile',{firstName:'Ana',lastName:'Silva'},token)).code,'CHARACTER_REQUIRED');
    const beforeCharacterSave={requestId:randomUUID(),version:'1',x:0,y:-.1,z:0,yaw:90,cameraYaw:90,cameraPitch:16};
    assert.equal((await request('PUT','/v1/player/checkpoint',beforeCharacterSave,token)).code,'CHARACTER_REQUIRED');

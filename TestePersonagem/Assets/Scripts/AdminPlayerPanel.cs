@@ -15,6 +15,7 @@ public sealed class AdminPlayerPanel : MonoBehaviour
     TextField search;
     Label status,count,page;
     Button previous,next;
+    Button[] speedButtons;
     GameHud hud;
     int offset,total,generation;
     IVisualElementScheduledItem debounce;
@@ -23,7 +24,7 @@ public sealed class AdminPlayerPanel : MonoBehaviour
     {
         if(!AccountSession.HasCharacter ||
             AccountSession.Instance.State.accountRole!="admin" ||
-            AccountSession.Instance.State.adminLevel<2)return;
+            AccountSession.Instance.State.adminLevel<1)return;
         if(!Instance)owner.gameObject.AddComponent<AdminPlayerPanel>().Build(owner);
         Instance.Show();
     }
@@ -45,6 +46,13 @@ public sealed class AdminPlayerPanel : MonoBehaviour
         Text("ADMINISTRAÇÃO","admin-eyebrow",titles);Text("Jogadores","admin-title",titles);
         Text("Lista de jogadores. Use os comandos pelo chat.","admin-subtitle",titles);
         Button("×","admin-close",()=>Close(),header).name="admin-close";
+        Text("VELOCIDADE DE TESTE","admin-eyebrow",modal);
+        var speedRow=Box("admin-speed-row",modal);var values=new[]{1,2,4,6,8,10,12};speedButtons=new Button[values.Length];
+        for(int index=0;index<values.Length;index++)
+        {
+            int value=values[index];var option=Button("×"+value,"admin-speed-option",()=>SetSpeed(value),speedRow);
+            option.name="admin-speed-"+value;speedButtons[index]=option;
+        }
         var toolbar=Box("admin-toolbar",modal);
         search=new TextField{maxLength=64,name="admin-search"};
         search.textEdition.placeholder="Pesquisar por primeiro nome ou ID";search.AddToClassList("admin-search");toolbar.Add(search);
@@ -75,7 +83,17 @@ public sealed class AdminPlayerPanel : MonoBehaviour
         InGameChat.Instance?.Close();hud.ClosePanel();
         IsOpen=true;overlay.style.display=DisplayStyle.Flex;
         hud.Root.AddToClassList("hud-panel-open");
-        offset=0;search.SetValueWithoutNotify("");Load();
+        offset=0;search.SetValueWithoutNotify("");Load();RefreshSpeed();
+    }
+    void SetSpeed(int value)
+    {
+        if(!hud.Player.SetAdminSpeedMultiplier(value))return;
+        RefreshSpeed();hud.ShowAccountMessage("Velocidade administrativa ×"+value);
+    }
+    void RefreshSpeed()
+    {
+        if(speedButtons==null)return;int selected=hud.Player.AdminSpeedMultiplier;
+        foreach(var option in speedButtons)option.EnableInClassList("active",option.name=="admin-speed-"+selected);
     }
     public void Close(bool force=false)
     {
@@ -86,7 +104,7 @@ public sealed class AdminPlayerPanel : MonoBehaviour
     void Update()
     {
         if(IsOpen&&(!AccountSession.HasCharacter||AccountSession.Instance.State.accountRole!="admin"||
-            AccountSession.Instance.State.adminLevel<2))Close(true);
+            AccountSession.Instance.State.adminLevel<1))Close(true);
     }
     void Load()
     {
