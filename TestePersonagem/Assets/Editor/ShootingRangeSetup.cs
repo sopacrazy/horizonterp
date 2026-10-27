@@ -10,6 +10,7 @@ public static class ShootingRangeSetup
     const string ClipPath = "Assets/Resources/GangsterMusculo/Animations/Shooting.fbx";
     const string ControllerPath = "Assets/Animations/Locomocao.controller";
     const string LayerName = "SocoParteSuperior";
+    const string SpeedParameter = "ShootingSpeed";
 
     [MenuItem("Horizonte/Configurar treino de tiro")]
     public static void Apply()
@@ -26,8 +27,12 @@ public static class ShootingRangeSetup
         var machine = controller.layers[layerIndex].stateMachine;
         var state = Array.Find(machine.states, child => child.state.name == "Shooting").state;
         if (!state) state = machine.AddState("Shooting");
+        if (!controller.parameters.Any(parameter => parameter.name == SpeedParameter))
+            controller.AddParameter(SpeedParameter, AnimatorControllerParameterType.Float);
         state.motion = clip;
         state.speed = 1f;
+        state.speedParameterActive = true;
+        state.speedParameter = SpeedParameter;
         state.writeDefaultValues = true;
         EditorUtility.SetDirty(controller);
         AssetDatabase.SaveAssets();

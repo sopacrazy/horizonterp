@@ -94,7 +94,7 @@ public sealed class HousePortal : MonoBehaviour
     }
 
     static bool IsInside(Vector3 position) => position.y < -45f &&
-        Mathf.Abs(position.x - InteriorCenter.x) < 7f && Mathf.Abs(position.z - InteriorCenter.z) < 12.5f;
+        Mathf.Abs(position.x - InteriorCenter.x) < 7f && position.z > -15.2f && position.z < 12.5f;
 
     static float FlatDistance(Vector3 a, Vector3 b)
     {
@@ -267,12 +267,12 @@ public sealed class HousePortal : MonoBehaviour
         var steel = MaterialColor(new Color(.055f,.065f,.08f));
         var blue = MaterialColor(new Color(.08f,.38f,.63f),true);
         var gold = MaterialColor(new Color(1f,.65f,.06f),true);
-        Box("Piso antiderrapante",t,new Vector3(0,-.14f,0),new Vector3(13,.28f,24),floor,true);
-        Box("Parede acústica esquerda",t,new Vector3(-6.5f,2f,0),new Vector3(.25f,4f,24),wall,true);
-        Box("Parede acústica direita",t,new Vector3(6.5f,2f,0),new Vector3(.25f,4f,24),wall,true);
+        Box("Piso antiderrapante",t,new Vector3(0,-.14f,-1.5f),new Vector3(13,.28f,27),floor,true);
+        Box("Parede acústica esquerda",t,new Vector3(-6.5f,2f,-1.5f),new Vector3(.25f,4f,27),wall,true);
+        Box("Parede acústica direita",t,new Vector3(6.5f,2f,-1.5f),new Vector3(.25f,4f,27),wall,true);
         Box("Parede dos alvos",t,new Vector3(0,2f,12f),new Vector3(13,4f,.25f),wall,true);
-        Box("Parede da saída",t,new Vector3(0,2f,-12f),new Vector3(13,4f,.25f),wall,true);
-        Box("Teto escuro",t,new Vector3(0,4.05f,0),new Vector3(13,.22f,24),ceiling,true);
+        Box("Parede da saída",t,new Vector3(0,2f,-15f),new Vector3(13,4f,.25f),wall,true);
+        Box("Teto escuro",t,new Vector3(0,4.05f,-1.5f),new Vector3(13,.22f,27),ceiling,true);
         Box("Linha de tiro",t,new Vector3(0,.025f,-3.5f),new Vector3(12.5f,.035f,.12f),gold,false);
         Box("Balcão de apoio",t,new Vector3(0,.82f,-3.2f),new Vector3(12.2f,.12f,.56f),steel,true);
         for(int lane=0;lane<5;lane++)

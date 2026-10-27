@@ -14,10 +14,14 @@ public sealed class ShootingRange : MonoBehaviour
     public int Ammo { get; private set; } = MagazineSize;
     public int TargetCount => targets.Count;
     public VisualElement OverlayElement => overlay;
+    public bool UsesImportedPistol => pistol&&pistol.Find("Makarov MK");
+    public bool WaitingForShot => animator&&animator.GetFloat(SpeedParameter)<.01f;
 
     const int MagazineSize = 12;
     const float InteriorLimitY = -45f;
     const string LayerName = "SocoParteSuperior";
+    const string SpeedParameter = "ShootingSpeed";
+    const float AimPoseTime = .08f;
     ThirdPersonPlayer player;
     ThirdPersonCamera orbit;
     Animator animator;
@@ -33,6 +37,7 @@ public sealed class ShootingRange : MonoBehaviour
     bool reloading;
     AudioSource audioSource;
     AudioClip shotSound;
+    Coroutine shootingAnimation;
 
     public static ShootingRange Create(ThirdPersonPlayer target,Transform roomRoot)
     {
@@ -64,7 +69,7 @@ public sealed class ShootingRange : MonoBehaviour
         if(!player||!room)return;
         bool inside=player.transform.position.y<InteriorLimitY&&
             Mathf.Abs(player.transform.position.x-room.position.x)<6.3f&&
-            Mathf.Abs(player.transform.position.z-room.position.z)<11.8f;
+            player.transform.position.z-room.position.z>-14.8f&&player.transform.position.z-room.position.z<11.8f;
         if(inside&&!IsActive&&!StartupLoader.IsLoading&&!AccountSession.InputBlocked)Activate();
         else if(!inside&&IsActive)Deactivate();
         if(!IsActive)return;
@@ -86,8 +91,10 @@ public sealed class ShootingRange : MonoBehaviour
         if(fighter)fighter.enabled=false;
         if(animator&&shootingLayer>=0)
         {
-            animator.Play("Shooting",shootingLayer,0f);
+            animator.SetFloat(SpeedParameter,0f);
+            animator.Play("Shooting",shootingLayer,AimPoseTime);
             animator.SetLayerWeight(shootingLayer,1f);
+            animator.Update(0f);
         }
         orbit?.BeginAim();CreatePistol();
         FindAnyObjectByType<HousePortal>()?.SetInteriorArrowVisible(false);
@@ -99,7 +106,8 @@ public sealed class ShootingRange : MonoBehaviour
     void Deactivate()
     {
         IsActive=false;reloading=false;
-        if(animator&&shootingLayer>=0)animator.SetLayerWeight(shootingLayer,0f);
+        if(shootingAnimation!=null){StopCoroutine(shootingAnimation);shootingAnimation=null;}
+        if(animator&&shootingLayer>=0){animator.SetFloat(SpeedParameter,0f);animator.SetLayerWeight(shootingLayer,0f);}
         if(fighter)fighter.enabled=true;
         orbit?.EndAim();
         FindAnyObjectByType<HousePortal>()?.SetInteriorArrowVisible(true);
@@ -113,7 +121,8 @@ public sealed class ShootingRange : MonoBehaviour
             AccountSession.InputBlocked||InGameChat.Editing||(GameHud.Instance&&GameHud.Instance.IsPanelOpen))return;
         if(Ammo<=0){StartCoroutine(Reload());return;}
         nextShot=Time.unscaledTime+.18f;Ammo--;Shots++;
-        if(animator&&shootingLayer>=0)animator.Play("Shooting",shootingLayer,0f);
+        if(shootingAnimation!=null)StopCoroutine(shootingAnimation);
+        shootingAnimation=StartCoroutine(PlayShotAnimation());
         if(audioSource&&shotSound)audioSource.PlayOneShot(shotSound,.32f);
         var camera=Camera.main;
         if(!camera){RefreshInterface();return;}
@@ -128,6 +137,19 @@ public sealed class ShootingRange : MonoBehaviour
         StartCoroutine(Tracer(ray.origin,end));
         RefreshInterface();
         if(Ammo==0)StartCoroutine(Reload());
+    }
+
+    IEnumerator PlayShotAnimation()
+    {
+        if(!animator||shootingLayer<0)yield break;
+        animator.SetFloat(SpeedParameter,1f);
+        animator.Play("Shooting",shootingLayer,.10f);
+        yield return new WaitForSecondsRealtime(.48f);
+        if(!IsActive)yield break;
+        animator.SetFloat(SpeedParameter,0f);
+        animator.Play("Shooting",shootingLayer,AimPoseTime);
+        animator.Update(0f);
+        shootingAnimation=null;
     }
 
     IEnumerator Reload()
@@ -175,11 +197,42 @@ public sealed class ShootingRange : MonoBehaviour
         var hand=animator.GetBoneTransform(HumanBodyBones.RightHand);if(!hand)return;
         pistol=new GameObject("Pistola de treino").transform;pistol.SetParent(hand,false);
         pistol.localPosition=new Vector3(.015f,.055f,.085f);pistol.localRotation=Quaternion.Euler(82f,2f,0);
-        var metal=MaterialColor(new Color(.045f,.05f,.06f));
-        Part("Ferrolho",pistol,new Vector3(0,.025f,.14f),new Vector3(.09f,.10f,.29f),metal);
-        Part("Empunhadura",pistol,new Vector3(0,-.09f,.035f),new Vector3(.075f,.20f,.085f),metal,Quaternion.Euler(-12,0,0));
-        Part("Massa de mira",pistol,new Vector3(0,.085f,.25f),new Vector3(.018f,.025f,.025f),MaterialColor(new Color(1f,.74f,.12f),true));
+        var prefab=Resources.Load<GameObject>("Weapons/Pistol_MK/Makarov");
+        if(prefab)
+        {
+            var model=Instantiate(prefab,pistol,false);model.name="Makarov MK";
+            model.transform.localPosition=Vector3.zero;model.transform.localRotation=Quaternion.Euler(0,-90f,0);
+            var renderers=model.GetComponentsInChildren<Renderer>(true);
+            if(renderers.Length>0)
+            {
+                Bounds bounds=renderers[0].bounds;for(int i=1;i<renderers.Length;i++)bounds.Encapsulate(renderers[i].bounds);
+                float largest=Mathf.Max(bounds.size.x,Mathf.Max(bounds.size.y,bounds.size.z));
+                if(largest>.0001f)model.transform.localScale=Vector3.one*(.31f/largest);
+                var material=CreatePistolMaterial();
+                foreach(var renderer in renderers){renderer.sharedMaterial=material;renderer.gameObject.layer=2;}
+            }
+        }
+        else
+        {
+            var metal=MaterialColor(new Color(.045f,.05f,.06f));
+            Part("Ferrolho",pistol,new Vector3(0,.025f,.14f),new Vector3(.09f,.10f,.29f),metal);
+            Part("Empunhadura",pistol,new Vector3(0,-.09f,.035f),new Vector3(.075f,.20f,.085f),metal,Quaternion.Euler(-12,0,0));
+        }
         muzzle=new GameObject("Boca do cano").transform;muzzle.SetParent(pistol,false);muzzle.localPosition=new Vector3(0,.025f,.31f);
+    }
+
+    static Material CreatePistolMaterial()
+    {
+        var material=MaterialColor(Color.white);
+        var albedo=Resources.Load<Texture2D>("Weapons/Pistol_MK/Mat.2_Base_Color");
+        var normal=Resources.Load<Texture2D>("Weapons/Pistol_MK/Mat.2_Normal");
+        var metallic=Resources.Load<Texture2D>("Weapons/Pistol_MK/Mat.2_Metallic");
+        if(albedo){material.mainTexture=albedo;if(material.HasProperty("_BaseMap"))material.SetTexture("_BaseMap",albedo);}
+        if(normal){material.EnableKeyword("_NORMALMAP");if(material.HasProperty("_BumpMap"))material.SetTexture("_BumpMap",normal);}
+        if(metallic){material.EnableKeyword("_METALLICGLOSSMAP");if(material.HasProperty("_MetallicGlossMap"))material.SetTexture("_MetallicGlossMap",metallic);}
+        if(material.HasProperty("_Metallic"))material.SetFloat("_Metallic",.72f);
+        if(material.HasProperty("_Glossiness"))material.SetFloat("_Glossiness",.42f);
+        return material;
     }
 
     void CreateInterface()

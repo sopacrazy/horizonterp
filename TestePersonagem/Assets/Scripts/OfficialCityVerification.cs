@@ -232,13 +232,16 @@ public sealed class OfficialCityVerification : MonoBehaviour
             Quaternion.Euler(0,housePortal.InteriorArrivalYaw,0));controller.enabled=true;Physics.SyncTransforms();
         yield return WaitUntil(()=>shootingRange.IsActive,5,"Entrada no clube ativa automaticamente o modo de mira");
         yield return new WaitForSecondsRealtime(.35f);
-        Check(Camera.main.GetComponent<ThirdPersonCamera>().AimActive&&
+        var aimCamera=Camera.main.GetComponent<ThirdPersonCamera>();
+        Check(aimCamera.AimActive&&aimCamera.pitch<=20f&&aimCamera.distance>.65f&&aimCamera.distance<.85f&&
               player.animator.GetLayerWeight(player.animator.GetLayerIndex("SocoParteSuperior"))>.9f,
-            "Câmera de ombro e animação Shooting entram juntas");
+            "Câmera de ombro mantém ângulo baixo atrás do personagem");
+        Check(shootingRange.UsesImportedPistol,"Personagem usa o modelo Makarov MK no treino");
+        Check(shootingRange.WaitingForShot,"Animação Shooting fica parada na pose de mira antes do disparo");
         int ammoBefore=shootingRange.Ammo;shootingRange.RequestFire();
         yield return new WaitForSecondsRealtime(.08f);
-        Check(shootingRange.Shots==1&&shootingRange.Ammo==ammoBefore-1,
-            "Disparo do treino consome uma munição e atualiza o contador");
+        Check(shootingRange.Shots==1&&shootingRange.Ammo==ammoBefore-1&&!shootingRange.WaitingForShot,
+            "Disparo consome munição e somente então executa a animação Shooting");
         Capture(Camera.main,"shooting-range");
         controller.enabled=false;player.transform.SetPositionAndRotation(cityPosition,cityRotation);controller.enabled=true;Physics.SyncTransforms();
         yield return WaitUntil(()=>!shootingRange.IsActive,5,"Saída do clube encerra o modo de mira");

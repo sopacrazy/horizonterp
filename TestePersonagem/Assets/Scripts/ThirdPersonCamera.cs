@@ -35,12 +35,12 @@ public class ThirdPersonCamera : MonoBehaviour
         {
             Vector3 delta = mouse - lastMouse;
             yawDelta += delta.x * .2f * sensitivity;
-            pitch = Mathf.Clamp(pitch - delta.y * .15f * sensitivity, -10, 65);
+            pitch = Mathf.Clamp(pitch - delta.y * .15f * sensitivity,AimActive?-5f:-10f,AimActive?20f:65f);
         }
         Vector2 touchLook=MobileControls.Look;
         yawDelta+=touchLook.x*.2f*sensitivity;
         yaw+=yawDelta;
-        pitch=Mathf.Clamp(pitch-touchLook.y*.15f*sensitivity,-10,65);
+        pitch=Mathf.Clamp(pitch-touchLook.y*.15f*sensitivity,AimActive?-5f:-10f,AimActive?20f:65f);
         if(VehicleFollowActive&&target)
         {
             if(Mathf.Abs(yawDelta)>.001f)
@@ -57,8 +57,13 @@ public class ThirdPersonCamera : MonoBehaviour
             }
         }
         lastMouse = mouse;
-        if(!(hud&&(hud.IsPanelOpen||hud.BlocksPointer(mouse))))
+        if(!AimActive&&!(hud&&(hud.IsPanelOpen||hud.BlocksPointer(mouse))))
             distance = Mathf.Clamp(distance - Input.mouseScrollDelta.y * .35f, 2f, 6f);
+        if(AimActive)
+        {
+            distance=.72f;
+            pitch=Mathf.Clamp(pitch,-5f,20f);
+        }
         Place(false);
     }
 
@@ -72,7 +77,7 @@ public class ThirdPersonCamera : MonoBehaviour
     {
         if(AimActive)return;
         AimActive=true;aimPreviousDistance=distance;aimPreviousPitch=pitch;
-        distance=2.15f;pitch=9f;yaw=target.eulerAngles.y;Place(true);
+        distance=.72f;pitch=3f;yaw=target.eulerAngles.y;Place(true);
     }
 
     public void EndAim()
@@ -96,8 +101,8 @@ public class ThirdPersonCamera : MonoBehaviour
 
     void Place(bool snap)
     {
-        Vector3 focus = target.position + Vector3.up * (AimActive?1.48f:1.25f);
-        if(AimActive)focus+=Quaternion.Euler(0,yaw,0)*Vector3.right*.46f;
+        Vector3 focus = target.position + Vector3.up * (AimActive?1.52f:1.25f);
+        if(AimActive)focus+=Quaternion.Euler(0,yaw,0)*Vector3.right*.68f;
         smoothFocus = snap ? focus : Vector3.Lerp(smoothFocus, focus, 1 - Mathf.Exp(-14 * Time.deltaTime));
         Quaternion rotation = Quaternion.Euler(pitch, yaw, 0);
         Vector3 backward = rotation * Vector3.back;

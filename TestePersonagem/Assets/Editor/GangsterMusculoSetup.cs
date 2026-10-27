@@ -158,7 +158,8 @@ public sealed class GangsterMusculoModelImport : AssetPostprocessor
             if (assetPath.EndsWith("Shooting.fbx", StringComparison.OrdinalIgnoreCase))
                 clip.name = "Shooting";
             clip.loopTime = !assetPath.EndsWith("Jump.fbx", StringComparison.OrdinalIgnoreCase) &&
-                !assetPath.EndsWith("Punching.fbx", StringComparison.OrdinalIgnoreCase);
+                !assetPath.EndsWith("Punching.fbx", StringComparison.OrdinalIgnoreCase) &&
+                !assetPath.EndsWith("Shooting.fbx", StringComparison.OrdinalIgnoreCase);
             clip.loopPose = clip.loopTime;
         }
         importer.clipAnimations = clips;
