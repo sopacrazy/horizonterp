@@ -51,6 +51,9 @@ public sealed class HudIcon : VisualElement
             case "help": Circle(12,12,9);Line(8,8,10,5,14,5,17,8,16,11,12,14,12,16);Circle(12,19,.4f);break;
             case "close": Line(5,5,19,19);Line(19,5,5,19);break;
             case "location": Circle(12,10,6);Line(6,11,12,22,18,11);Circle(12,10,1.5f);break;
+            case "door":
+                Box(3,3,11,18);Line(14,5,19,5,19,19,14,19);
+                Line(22,12,11,12);Line(14,9,11,12,14,15);Circle(11,8,.55f);break;
             case "arrow":
                 p.BeginPath();p.MoveTo(Point(12,2));p.LineTo(Point(21,21));p.LineTo(Point(12,17));p.LineTo(Point(3,21));p.ClosePath();p.Fill();break;
         }

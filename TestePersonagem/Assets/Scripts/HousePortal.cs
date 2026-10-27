@@ -12,19 +12,21 @@ public sealed class HousePortal : MonoBehaviour
 
     ThirdPersonPlayer player;
     GameObject exterior, interior, exitMarker;
-    Transform exteriorBeam, exitBeam;
-    Transform exteriorGlow, exitGlow;
-    Light exteriorLight, exitLight;
+    Transform exteriorArrow, exitArrow;
     VisualElement prompt;
     VisualElement fadeCover;
     GameObject fadeObject;
     Button action;
+    Label actionLabel;
     Vector3 entrancePosition;
     float entranceYaw;
     float nextInteraction;
     bool inside;
     bool transitioning;
     bool previousCombatLock;
+
+    public Transform ActiveArrow => inside ? exitArrow : exteriorArrow;
+    public VisualElement PromptElement => prompt;
 
     public static void Create(ThirdPersonPlayer target)
     {
@@ -73,16 +75,11 @@ public sealed class HousePortal : MonoBehaviour
         if (prompt != null)
         {
             prompt.style.display = available ? DisplayStyle.Flex : DisplayStyle.None;
-            if (available) action.text = inside ? "E   SAIR" : "E   ENTRAR";
+            if (available && actionLabel != null) actionLabel.text = inside ? "E  SAIR" : "E  ENTRAR";
         }
         if (available && Input.GetKeyDown(KeyCode.E)) Interact();
-        float pulse = 1f + Mathf.Sin(Time.time * 2.1f) * .045f;
-        if (exteriorBeam) { exteriorBeam.Rotate(Vector3.up, 11f * Time.deltaTime); exteriorBeam.localScale = new Vector3(pulse, 1, pulse); }
-        if (exitBeam) { exitBeam.Rotate(Vector3.up, 11f * Time.deltaTime); exitBeam.localScale = new Vector3(pulse, 1, pulse); }
-        if (exteriorGlow) exteriorGlow.localScale = new Vector3(pulse, 1, pulse);
-        if (exitGlow) exitGlow.localScale = new Vector3(pulse, 1, pulse);
-        if (exteriorLight) exteriorLight.intensity = 1.45f + Mathf.Sin(Time.time * 2.1f) * .22f;
-        if (exitLight) exitLight.intensity = 1.45f + Mathf.Sin(Time.time * 2.1f) * .22f;
+        AnimateArrow(exteriorArrow, 0f);
+        AnimateArrow(exitArrow, 1.2f);
     }
 
     static bool IsInside(Vector3 position) => position.y < -45f &&
@@ -92,6 +89,16 @@ public sealed class HousePortal : MonoBehaviour
     {
         a.y = b.y = 0;
         return Vector3.Distance(a, b);
+    }
+
+    static void AnimateArrow(Transform arrow, float phase)
+    {
+        if (!arrow || !arrow.gameObject.activeInHierarchy) return;
+        arrow.Rotate(Vector3.up, 72f * Time.deltaTime, Space.World);
+        float wave = Mathf.Sin(Time.time * 2.8f + phase);
+        arrow.localPosition = new Vector3(0, 2.12f + wave * .09f, 0);
+        float scale = .72f * (1f + wave * .035f);
+        arrow.localScale = Vector3.one * scale;
     }
 
     void Interact()
@@ -180,34 +187,45 @@ public sealed class HousePortal : MonoBehaviour
         prompt = new VisualElement { name = "house-portal-prompt" };
         prompt.style.position = Position.Absolute;
         prompt.style.left = Length.Percent(50);
-        prompt.style.marginLeft = -120;
-        prompt.style.bottom = 140;
-        prompt.style.width = 240;
-        prompt.style.height = 82;
+        prompt.style.marginLeft = -70;
+        prompt.style.bottom = 128;
+        prompt.style.width = 140;
+        prompt.style.height = 112;
         prompt.style.alignItems = Align.Center;
         prompt.style.justifyContent = Justify.Center;
-        prompt.style.backgroundColor = new Color(.055f, .075f, .105f, .94f);
-        prompt.style.borderTopWidth = prompt.style.borderBottomWidth = 1;
-        prompt.style.borderLeftWidth = prompt.style.borderRightWidth = 1;
-        prompt.style.borderTopColor = prompt.style.borderBottomColor = new Color(1f, .77f, .15f);
-        prompt.style.borderLeftColor = prompt.style.borderRightColor = new Color(1f, .77f, .15f);
-        prompt.style.borderTopLeftRadius = prompt.style.borderTopRightRadius = 12;
-        prompt.style.borderBottomLeftRadius = prompt.style.borderBottomRightRadius = 12;
-        var title = new Label("CASA DE TESTE");
-        title.style.color = new Color(1f, .79f, .22f);
-        title.style.fontSize = 12;
-        title.style.unityFontStyleAndWeight = FontStyle.Bold;
-        prompt.Add(title);
-        action = new Button(Interact) { text = "E   ENTRAR" };
-        action.style.width = 200;
-        action.style.height = 38;
-        action.style.marginTop = 5;
-        action.style.backgroundColor = new Color(1f, .76f, .12f);
-        action.style.color = new Color(.08f, .09f, .11f);
-        action.style.fontSize = 18;
-        action.style.unityFontStyleAndWeight = FontStyle.Bold;
-        action.style.unityTextAlign = TextAnchor.MiddleCenter;
+        prompt.style.backgroundColor = Color.clear;
+        action = new Button(Interact) { name = "house-door-action" };
+        action.style.width = 72;
+        action.style.height = 72;
+        action.style.paddingLeft = action.style.paddingRight = 0;
+        action.style.paddingTop = action.style.paddingBottom = 0;
+        action.style.backgroundColor = new Color(.035f, .045f, .055f, .92f);
+        action.style.borderTopWidth = action.style.borderBottomWidth = 2;
+        action.style.borderLeftWidth = action.style.borderRightWidth = 2;
+        action.style.borderTopColor = action.style.borderBottomColor = new Color(1f, .76f, .12f);
+        action.style.borderLeftColor = action.style.borderRightColor = new Color(1f, .76f, .12f);
+        action.style.borderTopLeftRadius = action.style.borderTopRightRadius = 36;
+        action.style.borderBottomLeftRadius = action.style.borderBottomRightRadius = 36;
+        action.style.alignItems = Align.Center;
+        action.style.justifyContent = Justify.Center;
+        var doorIcon = new HudIcon("door") { name = "house-door-icon" };
+        doorIcon.style.width = 42;
+        doorIcon.style.height = 42;
+        doorIcon.SetInk(new Color(1f, .83f, .3f));
+        action.Add(doorIcon);
         prompt.Add(action);
+        actionLabel = new Label("E  ENTRAR") { name = "house-door-label" };
+        actionLabel.style.marginTop = 5;
+        actionLabel.style.paddingLeft = actionLabel.style.paddingRight = 10;
+        actionLabel.style.paddingTop = actionLabel.style.paddingBottom = 3;
+        actionLabel.style.backgroundColor = new Color(.025f, .035f, .045f, .82f);
+        actionLabel.style.color = Color.white;
+        actionLabel.style.fontSize = 13;
+        actionLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
+        actionLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
+        actionLabel.style.borderTopLeftRadius = actionLabel.style.borderTopRightRadius = 8;
+        actionLabel.style.borderBottomLeftRadius = actionLabel.style.borderBottomRightRadius = 8;
+        prompt.Add(actionLabel);
         hud.Root.Add(prompt);
         hud.RegisterPointerBlocker(prompt);
     }
@@ -224,7 +242,7 @@ public sealed class HousePortal : MonoBehaviour
         var marker = EntranceThreshold(near, facingYaw);
         exterior = new GameObject("Entrada da casa de teste");
         exterior.transform.position = marker;
-        BuildMarker(exterior.transform, out exteriorBeam, out exteriorGlow, out exteriorLight);
+        BuildArrowMarker(exterior.transform, out exteriorArrow);
     }
 
     // The player is facing the existing recessed entrance shown at this test spot.
@@ -286,109 +304,44 @@ public sealed class HousePortal : MonoBehaviour
         exitMarker = new GameObject("Saída da casa de teste");
         exitMarker.transform.SetParent(t, false);
         exitMarker.transform.localPosition = new Vector3(0, .04f, -3.95f);
-        BuildMarker(exitMarker.transform, out exitBeam, out exitGlow, out exitLight);
+        BuildArrowMarker(exitMarker.transform, out exitArrow);
         exitMarker.SetActive(false);
     }
 
-    static void BuildMarker(Transform parent, out Transform beam, out Transform glow, out Light pointLight)
+    static void BuildArrowMarker(Transform parent, out Transform arrow)
     {
-        var shader = Resources.Load<Shader>("PortalGlow");
-        if (!shader) throw new System.InvalidOperationException("Shader PortalGlow não encontrado.");
-        beam = new GameObject("Cilindro amarelo translúcido").transform;
-        beam.SetParent(parent, false);
-        MakeGlowMesh("Cilindro central", beam, CylinderMesh(.72f, 1.28f,
-            new[] { .68f, .58f, .42f, .20f, 0f }), shader, new Color(1f, .71f, .045f, .62f));
-        MakeGlowMesh("Halo externo", beam, CylinderMesh(1.04f, 1.32f,
-            new[] { .35f, .28f, .16f, .065f, 0f }), shader, new Color(1f, .76f, .11f, .45f));
-        glow = new GameObject("Brilho amarelo no chão").transform;
-        glow.SetParent(parent, false);
-        MakeGlowMesh("Luz suave no piso", glow, DiscMesh(1.65f, .035f), shader,
-            new Color(1f, .72f, .04f, .55f));
-        MakeGlowMesh("Centro luminoso", glow, DiscMesh(.77f, .043f), shader,
-            new Color(1f, .86f, .19f, .42f));
-        var lamp = new GameObject("Luz amarela da entrada");
-        lamp.transform.SetParent(parent, false);
-        lamp.transform.localPosition = new Vector3(0, .28f, 0);
-        pointLight = lamp.AddComponent<Light>();
-        pointLight.type = LightType.Point;
-        pointLight.color = new Color(1f, .73f, .16f);
-        pointLight.range = 3.2f;
-        pointLight.intensity = 1.45f;
-        pointLight.shadows = LightShadows.None;
-    }
-
-    static void MakeGlowMesh(string name, Transform parent, Mesh mesh, Shader shader, Color color)
-    {
-        var go = new GameObject(name, typeof(MeshFilter), typeof(MeshRenderer));
-        go.transform.SetParent(parent, false);
-        go.GetComponent<MeshFilter>().sharedMesh = mesh;
-        var material = new Material(shader) { color = color };
-        material.SetColor("_Color", color);
-        var renderer = go.GetComponent<MeshRenderer>();
-        renderer.sharedMaterial = material;
+        arrow = new GameObject("Seta 3D giratória de entrada").transform;
+        arrow.SetParent(parent, false);
+        arrow.localPosition = new Vector3(0, 2.12f, 0);
+        var gold = MaterialColor(new Color(1f, .66f, .04f), true);
+        var shaft = Box("Corpo da seta", arrow, new Vector3(0, .24f, 0),
+            new Vector3(.24f, .52f, .22f), gold, false);
+        shaft.GetComponent<Renderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        var head = new GameObject("Ponta da seta", typeof(MeshFilter), typeof(MeshRenderer));
+        head.transform.SetParent(arrow, false);
+        head.GetComponent<MeshFilter>().sharedMesh = ArrowHeadMesh();
+        var renderer = head.GetComponent<MeshRenderer>();
+        renderer.sharedMaterial = gold;
         renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         renderer.receiveShadows = false;
     }
 
-    static Mesh CylinderMesh(float radius, float height, float[] alpha)
+    static Mesh ArrowHeadMesh()
     {
-        const int sides = 40;
-        int rings = alpha.Length;
-        var vertices = new Vector3[(sides + 1) * rings];
-        var colors = new Color[vertices.Length];
-        var triangles = new int[sides * (rings - 1) * 6];
-        for (int row = 0; row < rings; row++)
-            for (int side = 0; side <= sides; side++)
-            {
-                float angle = side * Mathf.PI * 2f / sides;
-                int index = row * (sides + 1) + side;
-                vertices[index] = new Vector3(Mathf.Sin(angle) * radius,
-                    height * row / (rings - 1), Mathf.Cos(angle) * radius);
-                colors[index] = new Color(1, 1, 1, alpha[row]);
-            }
-        int t = 0;
-        for (int row = 0; row < rings - 1; row++)
-            for (int side = 0; side < sides; side++)
-            {
-                int a = row * (sides + 1) + side;
-                int b = a + sides + 1;
-                triangles[t++] = a; triangles[t++] = b; triangles[t++] = a + 1;
-                triangles[t++] = a + 1; triangles[t++] = b; triangles[t++] = b + 1;
-            }
-        var mesh = new Mesh { name = "Portal translucent cylinder", vertices = vertices,
-            colors = colors, triangles = triangles };
-        mesh.RecalculateBounds();
-        return mesh;
-    }
-
-    static Mesh DiscMesh(float radius, float y)
-    {
-        const int sides = 40;
-        float[] radii = { 0f, .22f, .48f, .72f, 1f };
-        float[] alpha = { 1f, .93f, .58f, .25f, 0f };
-        var vertices = new Vector3[(sides + 1) * radii.Length];
-        var colors = new Color[vertices.Length];
-        var triangles = new int[sides * (radii.Length - 1) * 6];
-        for (int row = 0; row < radii.Length; row++)
-            for (int side = 0; side <= sides; side++)
-            {
-                float angle = side * Mathf.PI * 2f / sides;
-                int index = row * (sides + 1) + side;
-                vertices[index] = new Vector3(Mathf.Sin(angle) * radius * radii[row], y,
-                    Mathf.Cos(angle) * radius * radii[row]);
-                colors[index] = new Color(1, 1, 1, alpha[row]);
-            }
-        int t = 0;
-        for (int row = 0; row < radii.Length - 1; row++)
-            for (int side = 0; side < sides; side++)
-            {
-                int a = row * (sides + 1) + side;
-                int b = a + sides + 1;
-                triangles[t++] = a; triangles[t++] = a + 1; triangles[t++] = b;
-                triangles[t++] = a + 1; triangles[t++] = b + 1; triangles[t++] = b;
-            }
-        var mesh = new Mesh { name = "Portal soft ground glow", vertices = vertices,
-            colors = colors, triangles = triangles };
+        var vertices = new[]
+        {
+            new Vector3(-.48f, .04f, -.34f), new Vector3(.48f, .04f, -.34f),
+            new Vector3(.48f, .04f, .34f), new Vector3(-.48f, .04f, .34f),
+            new Vector3(0, -.55f, 0)
+        };
+        var triangles = new[]
+        {
+            0, 2, 1, 0, 3, 2,
+            0, 1, 4, 1, 2, 4, 2, 3, 4, 3, 0, 4
+        };
+        var mesh = new Mesh { name = "Solid 3D downward arrow head", vertices = vertices,
+            triangles = triangles };
+        mesh.RecalculateNormals();
         mesh.RecalculateBounds();
         return mesh;
     }

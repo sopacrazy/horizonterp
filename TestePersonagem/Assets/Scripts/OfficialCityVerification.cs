@@ -143,6 +143,23 @@ public sealed class OfficialCityVerification : MonoBehaviour
             "Conta e personagem concluem a entrada sem bloquear os controles");
         Check(GameHud.Instance && GameHud.Instance.Root != null &&
             GameHud.Instance.Root.resolvedStyle.display != DisplayStyle.None, "HUD oficial fica visível após a entrada");
+        yield return WaitUntil(() => { var portal = FindAnyObjectByType<HousePortal>();
+            return portal && portal.ActiveArrow && portal.PromptElement != null; }, 10,
+            "Entrada da casa cria o novo marcador e sua ação contextual");
+        var housePortal = FindAnyObjectByType<HousePortal>();
+        var portalArrow = housePortal.ActiveArrow;
+        Check(portalArrow.name == "Seta 3D giratória de entrada" &&
+            portalArrow.GetComponentsInChildren<MeshRenderer>().Length == 2,
+            "Portal usa somente a seta 3D suspensa com corpo e ponta");
+        Check(housePortal.PromptElement.Q<HudIcon>("house-door-icon")?.Kind == "door" &&
+            housePortal.PromptElement.Q<Label>("house-door-label") != null,
+            "Proximidade exibe botão circular com ícone de porta e legenda");
+        float arrowYaw = portalArrow.eulerAngles.y;
+        yield return new WaitForSecondsRealtime(.16f);
+        Check(Mathf.Abs(Mathf.DeltaAngle(arrowYaw, portalArrow.eulerAngles.y)) > 5f,
+            "Seta 3D gira continuamente para sinalizar a entrada");
+        Check(portalArrow.parent.GetComponentInChildren<Light>() == null,
+            "Portal antigo, brilho no piso e luz amarela foram removidos");
         Check(Camera.main && Camera.main.GetComponent<ThirdPersonCamera>() && player.cameraTransform == Camera.main.transform,
             "Câmera em terceira pessoa acompanha o personagem atual");
         if (!map || !environment || !controller || !Camera.main) throw new InvalidOperationException("Cidade oficial incompleta.");
