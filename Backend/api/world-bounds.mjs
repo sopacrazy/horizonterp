@@ -1,7 +1,7 @@
 // Authoritative playable coordinates, in Unity metres. Edges are inclusive.
 // Keep the existing world code and saved coordinates when expanding the official city.
 export const WORLD_BOUNDS=Object.freeze({
- centro_teste:Object.freeze({minX:-1000,maxX:1000,minY:-80,maxY:100,minZ:-1000,maxZ:1000})
+ centro_teste:Object.freeze({minX:-4200,maxX:4200,minY:-200,maxY:1000,minZ:-4200,maxZ:4200})
 });
 
 export function getWorldBounds(world){

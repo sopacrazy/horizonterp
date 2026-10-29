@@ -33,6 +33,9 @@ public sealed partial class AccountSession : MonoBehaviour
     public bool AuthVisible {get;private set;}
     public bool ReadyToEnterCity {get;private set;}
     public ApiPlayerState State {get;private set;}
+    internal bool CanApplyPlayerState(ApiPlayerState incoming) => incoming!=null&&
+        !string.IsNullOrEmpty(incoming.characterId)&&
+        (State==null||string.IsNullOrEmpty(State.characterId)||incoming.characterId==State.characterId);
     public string SaveStatus {get;private set;}="Conta conectada";
     public string LastError {get;private set;}
     public string LastErrorCode {get;private set;}
@@ -41,6 +44,8 @@ public sealed partial class AccountSession : MonoBehaviour
     ApiPublicConfig config;
     string token;
     bool busy,register,leaving,allowQuit;
+    bool checkingAuthorization;
+    float lastValidAuthorization=-10f;
     float nextSave;
     CheckpointBody pending;
     ThirdPersonPlayer player;
@@ -140,6 +145,14 @@ public sealed partial class AccountSession : MonoBehaviour
     }
     void Update()
     {
+        // UIDocument can be reattached while additive scenes load. Keep the
+        // actual document root consistent with the authenticated gameplay state.
+        if(HasCharacter&&ReadyToEnterCity&&!AuthVisible&&document)
+        {
+            var currentRoot=document.rootVisualElement;
+            if(currentRoot!=null&&currentRoot.style.display.value!=DisplayStyle.None)
+            {currentRoot.style.display=DisplayStyle.None;Debug.Log("ACCOUNT_AUTH_OVERLAY_HIDDEN_IN_CITY");}
+        }
         if(VerificationTransport==null&&ReadyToEnterCity&&!HasCharacter&&!AuthVisible&&!leaving)
         {
             ReadyToEnterCity=false;
@@ -164,17 +177,20 @@ public sealed partial class AccountSession : MonoBehaviour
         {
             ApiReply current=null;
             yield return Request("GET","/v1/player",null,true,r=>current=r);
-            if(current?.state!=null&&Authenticated)
+            if(CanApplyPlayerState(current?.state)&&Authenticated)
             {
                 State=current.state;
-                pending.version=State.version;
-                pending.requestId=Guid.NewGuid().ToString();
-                SaveStatus="Sincronizando progresso...";
-                yield return Request("PUT","/v1/player/checkpoint",JsonUtility.ToJson(pending),true,r=>reply=r);
+                // A newer server position can be an administrative reset. Never
+                // overwrite it with the stale checkpoint that just conflicted.
+                pending=null;
+                if(player)player.TeleportTo(new Vector3(State.x,State.y,State.z),State.yaw);
+                SaveStatus="Posição sincronizada";
+                busy=false;nextSave=Time.realtimeSinceStartup+15f;
+                yield break;
             }
         }
         busy=false;nextSave=Time.realtimeSinceStartup+15;
-        if(reply?.state!=null){State=reply.state;pending=null;SaveStatus="Progresso salvo";}
+        if(CanApplyPlayerState(reply?.state)){State=reply.state;pending=null;SaveStatus="Progresso salvo";}
         else SaveStatus="Sem salvar: "+LastError;
     }
     public void Rename(string value){if(!busy&&HasCharacter)StartCoroutine(RenameRoutine(value));}
@@ -183,7 +199,7 @@ public sealed partial class AccountSession : MonoBehaviour
         busy=true;ApiReply reply=null;
         yield return Request("PUT","/v1/player/profile",JsonUtility.ToJson(new ProfileBody{firstName=value,lastName=State.lastName}),true,r=>reply=r);
         busy=false;
-        if(reply?.state!=null){State=reply.state;GameHud.Instance.ApplyAccountIdentity();}
+        if(CanApplyPlayerState(reply?.state)){State=reply.state;GameHud.Instance.ApplyAccountIdentity();}
         if(GameHud.Instance)GameHud.Instance.ShowAccountMessage(reply?.state!=null?"Nome salvo na conta":LastError);
     }
     public void Logout(){if(!leaving)StartCoroutine(LogoutRoutine());}
@@ -211,6 +227,7 @@ public sealed partial class AccountSession : MonoBehaviour
     void OnDestroy(){Application.wantsToQuit-=WantsToQuit;if(Instance==this)Instance=null;}
     IEnumerator Request(string method,string path,string body,bool authenticated,Action<ApiReply> done,bool invalidateUnauthorized=true)
     {
+        string requestToken=token;
         RequestCount++;LastError="";LastErrorCode="";
         if(VerificationTransport!=null)
         {
@@ -218,6 +235,7 @@ public sealed partial class AccountSession : MonoBehaviour
                 Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-neighborhood")<0&&
                 Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-official-city")<0&&
                 Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-arrival")<0&&
+                Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-sa-session")<0&&
                 Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-landing")<0)
             {LastError="Modo de verificação local não autorizado.";done(null);yield break;}
             yield return VerificationTransport(method,path,body,authenticated,(reply,error)=>
@@ -231,7 +249,7 @@ public sealed partial class AccountSession : MonoBehaviour
             request.downloadHandler=new DownloadHandlerBuffer();request.timeout=20;request.redirectLimit=0;
             request.certificateHandler=new PinnedCertificate(config.certificateSha256);
             if(body!=null){request.uploadHandler=new UploadHandlerRaw(Encoding.UTF8.GetBytes(body));request.SetRequestHeader("Content-Type","application/json");}
-            if(authenticated)request.SetRequestHeader("Authorization","Bearer "+token);
+            if(authenticated)request.SetRequestHeader("Authorization","Bearer "+requestToken);
             yield return request.SendWebRequest();
             ApiReply reply=null;
             if(!string.IsNullOrEmpty(request.downloadHandler.text))
@@ -239,10 +257,29 @@ public sealed partial class AccountSession : MonoBehaviour
             if(request.result==UnityWebRequest.Result.Success){LastError=LastErrorCode="";done(reply);yield break;}
             LastError=reply?.error??"Não foi possível conectar ao HBRP. Verifique sua internet e tente novamente.";
             LastErrorCode=reply?.code??"";
-            if(invalidateUnauthorized&&authenticated&&!leaving&&(request.responseCode==401||reply?.code=="CHARACTER_BLOCKED"))
-            {Debug.LogWarning("ACCOUNT_SESSION_INVALIDATED status="+request.responseCode+" code="+LastErrorCode+" error="+LastError);SessionVault.Clear();token=null;State=null;pending=null;ReadyToEnterCity=false;if(document)ShowLogin(LastError);}
+            if(invalidateUnauthorized&&authenticated&&!leaving&&token==requestToken)
+            {
+                if(reply?.code=="CHARACTER_BLOCKED")InvalidateSession(LastError);
+                else if(request.responseCode==401)yield return ConfirmSessionAfterUnauthorized(requestToken);
+            }
             done(null);
         }
+    }
+    internal IEnumerator ConfirmSessionAfterUnauthorized(string requestToken)
+    {
+        if(leaving||token!=requestToken||!Authenticated)yield break;
+        while(checkingAuthorization)yield return null;
+        if(leaving||token!=requestToken||!Authenticated||Time.realtimeSinceStartup-lastValidAuthorization<2f)yield break;
+        checkingAuthorization=true;
+        ApiReply validated=null;
+        yield return Request("GET","/v1/player",null,true,r=>validated=r,false);
+        checkingAuthorization=false;
+        if(leaving||token!=requestToken)yield break;
+        if(validated!=null)
+        {lastValidAuthorization=Time.realtimeSinceStartup;Debug.Log("ACCOUNT_SESSION_REVALIDATED");yield break;}
+        if(LastErrorCode=="UNAUTHORIZED"||LastErrorCode=="CHARACTER_BLOCKED")
+            InvalidateSession(string.IsNullOrEmpty(LastError)?"Sua sessão expirou. Entre novamente.":LastError);
+        else Debug.LogWarning("ACCOUNT_SESSION_REVALIDATION_DEFERRED code="+LastErrorCode);
     }
     internal void InvalidateSession(string message)
     {

@@ -1,0 +1,5358 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!29 &1
+OcclusionCullingSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_OcclusionBakeSettings:
+    smallestOccluder: 5
+    smallestHole: 0.25
+    backfaceThreshold: 100
+  m_SceneGUID: 00000000000000000000000000000000
+  m_OcclusionCullingData: {fileID: 0}
+--- !u!104 &2
+RenderSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 10
+  m_Fog: 0
+  m_FogColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  m_FogMode: 3
+  m_FogDensity: 0.01
+  m_LinearFogStart: 0
+  m_LinearFogEnd: 300
+  m_AmbientSkyColor: {r: 0.212, g: 0.227, b: 0.259, a: 1}
+  m_AmbientEquatorColor: {r: 0.114, g: 0.125, b: 0.133, a: 1}
+  m_AmbientGroundColor: {r: 0.047, g: 0.043, b: 0.035, a: 1}
+  m_AmbientIntensity: 1
+  m_AmbientMode: 0
+  m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
+  m_SkyboxMaterial: {fileID: 10304, guid: 0000000000000000f000000000000000, type: 0}
+  m_HaloStrength: 0.5
+  m_FlareStrength: 1
+  m_FlareFadeSpeed: 3
+  m_HaloTexture: {fileID: 0}
+  m_SpotCookie: {fileID: 10001, guid: 0000000000000000e000000000000000, type: 0}
+  m_DefaultReflectionMode: 0
+  m_DefaultReflectionResolution: 128
+  m_ReflectionBounces: 1
+  m_ReflectionIntensity: 1
+  m_CustomReflection: {fileID: 0}
+  m_Sun: {fileID: 0}
+  m_UseRadianceAmbientProbe: 0
+--- !u!157 &3
+LightmapSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 13
+  m_BakeOnSceneLoad: 0
+  m_GISettings:
+    serializedVersion: 2
+    m_BounceScale: 1
+    m_IndirectOutputScale: 1
+    m_AlbedoBoost: 1
+    m_EnvironmentLightingMode: 0
+    m_EnableBakedLightmaps: 1
+    m_EnableRealtimeLightmaps: 0
+  m_LightmapEditorSettings:
+    serializedVersion: 12
+    m_Resolution: 2
+    m_BakeResolution: 40
+    m_AtlasSize: 1024
+    m_AO: 0
+    m_AOMaxDistance: 1
+    m_CompAOExponent: 1
+    m_CompAOExponentDirect: 0
+    m_ExtractAmbientOcclusion: 0
+    m_Padding: 2
+    m_LightmapParameters: {fileID: 0}
+    m_LightmapsBakeMode: 1
+    m_TextureCompression: 1
+    m_ReflectionCompression: 2
+    m_MixedBakeMode: 2
+    m_BakeBackend: 2
+    m_PVRSampling: 1
+    m_PVRDirectSampleCount: 32
+    m_PVRSampleCount: 512
+    m_PVRBounces: 2
+    m_PVREnvironmentSampleCount: 256
+    m_PVREnvironmentReferencePointCount: 2048
+    m_PVRFilteringMode: 1
+    m_PVRDenoiserTypeDirect: 2
+    m_PVRDenoiserTypeIndirect: 2
+    m_PVRDenoiserTypeAO: 2
+    m_PVRFilterTypeDirect: 0
+    m_PVRFilterTypeIndirect: 0
+    m_PVRFilterTypeAO: 0
+    m_PVREnvironmentMIS: 1
+    m_PVRCulling: 1
+    m_PVRFilteringGaussRadiusDirect: 1
+    m_PVRFilteringGaussRadiusIndirect: 1
+    m_PVRFilteringGaussRadiusAO: 1
+    m_PVRFilteringAtrousPositionSigmaDirect: 0.5
+    m_PVRFilteringAtrousPositionSigmaIndirect: 2
+    m_PVRFilteringAtrousPositionSigmaAO: 1
+    m_ExportTrainingData: 0
+    m_TrainingDataDestination: TrainingData
+    m_LightProbeSampleCountMultiplier: 4
+  m_LightingDataAsset: {fileID: 20201, guid: 0000000000000000f000000000000000, type: 0}
+  m_LightingSettings: {fileID: 0}
+--- !u!196 &4
+NavMeshSettings:
+  serializedVersion: 2
+  m_ObjectHideFlags: 0
+  m_BuildSettings:
+    serializedVersion: 3
+    agentTypeID: 0
+    agentRadius: 0.5
+    agentHeight: 2
+    agentSlope: 45
+    agentClimb: 0.4
+    ledgeDropHeight: 0
+    maxJumpAcrossDistance: 0
+    minRegionArea: 2
+    manualCellSize: 0
+    cellSize: 0.16666667
+    manualTileSize: 0
+    tileSize: 256
+    buildHeightMesh: 0
+    maxJobWorkers: 0
+    preserveTilesOutsideBounds: 0
+    debug:
+      m_Flags: 0
+  m_NavMeshData: {fileID: 0}
+--- !u!1001 &11504270
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: e92cc634e0f79c34a801261a8a407597, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -28.648438
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e92cc634e0f79c34a801261a8a407597, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 16.398438
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e92cc634e0f79c34a801261a8a407597, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 1020.34375
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e92cc634e0f79c34a801261a8a407597, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e92cc634e0f79c34a801261a8a407597, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e92cc634e0f79c34a801261a8a407597, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e92cc634e0f79c34a801261a8a407597, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e92cc634e0f79c34a801261a8a407597, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e92cc634e0f79c34a801261a8a407597, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e92cc634e0f79c34a801261a8a407597, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: e92cc634e0f79c34a801261a8a407597, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: e92cc634e0f79c34a801261a8a407597, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: e92cc634e0f79c34a801261a8a407597, type: 3}
+      propertyPath: m_ReceiveShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: e92cc634e0f79c34a801261a8a407597, type: 3}
+      propertyPath: m_Name
+      value: LODcuntrail01 #17312
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: e92cc634e0f79c34a801261a8a407597, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e92cc634e0f79c34a801261a8a407597, type: 3}
+--- !u!4 &11504271 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: e92cc634e0f79c34a801261a8a407597, type: 3}
+  m_PrefabInstance: {fileID: 11504270}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &21345395
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 16026fac34271144c9bac643705bcc97, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -52.820312
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 16026fac34271144c9bac643705bcc97, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 13.3984375
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 16026fac34271144c9bac643705bcc97, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 865.7422
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 16026fac34271144c9bac643705bcc97, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.97133106
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 16026fac34271144c9bac643705bcc97, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 16026fac34271144c9bac643705bcc97, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.2377311
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 16026fac34271144c9bac643705bcc97, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 16026fac34271144c9bac643705bcc97, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 16026fac34271144c9bac643705bcc97, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 16026fac34271144c9bac643705bcc97, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: 16026fac34271144c9bac643705bcc97, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: baffd4fef361ec241aa18af73d01c167, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 16026fac34271144c9bac643705bcc97, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 9f613b468f87dc4458570226a93c7971, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 16026fac34271144c9bac643705bcc97, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: ea3ed185cd1c5a246a631eb68a3e0dec, type: 2}
+    - target: {fileID: 919132149155446097, guid: 16026fac34271144c9bac643705bcc97, type: 3}
+      propertyPath: m_Name
+      value: CE_roadsign1 #3335
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 16026fac34271144c9bac643705bcc97, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 16026fac34271144c9bac643705bcc97, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2073659900}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 16026fac34271144c9bac643705bcc97, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2057463578}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 16026fac34271144c9bac643705bcc97, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 566564058}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 16026fac34271144c9bac643705bcc97, type: 3}
+--- !u!4 &21345396 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 16026fac34271144c9bac643705bcc97, type: 3}
+  m_PrefabInstance: {fileID: 21345395}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &56189201
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 56189202}
+  - component: {fileID: 56189203}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &56189202
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 56189201}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1321970811}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &56189203
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 56189201}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 11.382999, y: 1.148, z: 0.038999997}
+  m_Center: {x: 0.01150012, y: 0.051, z: -0.0275}
+--- !u!1 &74665918
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 74665919}
+  - component: {fileID: 74665920}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &74665919
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 74665918}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1626603054}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &74665920
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 74665918}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.24199998, y: 1.789, z: 0.211}
+  m_Center: {x: -1.777, y: 0.0035000145, z: -0.0355}
+--- !u!1 &129919477
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 129919478}
+  m_Layer: 0
+  m_Name: "GTA SA \u2014 setor -1_-4"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &129919478
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 129919477}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1643874704}
+  - {fileID: 1148468802}
+  - {fileID: 11504271}
+  - {fileID: 1046159115}
+  - {fileID: 541113686}
+  - {fileID: 1636086626}
+  - {fileID: 1296982168}
+  - {fileID: 1310327797}
+  - {fileID: 763203348}
+  - {fileID: 21345396}
+  - {fileID: 1501250958}
+  - {fileID: 313402694}
+  - {fileID: 1420760936}
+  - {fileID: 1606477022}
+  - {fileID: 549282930}
+  - {fileID: 725466953}
+  - {fileID: 939949135}
+  - {fileID: 1626603054}
+  - {fileID: 929533324}
+  - {fileID: 1321970811}
+  - {fileID: 1656177487}
+  - {fileID: 1911867117}
+  - {fileID: 670811590}
+  - {fileID: 1494133698}
+  - {fileID: 1087009624}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &148360452
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 148360453}
+  - component: {fileID: 148360454}
+  m_Layer: 0
+  m_Name: COL default
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &148360453
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 148360452}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1917641678}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!64 &148360454
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 148360452}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -2432090755550338912, guid: 6cb5c1f4343a6f0458ce07f87d66d3b6, type: 3}
+--- !u!1 &172397452
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 172397453}
+  - component: {fileID: 172397454}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &172397453
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 172397452}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1626603054}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &172397454
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 172397452}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.23399973, y: 1.789, z: 0.282}
+  m_Center: {x: 5.6800003, y: 0.0035000145, z: -0.039000005}
+--- !u!1 &179959630
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 179959631}
+  - component: {fileID: 179959632}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &179959631
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 179959630}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 549282930}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &179959632
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 179959630}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2.0124903, y: 33.83176, z: 2.2083309}
+  m_Center: {x: 0.072143555, y: 16.691366, z: -0.098968506}
+--- !u!1 &181094067
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 181094068}
+  - component: {fileID: 181094069}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &181094068
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 181094067}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1321970811}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &181094069
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 181094067}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.24199998, y: 1.789, z: 0.211}
+  m_Center: {x: -1.777, y: 0.0035000145, z: -0.0355}
+--- !u!1 &211923821
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 211923822}
+  - component: {fileID: 211923823}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &211923822
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 211923821}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 313402694}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &211923823
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 211923821}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.0926645, y: 11.426439, z: 1.2316177}
+  m_Center: {x: 0.02481842, y: 5.591282, z: -0.05538273}
+--- !u!1 &255063584
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 255063585}
+  - component: {fileID: 255063586}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &255063585
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 255063584}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1626603054}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &255063586
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 255063584}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.2420001, y: 1.789, z: 0.25}
+  m_Center: {x: -5.6759996, y: 0.0035000145, z: -0.039}
+--- !u!1001 &313402693
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -205.53125
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 16.453125
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 1014.71094
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 8df4831e822b5d144a358d8f93aa53e9, type: 2}
+    - target: {fileID: -7635826562936255635, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 13abde48fd6c6ad42af5f93d20e2d2a3, type: 2}
+    - target: {fileID: -7635826562936255635, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 3ef04a142e5791f4b94c7aa884e689df, type: 2}
+    - target: {fileID: -7635826562936255635, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: 'm_Materials.Array.data[3]'
+      value: 
+      objectReference: {fileID: 2100000, guid: df9e01f3b8446e54abd4670775c85b57, type: 2}
+    - target: {fileID: 919132149155446097, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_Name
+      value: sm_veg_tree4_big #691
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 211923822}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+--- !u!4 &313402694 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+  m_PrefabInstance: {fileID: 313402693}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &318596954
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 318596955}
+  - component: {fileID: 318596956}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &318596955
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 318596954}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1656177487}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &318596956
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 318596954}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.2420001, y: 1.789, z: 0.25}
+  m_Center: {x: -5.6759996, y: 0.0035000145, z: -0.039}
+--- !u!1 &324147848
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 324147849}
+  - component: {fileID: 324147850}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &324147849
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 324147848}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1606477022}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &324147850
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 324147848}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.2420001, y: 1.789, z: 0.25}
+  m_Center: {x: -5.6759996, y: 0.0035000145, z: -0.039}
+--- !u!1 &517654390
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 517654391}
+  - component: {fileID: 517654392}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &517654391
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 517654390}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1087009624}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &517654392
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 517654390}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.4402039, y: 0.09000015, z: 4.5}
+  m_Center: {x: 0.4049549, y: 5.657092, z: 5.926193}
+--- !u!1 &537623450
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 537623451}
+  - component: {fileID: 537623452}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &537623451
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 537623450}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1321970811}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &537623452
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 537623450}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.23399973, y: 1.789, z: 0.282}
+  m_Center: {x: 5.6800003, y: 0.0035000145, z: -0.039000005}
+--- !u!1001 &541113685
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 4223b20f2bb4d8c4bbd415c340e30bfa, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -192.17969
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4223b20f2bb4d8c4bbd415c340e30bfa, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 65.828125
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4223b20f2bb4d8c4bbd415c340e30bfa, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 943.0703
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4223b20f2bb4d8c4bbd415c340e30bfa, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4223b20f2bb4d8c4bbd415c340e30bfa, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4223b20f2bb4d8c4bbd415c340e30bfa, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4223b20f2bb4d8c4bbd415c340e30bfa, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4223b20f2bb4d8c4bbd415c340e30bfa, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4223b20f2bb4d8c4bbd415c340e30bfa, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4223b20f2bb4d8c4bbd415c340e30bfa, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: 4223b20f2bb4d8c4bbd415c340e30bfa, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 3cebb5f8b0c10b04fa597e466cc2333f, type: 2}
+    - target: {fileID: 919132149155446097, guid: 4223b20f2bb4d8c4bbd415c340e30bfa, type: 3}
+      propertyPath: m_Name
+      value: cuntwwiresxxx #17428
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 4223b20f2bb4d8c4bbd415c340e30bfa, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 4223b20f2bb4d8c4bbd415c340e30bfa, type: 3}
+--- !u!4 &541113686 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4223b20f2bb4d8c4bbd415c340e30bfa, type: 3}
+  m_PrefabInstance: {fileID: 541113685}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &549282929
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: e6c01b0499e2c7e44834f989aee4d76b, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -216.86719
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e6c01b0499e2c7e44834f989aee4d76b, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 17.335938
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e6c01b0499e2c7e44834f989aee4d76b, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 991.03125
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e6c01b0499e2c7e44834f989aee4d76b, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e6c01b0499e2c7e44834f989aee4d76b, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e6c01b0499e2c7e44834f989aee4d76b, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e6c01b0499e2c7e44834f989aee4d76b, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e6c01b0499e2c7e44834f989aee4d76b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e6c01b0499e2c7e44834f989aee4d76b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: e6c01b0499e2c7e44834f989aee4d76b, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: e6c01b0499e2c7e44834f989aee4d76b, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1a147cb19cab37d428adf219bd463160, type: 2}
+    - target: {fileID: -7635826562936255635, guid: e6c01b0499e2c7e44834f989aee4d76b, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 342dab27a67a9a74084fbe1f6ea02bb0, type: 2}
+    - target: {fileID: -7635826562936255635, guid: e6c01b0499e2c7e44834f989aee4d76b, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 9738daf49bb83be418d07dc563a01b79, type: 2}
+    - target: {fileID: -7635826562936255635, guid: e6c01b0499e2c7e44834f989aee4d76b, type: 3}
+      propertyPath: 'm_Materials.Array.data[3]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 25d1458b187e05d4d979a107a56d386a, type: 2}
+    - target: {fileID: 919132149155446097, guid: e6c01b0499e2c7e44834f989aee4d76b, type: 3}
+      propertyPath: m_Name
+      value: sm_veg_tree4_vbig #708
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: e6c01b0499e2c7e44834f989aee4d76b, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: e6c01b0499e2c7e44834f989aee4d76b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 179959631}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e6c01b0499e2c7e44834f989aee4d76b, type: 3}
+--- !u!4 &549282930 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: e6c01b0499e2c7e44834f989aee4d76b, type: 3}
+  m_PrefabInstance: {fileID: 549282929}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &566564057
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 566564058}
+  - component: {fileID: 566564059}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &566564058
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 566564057}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 21345396}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &566564059
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 566564057}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.150979, y: 1.3774245, z: 0.4}
+  m_Center: {x: -0.043911934, y: 1.1975408, z: -0.00030517578}
+--- !u!1 &600871635
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 600871636}
+  - component: {fileID: 600871637}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &600871636
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 600871635}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1087009624}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &600871637
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 600871635}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.7, y: 1.6000004, z: 8.653156}
+  m_Center: {x: 0.006029129, y: 6.5020924, z: 3.8496172}
+--- !u!1 &605014792
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 605014793}
+  - component: {fileID: 605014794}
+  m_Layer: 0
+  m_Name: COL default
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &605014793
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 605014792}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 770007181}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!64 &605014794
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 605014792}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -2432090755550338912, guid: 046f5f2a6ef08cc458c5605729254a4f, type: 3}
+--- !u!1 &652763947
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 652763948}
+  - component: {fileID: 652763949}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &652763948
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 652763947}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1606477022}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &652763949
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 652763947}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.24199998, y: 1.789, z: 0.211}
+  m_Center: {x: -1.777, y: 0.0035000145, z: -0.0355}
+--- !u!1001 &670811589
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: c4672657a9a378249a1849226db87422, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -28.648438
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c4672657a9a378249a1849226db87422, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 16.398438
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c4672657a9a378249a1849226db87422, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 1020.34375
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c4672657a9a378249a1849226db87422, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c4672657a9a378249a1849226db87422, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c4672657a9a378249a1849226db87422, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c4672657a9a378249a1849226db87422, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c4672657a9a378249a1849226db87422, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c4672657a9a378249a1849226db87422, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c4672657a9a378249a1849226db87422, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: c4672657a9a378249a1849226db87422, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: a9a61cb7c34c15c4f928b830ef6f782b, type: 2}
+    - target: {fileID: -7635826562936255635, guid: c4672657a9a378249a1849226db87422, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 8f5c123540a592b4bbc6ab19d9b55e1f, type: 2}
+    - target: {fileID: -7635826562936255635, guid: c4672657a9a378249a1849226db87422, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: f0c4fadaee6cfb9429df81810a0296b1, type: 2}
+    - target: {fileID: 919132149155446097, guid: c4672657a9a378249a1849226db87422, type: 3}
+      propertyPath: m_Name
+      value: cuntwrail04c #17297
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: c4672657a9a378249a1849226db87422, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: c4672657a9a378249a1849226db87422, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1917641678}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c4672657a9a378249a1849226db87422, type: 3}
+--- !u!4 &670811590 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: c4672657a9a378249a1849226db87422, type: 3}
+  m_PrefabInstance: {fileID: 670811589}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &683631185
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 683631186}
+  - component: {fileID: 683631187}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &683631186
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 683631185}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1656177487}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &683631187
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 683631185}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.24199998, y: 1.789, z: 0.211}
+  m_Center: {x: -1.777, y: 0.0035000145, z: -0.0355}
+--- !u!1 &691166383
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 691166384}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 hierarquia OBJ"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &691166384
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 691166383}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1815067776}
+  m_Father: {fileID: 725466953}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &691523849
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 691523850}
+  - component: {fileID: 691523851}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &691523850
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 691523849}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1420760936}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &691523851
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 691523849}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.24199998, y: 1.789, z: 0.211}
+  m_Center: {x: -1.777, y: 0.0035000145, z: -0.0355}
+--- !u!1 &704257347
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 704257348}
+  - component: {fileID: 704257349}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &704257348
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 704257347}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1296982168}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &704257349
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 704257347}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 5.626072, y: 8, z: 15.053118}
+  m_Center: {x: -19.633156, y: 3.8884945, z: 0.32450056}
+--- !u!1 &707922077
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 707922078}
+  - component: {fileID: 707922079}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &707922078
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 707922077}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1420760936}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &707922079
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 707922077}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.19500005, y: 1.789, z: 0.211}
+  m_Center: {x: 1.7774999, y: 0.0035000145, z: -0.0355}
+--- !u!1 &711794948
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 711794949}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 hierarquia OBJ"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &711794949
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 711794948}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2002423362}
+  m_Father: {fileID: 939949135}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &725466952
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 4b4eb60ec08e8614bbb2b98a72f38b05, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -153.19531
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4b4eb60ec08e8614bbb2b98a72f38b05, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 34.265625
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4b4eb60ec08e8614bbb2b98a72f38b05, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 971.96094
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4b4eb60ec08e8614bbb2b98a72f38b05, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4b4eb60ec08e8614bbb2b98a72f38b05, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4b4eb60ec08e8614bbb2b98a72f38b05, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4b4eb60ec08e8614bbb2b98a72f38b05, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4b4eb60ec08e8614bbb2b98a72f38b05, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4b4eb60ec08e8614bbb2b98a72f38b05, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 4b4eb60ec08e8614bbb2b98a72f38b05, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: 4b4eb60ec08e8614bbb2b98a72f38b05, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 09d42b6a27a79c64dab7faa0f2e9bbc5, type: 2}
+    - target: {fileID: 919132149155446097, guid: 4b4eb60ec08e8614bbb2b98a72f38b05, type: 3}
+      propertyPath: m_Name
+      value: cuntwroad23 #17305
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 4b4eb60ec08e8614bbb2b98a72f38b05, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4b4eb60ec08e8614bbb2b98a72f38b05, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 691166384}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 4b4eb60ec08e8614bbb2b98a72f38b05, type: 3}
+--- !u!4 &725466953 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 4b4eb60ec08e8614bbb2b98a72f38b05, type: 3}
+  m_PrefabInstance: {fileID: 725466952}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &732534057
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 732534058}
+  - component: {fileID: 732534059}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &732534058
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 732534057}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 929533324}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &732534059
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 732534057}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.2420001, y: 1.789, z: 0.25}
+  m_Center: {x: -5.6759996, y: 0.0035000145, z: -0.039}
+--- !u!1001 &763203347
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 764cd5bc9acf2d140badacd3e8a5a664, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -51.976562
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 764cd5bc9acf2d140badacd3e8a5a664, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 19.742188
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 764cd5bc9acf2d140badacd3e8a5a664, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 842.6719
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 764cd5bc9acf2d140badacd3e8a5a664, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 764cd5bc9acf2d140badacd3e8a5a664, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 764cd5bc9acf2d140badacd3e8a5a664, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 764cd5bc9acf2d140badacd3e8a5a664, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 764cd5bc9acf2d140badacd3e8a5a664, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 764cd5bc9acf2d140badacd3e8a5a664, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 764cd5bc9acf2d140badacd3e8a5a664, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: 764cd5bc9acf2d140badacd3e8a5a664, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: f95aa1e3a8466ce46babbbccde244a97, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 764cd5bc9acf2d140badacd3e8a5a664, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: f3633a5dda9b6bb499e8fdae055eba60, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 764cd5bc9acf2d140badacd3e8a5a664, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: aad8c5a92c223584aaf8e5739c9572ee, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 764cd5bc9acf2d140badacd3e8a5a664, type: 3}
+      propertyPath: 'm_Materials.Array.data[3]'
+      value: 
+      objectReference: {fileID: 2100000, guid: e13160df398e0b44988b09603b56e137, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 764cd5bc9acf2d140badacd3e8a5a664, type: 3}
+      propertyPath: 'm_Materials.Array.data[4]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 5bd5a98b5128faa4d82d73f50cdc0cf5, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 764cd5bc9acf2d140badacd3e8a5a664, type: 3}
+      propertyPath: 'm_Materials.Array.data[5]'
+      value: 
+      objectReference: {fileID: 2100000, guid: f49da0cd7de62e944a43c5aa0537da8a, type: 2}
+    - target: {fileID: 919132149155446097, guid: 764cd5bc9acf2d140badacd3e8a5a664, type: 3}
+      propertyPath: m_Name
+      value: cunte_roads29 #12851
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 764cd5bc9acf2d140badacd3e8a5a664, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 764cd5bc9acf2d140badacd3e8a5a664, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 770007181}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 764cd5bc9acf2d140badacd3e8a5a664, type: 3}
+--- !u!4 &763203348 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 764cd5bc9acf2d140badacd3e8a5a664, type: 3}
+  m_PrefabInstance: {fileID: 763203347}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &770007180
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 770007181}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 hierarquia OBJ"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &770007181
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 770007180}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 605014793}
+  m_Father: {fileID: 763203348}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &790493680
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 790493681}
+  - component: {fileID: 790493682}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &790493681
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 790493680}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1296982168}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &790493682
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 790493680}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 6.7241898, y: 8, z: 15.4597225}
+  m_Center: {x: 19.09446, y: 0.1831379, z: -0.063996315}
+--- !u!1 &792106043
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 792106044}
+  - component: {fileID: 792106045}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &792106044
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 792106043}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1494133698}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &792106045
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 792106043}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.7, y: 1.6000004, z: 8.653156}
+  m_Center: {x: 0.006029129, y: 6.5020924, z: 3.8496172}
+--- !u!1 &827838137
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 827838138}
+  - component: {fileID: 827838139}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &827838138
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 827838137}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 939949135}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &827838139
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 827838137}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.5459881, y: 3.2016973, z: 0.5460036}
+  m_Center: {x: 4.1926727, y: 0.9906733, z: -4.1877747}
+--- !u!1 &859712593
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 859712594}
+  - component: {fileID: 859712595}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &859712594
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 859712593}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 929533324}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &859712595
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 859712593}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.19500005, y: 1.789, z: 0.211}
+  m_Center: {x: 1.7774999, y: 0.0035000145, z: -0.0355}
+--- !u!1 &913122436
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 913122437}
+  - component: {fileID: 913122438}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &913122437
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 913122436}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1501250958}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &913122438
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 913122436}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.0926645, y: 11.426439, z: 1.2316177}
+  m_Center: {x: 0.02481842, y: 5.591282, z: -0.05538273}
+--- !u!1001 &929533323
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -234.55469
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 26.046875
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 949
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.92696655
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.038354307
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.36291155
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.08693246
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: db8afaaa78609494f880e38b4ce2eabe, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: f4ee32af3536b7047b4d1ed2161699d9, type: 2}
+    - target: {fileID: 919132149155446097, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_Name
+      value: cxreffencesld #3276
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 732534058}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1723985740}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 859712594}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1670381647}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 964598634}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+--- !u!4 &929533324 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+  m_PrefabInstance: {fileID: 929533323}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &939949134
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -174.14844
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 22.03125
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 967.6172
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.3032388
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.9529146
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.00000004214685
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: a99134a18bfe1bb4c8ba2a49e34affec, type: 2}
+    - target: {fileID: -7635826562936255635, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 61ac9bbff1e65274d9bd2d8219c8a04d, type: 2}
+    - target: {fileID: -7635826562936255635, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 82eb77114f9efae4b9fc4d819788b185, type: 2}
+    - target: {fileID: -7635826562936255635, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+      propertyPath: 'm_Materials.Array.data[3]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1040f0caa8180c04c847a030a6b395a9, type: 2}
+    - target: {fileID: -7635826562936255635, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+      propertyPath: 'm_Materials.Array.data[4]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 035cf01349857eb4b9f9c51e8a597b85, type: 2}
+    - target: {fileID: 919132149155446097, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+      propertyPath: m_Name
+      value: pylon_big1_ #3244
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 711794949}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2029499873}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1751505979}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1995793382}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 827838138}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+--- !u!4 &939949135 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: c8f5fbee00aedc846a66218ba66f7830, type: 3}
+  m_PrefabInstance: {fileID: 939949134}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &964598633
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 964598634}
+  - component: {fileID: 964598635}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &964598634
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 964598633}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 929533324}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &964598635
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 964598633}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 11.382999, y: 1.148, z: 0.038999997}
+  m_Center: {x: 0.01150012, y: 0.051, z: -0.0275}
+--- !u!1001 &1046159114
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: dfa2220974e1d3d4481d99e85b38a3ab, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -174.14844
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: dfa2220974e1d3d4481d99e85b38a3ab, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 22.03125
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: dfa2220974e1d3d4481d99e85b38a3ab, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 967.6172
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: dfa2220974e1d3d4481d99e85b38a3ab, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.3032388
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: dfa2220974e1d3d4481d99e85b38a3ab, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: dfa2220974e1d3d4481d99e85b38a3ab, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.9529146
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: dfa2220974e1d3d4481d99e85b38a3ab, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.00000004214685
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: dfa2220974e1d3d4481d99e85b38a3ab, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: dfa2220974e1d3d4481d99e85b38a3ab, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: dfa2220974e1d3d4481d99e85b38a3ab, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: dfa2220974e1d3d4481d99e85b38a3ab, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: dfa2220974e1d3d4481d99e85b38a3ab, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: dfa2220974e1d3d4481d99e85b38a3ab, type: 3}
+      propertyPath: m_ReceiveShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: dfa2220974e1d3d4481d99e85b38a3ab, type: 3}
+      propertyPath: m_Name
+      value: pylon_lodbig1_ #3338
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: dfa2220974e1d3d4481d99e85b38a3ab, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: dfa2220974e1d3d4481d99e85b38a3ab, type: 3}
+--- !u!4 &1046159115 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: dfa2220974e1d3d4481d99e85b38a3ab, type: 3}
+  m_PrefabInstance: {fileID: 1046159114}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1086277876
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1086277877}
+  - component: {fileID: 1086277878}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1086277877
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1086277876}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1656177487}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1086277878
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1086277876}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 11.382999, y: 1.148, z: 0.038999997}
+  m_Center: {x: 0.01150012, y: 0.051, z: -0.0275}
+--- !u!1001 &1087009623
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -139.41406
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 25.203125
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 983.6953
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.2941963
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.95574504
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: cbbb933754e48eb44b50b66884eb553b, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1cf64cb4ff5d3dd468cff5704ff161a6, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: faeffbf2106a1b14294eae04c52540bb, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: 'm_Materials.Array.data[3]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c266ad1767c0b5b4088a9da0c8972f17, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: 'm_Materials.Array.data[4]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 23dbaec3868907e4c8cf9ad12c2155a3, type: 2}
+    - target: {fileID: 919132149155446097, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_Name
+      value: cxrf_frway1sig #3336
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 600871636}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 517654391}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2075752567}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+--- !u!4 &1087009624 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+  m_PrefabInstance: {fileID: 1087009623}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1112735506
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1112735507}
+  - component: {fileID: 1112735508}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1112735507
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1112735506}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1321970811}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1112735508
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1112735506}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.2420001, y: 1.789, z: 0.25}
+  m_Center: {x: -5.6759996, y: 0.0035000145, z: -0.039}
+--- !u!1 &1142313094
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1142313095}
+  - component: {fileID: 1142313096}
+  m_Layer: 0
+  m_Name: COL default
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1142313095
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1142313094}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1937235887}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!64 &1142313096
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1142313094}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -2432090755550338912, guid: 28355a5d890935642a0011df6abb5c86, type: 3}
+--- !u!1001 &1148468801
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: d3642e7cab5edfb48a431116175d55c0, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -153.19531
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: d3642e7cab5edfb48a431116175d55c0, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 34.265625
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: d3642e7cab5edfb48a431116175d55c0, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 971.96094
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: d3642e7cab5edfb48a431116175d55c0, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: d3642e7cab5edfb48a431116175d55c0, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: d3642e7cab5edfb48a431116175d55c0, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: d3642e7cab5edfb48a431116175d55c0, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: d3642e7cab5edfb48a431116175d55c0, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: d3642e7cab5edfb48a431116175d55c0, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: d3642e7cab5edfb48a431116175d55c0, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: d3642e7cab5edfb48a431116175d55c0, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: d3642e7cab5edfb48a431116175d55c0, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: d3642e7cab5edfb48a431116175d55c0, type: 3}
+      propertyPath: m_ReceiveShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: d3642e7cab5edfb48a431116175d55c0, type: 3}
+      propertyPath: m_Name
+      value: LODcuntwroad19 #17306
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: d3642e7cab5edfb48a431116175d55c0, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: d3642e7cab5edfb48a431116175d55c0, type: 3}
+--- !u!4 &1148468802 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: d3642e7cab5edfb48a431116175d55c0, type: 3}
+  m_PrefabInstance: {fileID: 1148468801}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1222140514
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1222140515}
+  - component: {fileID: 1222140516}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1222140515
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1222140514}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1626603054}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1222140516
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1222140514}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 11.382999, y: 1.148, z: 0.038999997}
+  m_Center: {x: 0.01150012, y: 0.051, z: -0.0275}
+--- !u!1 &1226801692
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1226801693}
+  - component: {fileID: 1226801694}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1226801693
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1226801692}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1606477022}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1226801694
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1226801692}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 11.382999, y: 1.148, z: 0.038999997}
+  m_Center: {x: 0.01150012, y: 0.051, z: -0.0275}
+--- !u!1001 &1296982167
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 6658edba85938a5468ae16a03aea98a0, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -84.67969
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6658edba85938a5468ae16a03aea98a0, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 18.242188
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6658edba85938a5468ae16a03aea98a0, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 909.34375
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6658edba85938a5468ae16a03aea98a0, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.85038716
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6658edba85938a5468ae16a03aea98a0, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6658edba85938a5468ae16a03aea98a0, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.52615756
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6658edba85938a5468ae16a03aea98a0, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6658edba85938a5468ae16a03aea98a0, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6658edba85938a5468ae16a03aea98a0, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 6658edba85938a5468ae16a03aea98a0, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: 6658edba85938a5468ae16a03aea98a0, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: d6bef0bf36031d54b96f8fe1c85bab81, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 6658edba85938a5468ae16a03aea98a0, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 10d7fce3c3aceae49bf002376a3ead10, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 6658edba85938a5468ae16a03aea98a0, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 13785d6c9f4fd4a4bb21e10e39d472b1, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 6658edba85938a5468ae16a03aea98a0, type: 3}
+      propertyPath: 'm_Materials.Array.data[3]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 63085fa258a57d546b512fc70d4618cd, type: 2}
+    - target: {fileID: 919132149155446097, guid: 6658edba85938a5468ae16a03aea98a0, type: 3}
+      propertyPath: m_Name
+      value: CE_Flintwat01ld #4521
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 6658edba85938a5468ae16a03aea98a0, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 6658edba85938a5468ae16a03aea98a0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 790493681}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 6658edba85938a5468ae16a03aea98a0, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 704257348}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 6658edba85938a5468ae16a03aea98a0, type: 3}
+--- !u!4 &1296982168 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 6658edba85938a5468ae16a03aea98a0, type: 3}
+  m_PrefabInstance: {fileID: 1296982167}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1310327796
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 91c3a12e9ec4ad84cb810dcf3818e99d, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -71.27344
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 91c3a12e9ec4ad84cb810dcf3818e99d, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 16.59375
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 91c3a12e9ec4ad84cb810dcf3818e99d, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 882.2031
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 91c3a12e9ec4ad84cb810dcf3818e99d, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 91c3a12e9ec4ad84cb810dcf3818e99d, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 91c3a12e9ec4ad84cb810dcf3818e99d, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 91c3a12e9ec4ad84cb810dcf3818e99d, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 91c3a12e9ec4ad84cb810dcf3818e99d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 91c3a12e9ec4ad84cb810dcf3818e99d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 91c3a12e9ec4ad84cb810dcf3818e99d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: 91c3a12e9ec4ad84cb810dcf3818e99d, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6a7408e0dbc72e5429b250650badf61d, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 91c3a12e9ec4ad84cb810dcf3818e99d, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: cf71861fe8414364da0f8c855e942503, type: 2}
+    - target: {fileID: 919132149155446097, guid: 91c3a12e9ec4ad84cb810dcf3818e99d, type: 3}
+      propertyPath: m_Name
+      value: cunte_roads30bar01 #13034
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 91c3a12e9ec4ad84cb810dcf3818e99d, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 91c3a12e9ec4ad84cb810dcf3818e99d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1937235887}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 91c3a12e9ec4ad84cb810dcf3818e99d, type: 3}
+--- !u!4 &1310327797 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 91c3a12e9ec4ad84cb810dcf3818e99d, type: 3}
+  m_PrefabInstance: {fileID: 1310327796}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1321970810
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -243.03906
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 28.257812
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 941.2422
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.92696655
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.038354307
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.36291155
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.08693246
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: db8afaaa78609494f880e38b4ce2eabe, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: f4ee32af3536b7047b4d1ed2161699d9, type: 2}
+    - target: {fileID: 919132149155446097, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_Name
+      value: cxreffencesld #3276
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1112735507}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 181094068}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1945446433}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 537623451}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 56189202}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+--- !u!4 &1321970811 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+  m_PrefabInstance: {fileID: 1321970810}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1327946601
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1327946602}
+  - component: {fileID: 1327946603}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1327946602
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1327946601}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1420760936}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1327946603
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1327946601}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.23399973, y: 1.789, z: 0.282}
+  m_Center: {x: 5.6800003, y: 0.0035000145, z: -0.039000005}
+--- !u!1001 &1420760935
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -249.17188
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 30.71875
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 973.53125
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.4016614
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.1024071
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.90858877
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.051452164
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: db8afaaa78609494f880e38b4ce2eabe, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: f4ee32af3536b7047b4d1ed2161699d9, type: 2}
+    - target: {fileID: 919132149155446097, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_Name
+      value: cxreffencesld #3276
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1973797668}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 691523850}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 707922078}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1327946602}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1539367366}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+--- !u!4 &1420760936 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+  m_PrefabInstance: {fileID: 1420760935}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1433967013
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1433967014}
+  - component: {fileID: 1433967015}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1433967014
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1433967013}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1656177487}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1433967015
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1433967013}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.23399973, y: 1.789, z: 0.282}
+  m_Center: {x: 5.6800003, y: 0.0035000145, z: -0.039000005}
+--- !u!1 &1465231005
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1465231006}
+  - component: {fileID: 1465231007}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1465231006
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1465231005}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1494133698}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1465231007
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1465231005}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.44000003, y: 6.0200005, z: 0.4184649}
+  m_Center: {x: 0.006029129, y: 2.7520924, z: -0.0048980713}
+--- !u!1 &1489109764
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1489109765}
+  - component: {fileID: 1489109766}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1489109765
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1489109764}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1606477022}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1489109766
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1489109764}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.23399973, y: 1.789, z: 0.282}
+  m_Center: {x: 5.6800003, y: 0.0035000145, z: -0.039000005}
+--- !u!1001 &1494133697
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -113.5625
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 24.09375
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 986.6406
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.9320166
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.36241555
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: cbbb933754e48eb44b50b66884eb553b, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1cf64cb4ff5d3dd468cff5704ff161a6, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: faeffbf2106a1b14294eae04c52540bb, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: 'm_Materials.Array.data[3]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c266ad1767c0b5b4088a9da0c8972f17, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: 'm_Materials.Array.data[4]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 23dbaec3868907e4c8cf9ad12c2155a3, type: 2}
+    - target: {fileID: 919132149155446097, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_Name
+      value: cxrf_frway1sig #3336
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 792106044}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1738481354}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1465231006}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+--- !u!4 &1494133698 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 2f621567143f92a4493e3f1c6973aa24, type: 3}
+  m_PrefabInstance: {fileID: 1494133697}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1501250957
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -238.4375
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 24.828125
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 1007.28125
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 8df4831e822b5d144a358d8f93aa53e9, type: 2}
+    - target: {fileID: -7635826562936255635, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 13abde48fd6c6ad42af5f93d20e2d2a3, type: 2}
+    - target: {fileID: -7635826562936255635, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 3ef04a142e5791f4b94c7aa884e689df, type: 2}
+    - target: {fileID: -7635826562936255635, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: 'm_Materials.Array.data[3]'
+      value: 
+      objectReference: {fileID: 2100000, guid: df9e01f3b8446e54abd4670775c85b57, type: 2}
+    - target: {fileID: 919132149155446097, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_Name
+      value: sm_veg_tree4_big #691
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 913122437}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+--- !u!4 &1501250958 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: ad099c9826250414ab2e6fc5f5e43543, type: 3}
+  m_PrefabInstance: {fileID: 1501250957}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1539367365
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1539367366}
+  - component: {fileID: 1539367367}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1539367366
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1539367365}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1420760936}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1539367367
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1539367365}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 11.382999, y: 1.148, z: 0.038999997}
+  m_Center: {x: 0.01150012, y: 0.051, z: -0.0275}
+--- !u!1001 &1606477021
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -241.50781
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 28.25
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 965.3672
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.40213385
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.08758258
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.91039395
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.042431932
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: db8afaaa78609494f880e38b4ce2eabe, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: f4ee32af3536b7047b4d1ed2161699d9, type: 2}
+    - target: {fileID: 919132149155446097, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_Name
+      value: cxreffencesld #3276
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 324147849}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 652763948}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1672412056}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1489109765}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1226801693}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+--- !u!4 &1606477022 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+  m_PrefabInstance: {fileID: 1606477021}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1626603053
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -234
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 25.90625
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 957.2969
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: -0.39917114
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.09496527
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.91078436
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.045998357
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: db8afaaa78609494f880e38b4ce2eabe, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: f4ee32af3536b7047b4d1ed2161699d9, type: 2}
+    - target: {fileID: 919132149155446097, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_Name
+      value: cxreffencesld #3276
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 255063585}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 74665919}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1670680121}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 172397453}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1222140515}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+--- !u!4 &1626603054 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+  m_PrefabInstance: {fileID: 1626603053}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1636086625
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: dacab0b86d2c1a4499ed1586044ab3ad, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -128.66406
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: dacab0b86d2c1a4499ed1586044ab3ad, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 23.234375
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: dacab0b86d2c1a4499ed1586044ab3ad, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 978.6797
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: dacab0b86d2c1a4499ed1586044ab3ad, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: dacab0b86d2c1a4499ed1586044ab3ad, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: dacab0b86d2c1a4499ed1586044ab3ad, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: dacab0b86d2c1a4499ed1586044ab3ad, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: dacab0b86d2c1a4499ed1586044ab3ad, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: dacab0b86d2c1a4499ed1586044ab3ad, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: dacab0b86d2c1a4499ed1586044ab3ad, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: dacab0b86d2c1a4499ed1586044ab3ad, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6a0de6bfa9bbf2147bcc6c636d826e34, type: 2}
+    - target: {fileID: 919132149155446097, guid: dacab0b86d2c1a4499ed1586044ab3ad, type: 3}
+      propertyPath: m_Name
+      value: xoverlaydrt #17470
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: dacab0b86d2c1a4499ed1586044ab3ad, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: dacab0b86d2c1a4499ed1586044ab3ad, type: 3}
+--- !u!4 &1636086626 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: dacab0b86d2c1a4499ed1586044ab3ad, type: 3}
+  m_PrefabInstance: {fileID: 1636086625}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1643874703
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: c2a895963a9d6494b89337f29a981b9f, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -51.976562
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c2a895963a9d6494b89337f29a981b9f, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 19.742188
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c2a895963a9d6494b89337f29a981b9f, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 842.6719
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c2a895963a9d6494b89337f29a981b9f, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c2a895963a9d6494b89337f29a981b9f, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c2a895963a9d6494b89337f29a981b9f, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c2a895963a9d6494b89337f29a981b9f, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c2a895963a9d6494b89337f29a981b9f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c2a895963a9d6494b89337f29a981b9f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: c2a895963a9d6494b89337f29a981b9f, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: c2a895963a9d6494b89337f29a981b9f, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: c2a895963a9d6494b89337f29a981b9f, type: 3}
+      propertyPath: m_CastShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: c2a895963a9d6494b89337f29a981b9f, type: 3}
+      propertyPath: m_ReceiveShadows
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: c2a895963a9d6494b89337f29a981b9f, type: 3}
+      propertyPath: m_Name
+      value: LODcunte_roads29 #13234
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: c2a895963a9d6494b89337f29a981b9f, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c2a895963a9d6494b89337f29a981b9f, type: 3}
+--- !u!4 &1643874704 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: c2a895963a9d6494b89337f29a981b9f, type: 3}
+  m_PrefabInstance: {fileID: 1643874703}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1656177486
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -251.51562
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 30.789062
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 933.59375
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.92525655
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.044669546
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.36231884
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.10310194
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: db8afaaa78609494f880e38b4ce2eabe, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: f4ee32af3536b7047b4d1ed2161699d9, type: 2}
+    - target: {fileID: 919132149155446097, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_Name
+      value: cxreffencesld #3276
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 318596955}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 683631186}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1852420876}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1433967014}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1086277877}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+--- !u!4 &1656177487 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 10cf8e79c38423246a7a164ca5daa8ec, type: 3}
+  m_PrefabInstance: {fileID: 1656177486}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1670381646
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1670381647}
+  - component: {fileID: 1670381648}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1670381647
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1670381646}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 929533324}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1670381648
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1670381646}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.23399973, y: 1.789, z: 0.282}
+  m_Center: {x: 5.6800003, y: 0.0035000145, z: -0.039000005}
+--- !u!1 &1670680120
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1670680121}
+  - component: {fileID: 1670680122}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1670680121
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1670680120}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1626603054}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1670680122
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1670680120}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.19500005, y: 1.789, z: 0.211}
+  m_Center: {x: 1.7774999, y: 0.0035000145, z: -0.0355}
+--- !u!1 &1672412055
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1672412056}
+  - component: {fileID: 1672412057}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1672412056
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1672412055}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1606477022}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1672412057
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1672412055}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.19500005, y: 1.789, z: 0.211}
+  m_Center: {x: 1.7774999, y: 0.0035000145, z: -0.0355}
+--- !u!1 &1723985739
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1723985740}
+  - component: {fileID: 1723985741}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1723985740
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1723985739}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 929533324}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1723985741
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1723985739}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.24199998, y: 1.789, z: 0.211}
+  m_Center: {x: -1.777, y: 0.0035000145, z: -0.0355}
+--- !u!1 &1738481353
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1738481354}
+  - component: {fileID: 1738481355}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1738481354
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1738481353}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1494133698}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1738481355
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1738481353}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.4402039, y: 0.09000015, z: 4.5}
+  m_Center: {x: 0.4049549, y: 5.657092, z: 5.926193}
+--- !u!1 &1751505978
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1751505979}
+  - component: {fileID: 1751505980}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1751505979
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1751505978}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 939949135}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1751505980
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1751505978}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.5459957, y: 3.2016978, z: 0.5459864}
+  m_Center: {x: 4.192688, y: 0.99067307, z: 4.1703186}
+--- !u!1 &1815067775
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1815067776}
+  - component: {fileID: 1815067777}
+  m_Layer: 0
+  m_Name: COL default
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1815067776
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1815067775}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 691166384}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!64 &1815067777
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1815067775}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -2432090755550338912, guid: 86cbd1d27189b1241a79dbd1cbbcbf82, type: 3}
+--- !u!1 &1832567323
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1832567324}
+  - component: {fileID: 1832567325}
+  m_Layer: 0
+  m_Name: COL default
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1832567324
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1832567323}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1991640268}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!64 &1832567325
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1832567323}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -2432090755550338912, guid: eecf2597389f4b045929ed2d3d6702f9, type: 3}
+--- !u!1 &1852420875
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1852420876}
+  - component: {fileID: 1852420877}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1852420876
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1852420875}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1656177487}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1852420877
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1852420875}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.19500005, y: 1.789, z: 0.211}
+  m_Center: {x: 1.7774999, y: 0.0035000145, z: -0.0355}
+--- !u!1001 &1911867116
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 129919478}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 5eae6fd1f8ecb42468083ef7f20e8535, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -126.53125
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5eae6fd1f8ecb42468083ef7f20e8535, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 16.273438
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5eae6fd1f8ecb42468083ef7f20e8535, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 1019.91406
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5eae6fd1f8ecb42468083ef7f20e8535, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.20788822
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5eae6fd1f8ecb42468083ef7f20e8535, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5eae6fd1f8ecb42468083ef7f20e8535, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.9781526
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5eae6fd1f8ecb42468083ef7f20e8535, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5eae6fd1f8ecb42468083ef7f20e8535, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5eae6fd1f8ecb42468083ef7f20e8535, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 5eae6fd1f8ecb42468083ef7f20e8535, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7635826562936255635, guid: 5eae6fd1f8ecb42468083ef7f20e8535, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 60120fba7b1957744bbbe159a3b8a36c, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 5eae6fd1f8ecb42468083ef7f20e8535, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 9985f8cae60fbe04b914fd983415cceb, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 5eae6fd1f8ecb42468083ef7f20e8535, type: 3}
+      propertyPath: 'm_Materials.Array.data[2]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 7aeef89d5907225448937be3af033590, type: 2}
+    - target: {fileID: -7635826562936255635, guid: 5eae6fd1f8ecb42468083ef7f20e8535, type: 3}
+      propertyPath: 'm_Materials.Array.data[3]'
+      value: 
+      objectReference: {fileID: 2100000, guid: af51f6f52aa72774484f6e58a9d7cb70, type: 2}
+    - target: {fileID: 919132149155446097, guid: 5eae6fd1f8ecb42468083ef7f20e8535, type: 3}
+      propertyPath: m_Name
+      value: bwidgecuntw #17293
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 5eae6fd1f8ecb42468083ef7f20e8535, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 2147483647
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 5eae6fd1f8ecb42468083ef7f20e8535, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1991640268}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 5eae6fd1f8ecb42468083ef7f20e8535, type: 3}
+--- !u!4 &1911867117 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 5eae6fd1f8ecb42468083ef7f20e8535, type: 3}
+  m_PrefabInstance: {fileID: 1911867116}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1917641677
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1917641678}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 hierarquia OBJ"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1917641678
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1917641677}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 148360453}
+  m_Father: {fileID: 670811590}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1937235886
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1937235887}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 hierarquia OBJ"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1937235887
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1937235886}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1142313095}
+  m_Father: {fileID: 1310327797}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1945446432
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1945446433}
+  - component: {fileID: 1945446434}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1945446433
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1945446432}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1321970811}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1945446434
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1945446432}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.19500005, y: 1.789, z: 0.211}
+  m_Center: {x: 1.7774999, y: 0.0035000145, z: -0.0355}
+--- !u!1 &1973797667
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1973797668}
+  - component: {fileID: 1973797669}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1973797668
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1973797667}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1420760936}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1973797669
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1973797667}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.2420001, y: 1.789, z: 0.25}
+  m_Center: {x: -5.6759996, y: 0.0035000145, z: -0.039}
+--- !u!1 &1991640267
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1991640268}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 hierarquia OBJ"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1991640268
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1991640267}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1832567324}
+  m_Father: {fileID: 1911867117}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1995793381
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1995793382}
+  - component: {fileID: 1995793383}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &1995793382
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1995793381}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 939949135}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &1995793383
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1995793381}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.5460017, y: 3.2016973, z: 0.5459871}
+  m_Center: {x: -4.1654053, y: 0.9906733, z: -4.1877747}
+--- !u!1 &2002423361
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2002423362}
+  - component: {fileID: 2002423363}
+  m_Layer: 0
+  m_Name: COL default
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &2002423362
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2002423361}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 711794949}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!64 &2002423363
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2002423361}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -2432090755550338912, guid: e231a49d12e5e314cade3f1162d09bb7, type: 3}
+--- !u!1 &2029499872
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2029499873}
+  - component: {fileID: 2029499874}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &2029499873
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2029499872}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 939949135}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &2029499874
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2029499872}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.54600143, y: 3.2016978, z: 0.54601765}
+  m_Center: {x: -4.1654053, y: 0.99067307, z: 4.1703186}
+--- !u!1 &2057463577
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2057463578}
+  - component: {fileID: 2057463579}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &2057463578
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2057463577}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 21345396}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &2057463579
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2057463577}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2.5356684, y: 1.351152, z: 0.4}
+  m_Center: {x: 0.008056641, y: 2.2071798, z: -0.0006942749}
+--- !u!1 &2073659899
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2073659900}
+  - component: {fileID: 2073659901}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &2073659900
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2073659899}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 21345396}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &2073659901
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2073659899}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 2.181668, y: 0.5906551, z: 0.5839891}
+  m_Center: {x: 0.004802704, y: 0.21350098, z: -0.0041542053}
+--- !u!1 &2075752566
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2075752567}
+  - component: {fileID: 2075752568}
+  m_Layer: 0
+  m_Name: "Colis\xE3o original GTA SA \u2014 caixa"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &2075752567
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2075752566}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1087009624}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &2075752568
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2075752566}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.44000003, y: 6.0200005, z: 0.4184649}
+  m_Center: {x: 0.006029129, y: 2.7520924, z: -0.0048980713}
+--- !u!1660057539 &9223372036854775807
+SceneRoots:
+  m_ObjectHideFlags: 0
+  m_Roots:
+  - {fileID: 129919478}

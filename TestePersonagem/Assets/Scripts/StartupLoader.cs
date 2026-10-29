@@ -8,6 +8,7 @@ public sealed class StartupLoader : MonoBehaviour
     public Texture2D loginArtwork;
     public AudioClip intro;
     public float minimumSeconds=10;
+    public string cityScene="TestePersonagem";
     public static bool IsLoading { get; private set; }
     public float Progress { get; private set; }
     public AudioSource Music { get; private set; }
@@ -32,12 +33,22 @@ public sealed class StartupLoader : MonoBehaviour
 
     IEnumerator Start()
     {
+        if (System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "--verify-gta-sa-map") >= 0)
+        {
+            yield return SceneManager.LoadSceneAsync(cityScene,LoadSceneMode.Single);
+            IsLoading=false;Music.Stop();Destroy(gameObject);yield break;
+        }
         // Display the artwork before starting the asynchronous scene load.
         yield return null;
-        var updater=gameObject.AddComponent<GameUpdater>();
-        yield return updater.Check((message,value)=>{status=message;Progress=value;Music.volume=.6f;});
+        bool verifySession=System.Array.IndexOf(System.Environment.GetCommandLineArgs(),"--verify-sa-session")>=0;
+        if(verifySession)RememberedCityEntryVerification.Install();
+        else
+        {
+            var updater=gameObject.AddComponent<GameUpdater>();
+            yield return updater.Check((message,value)=>{status=message;Progress=value;Music.volume=.6f;});
+        }
         status="PREPARANDO A CIDADE";Progress=0;
-        var load=SceneManager.LoadSceneAsync("TestePersonagem",LoadSceneMode.Single);
+        var load=SceneManager.LoadSceneAsync(cityScene,LoadSceneMode.Single);
         if(load==null){status="NÃO FOI POSSÍVEL CARREGAR A CIDADE";yield break;}
         load.allowSceneActivation=false;
         while(load.progress<.9f || Time.realtimeSinceStartup-started<minimumSeconds)
@@ -58,6 +69,7 @@ public sealed class StartupLoader : MonoBehaviour
         // Let Awake/Start, the HUD and the first gameplay render finish behind the artwork.
         yield return null;
         yield return new WaitForEndOfFrame();
+        while (IntegratedMapEntry.Loading) yield return null;
         Progress=1;status="TUDO PRONTO";
         while(Time.realtimeSinceStartup-entering<1.6f)
         {transition.Progress=Mathf.Lerp(.35f,1,Mathf.Clamp01((Time.realtimeSinceStartup-entering)/1.6f));yield return null;}

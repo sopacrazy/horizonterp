@@ -42,7 +42,7 @@ public static class AndroidSetup
         var report=BuildPipeline.BuildPlayer(new BuildPlayerOptions{
             scenes=GameUpdateSetup.Scenes,
             locationPathName="Builds/Android/TestePersonagem.apk",
-            target=BuildTarget.Android,options=BuildOptions.None});
+            target=BuildTarget.Android,options=BuildOptions.CompressWithLz4HC});
         if(report.summary.result!=BuildResult.Succeeded)throw new Exception("APK falhou: "+report.summary.result);
         Debug.Log("ANDROID_APK_OK "+report.summary.totalSize);
     }

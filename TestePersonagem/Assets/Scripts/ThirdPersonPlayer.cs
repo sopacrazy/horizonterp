@@ -133,6 +133,8 @@ public class ThirdPersonPlayer : MonoBehaviour
 
     public void ResetPosition()
     {
+        if(FindAnyObjectByType<GtaSaSectorStreaming>())
+        {TeleportTo(spawnPosition,spawnYaw);return;}
         controller.enabled = false;
         transform.SetPositionAndRotation(spawnPosition, Quaternion.Euler(0, spawnYaw, 0));
         controller.enabled = true;
@@ -166,6 +168,13 @@ public class ThirdPersonPlayer : MonoBehaviour
             streaming.RefreshNow();
             float deadline=Time.realtimeSinceStartup+15f;
             while(!streaming.Ready&&Time.realtimeSinceStartup<deadline)yield return null;
+        }
+        var saStreaming=FindAnyObjectByType<GtaSaSectorStreaming>();
+        if(saStreaming)
+        {
+            saStreaming.RefreshNow();
+            while(!saStreaming.Ready && string.IsNullOrEmpty(saStreaming.LastError))yield return null;
+            if(!saStreaming.Ready){Debug.LogError(saStreaming.LastError);yield break;}
         }
         controller.enabled=true;verticalSpeed=-2f;teleporting=false;teleportRoutine=null;
         if(GameHud.Instance)GameHud.Instance.NotifyRespawn();

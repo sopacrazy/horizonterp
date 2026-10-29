@@ -16,7 +16,9 @@ public sealed partial class AccountSession
         if(!HasCharacter){done(null);yield break;}
         ApiReply reply=null;
         yield return Request(action==null?"GET":"POST","/v1/missions/arrival",action==null?null:JsonUtility.ToJson(new ArrivalAction{action=action}),true,r=>reply=r);
-        if(reply?.state!=null)
+        // GET arrival returns only mission. JsonUtility can materialize an
+        // empty nested state for an absent JSON field; it is not a player save.
+        if(CanApplyPlayerState(reply?.state))
         {
             State=reply.state;
             if(player){if(long.TryParse(State.cashCents,out long cents))player.Cash=cents/100;float.TryParse(State.xp,out player.Experience);player.Level=State.level;}

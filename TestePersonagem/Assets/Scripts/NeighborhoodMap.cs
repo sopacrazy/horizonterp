@@ -13,10 +13,14 @@ public sealed class NeighborhoodMap : MonoBehaviour
     public float mapCameraHeight=60;
     public string worldCode="centro_teste";
     public string displayName="Bairro Horizonte · Praça Central";
+    public bool restrictRegion;
+    public Vector2 regionMin,regionMax;
+    public bool ContainsXZ(Vector3 position) => !restrictRegion||
+        (position.x>=regionMin.x&&position.x<=regionMax.x&&position.z>=regionMin.y&&position.z<=regionMax.y);
     public Vector3 SpawnPosition => spawnPosition;
     public float MapHalfExtent => halfExtent+4;
     public bool Contains(Vector3 position) => Finite(position.x)&&Finite(position.y)&&Finite(position.z)&&
-        Mathf.Abs(position.x)<=halfExtent-1&&Mathf.Abs(position.z)<=halfExtent-1&&position.y>=minY&&position.y<=maxY;
+        Mathf.Abs(position.x)<=halfExtent-1&&Mathf.Abs(position.z)<=halfExtent-1&&position.y>=minY&&position.y<=maxY&&ContainsXZ(position);
 
     void Awake(){Active=this;}
     void OnDestroy(){if(Active==this)Active=null;}
@@ -27,6 +31,11 @@ public sealed class NeighborhoodMap : MonoBehaviour
     public Vector3 ResolveSavedPosition(Vector3 requested,CharacterController controller)
     {
         Physics.SyncTransforms();
+        // The old test interior is generated at the origin, but is not a valid
+        // arrival point in the imported San Andreas world.
+        if (GetComponent<GtaSaSectorStreaming>() && requested.y < -45f &&
+            Mathf.Abs(requested.x) < 15f && Mathf.Abs(requested.z) < 25f)
+            requested = SpawnPosition;
         if(Contains(requested)&&TryStand(requested,controller,out var resolved))return resolved;
         if(TryStand(SpawnPosition,controller,out resolved))return resolved;
         foreach(var offset in new[]{new Vector3(2,0,0),new Vector3(-2,0,0),new Vector3(0,0,2),

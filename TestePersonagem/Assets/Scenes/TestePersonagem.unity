@@ -15,18 +15,18 @@ RenderSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 10
   m_Fog: 1
-  m_FogColor: {r: 0.7, g: 0.77, b: 0.82, a: 1}
+  m_FogColor: {r: 0.65, g: 0.72, b: 0.79, a: 1}
   m_FogMode: 1
   m_FogDensity: 0.01
-  m_LinearFogStart: 350
-  m_LinearFogEnd: 1100
-  m_AmbientSkyColor: {r: 0.64, g: 0.71, b: 0.82, a: 1}
-  m_AmbientEquatorColor: {r: 0.44, g: 0.46, b: 0.47, a: 1}
-  m_AmbientGroundColor: {r: 0.28, g: 0.27, b: 0.25, a: 1}
+  m_LinearFogStart: 140
+  m_LinearFogEnd: 375
+  m_AmbientSkyColor: {r: 0.62, g: 0.7, b: 0.8, a: 1}
+  m_AmbientEquatorColor: {r: 0.47, g: 0.5, b: 0.54, a: 1}
+  m_AmbientGroundColor: {r: 0.27, g: 0.27, b: 0.28, a: 1}
   m_AmbientIntensity: 1
   m_AmbientMode: 1
   m_SubtractiveShadowColor: {r: 0.42, g: 0.478, b: 0.627, a: 1}
-  m_SkyboxMaterial: {fileID: 2100000, guid: 51ab1e32e61bbbf4da64903904e6aa55, type: 2}
+  m_SkyboxMaterial: {fileID: 2100000, guid: c3f81cbbb24bd7d4ca6814224e3735cf, type: 2}
   m_HaloStrength: 0.5
   m_FlareStrength: 1
   m_FlareFadeSpeed: 3
@@ -35,9 +35,9 @@ RenderSettings:
   m_DefaultReflectionMode: 0
   m_DefaultReflectionResolution: 128
   m_ReflectionBounces: 1
-  m_ReflectionIntensity: 0.7
+  m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
-  m_Sun: {fileID: 697213882}
+  m_Sun: {fileID: 728695922}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &66613061
+--- !u!1 &728695921
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,1417 +127,27 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 66613062}
+  - component: {fileID: 728695923}
+  - component: {fileID: 728695922}
   m_Layer: 0
-  m_Name: Piso verificado 9
+  m_Name: Sol GTA SA teste
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &66613062
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 66613061}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 58.361824, y: 0.8937057, z: 21.11309}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &123454360
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 2259970217975450199, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
-      propertyPath: cameraTransform
-      value: 
-      objectReference: {fileID: 1704379104}
-    - target: {fileID: 2259970217975450199, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
-      propertyPath: spawnPosition.y
-      value: 0.08
-      objectReference: {fileID: 0}
-    - target: {fileID: 3791095538900701410, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
-      propertyPath: m_Name
-      value: Jogador - Teste mapa GTA
-      objectReference: {fileID: 0}
-    - target: {fileID: 6020868517937556383, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6020868517937556383, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.08
-      objectReference: {fileID: 0}
-    - target: {fileID: 6020868517937556383, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6020868517937556383, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 6020868517937556383, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6020868517937556383, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6020868517937556383, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6020868517937556383, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6020868517937556383, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 6020868517937556383, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
---- !u!114 &123454361 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2259970217975450199, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
-  m_PrefabInstance: {fileID: 123454360}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4d83f4288651264ba70a5367ead9e19, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ThirdPersonPlayer
---- !u!4 &123454362 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6020868517937556383, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
-  m_PrefabInstance: {fileID: 123454360}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &157115225
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 157115226}
-  m_Layer: 0
-  m_Name: Piso verificado 10
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &157115226
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 157115225}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 84.130035, y: 0.76605976, z: 21.11309}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &168794801
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 168794802}
-  m_Layer: 0
-  m_Name: Piso verificado 7
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &168794802
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 168794801}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 2.7300415, y: 0.4490525, z: 13.549835}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &194907050
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 194907051}
-  m_Layer: 0
-  m_Name: Piso verificado 18
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &194907051
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 194907050}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -73.6679, y: -1.2158281, z: -53.427975}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &233444072
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 233444073}
-  - component: {fileID: 233444076}
-  - component: {fileID: 233444075}
-  - component: {fileID: 233444074}
-  - component: {fileID: 233444077}
-  m_Layer: 0
-  m_Name: Cidade Horizonte - Mapa Oficial
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &233444073
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 233444072}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -60, y: 4.3016357, z: 45}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1891867753}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &233444074
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 233444072}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b7e9b584758fc154c9413acdd08d0f2c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GtaCityEnvironment
-  lighting: {fileID: 233444075}
-  player: {fileID: 123454361}
---- !u!114 &233444075
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 233444072}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dfb8a0c689c698b45ac1f8c89dcef54c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CityDayNight
-  startAtNight: 0
-  sun: {fileID: 697213882}
-  moon: {fileID: 1891867752}
-  streetLights: []
-  luminaireRenderers: []
-  daySky: {fileID: 2100000, guid: 51ab1e32e61bbbf4da64903904e6aa55, type: 2}
-  nightSky: {fileID: 2100000, guid: 280743dc8043e6640ae32dcd5dd55b1c, type: 2}
-  isNight: 0
---- !u!114 &233444076
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 233444072}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 242581165d18d0e459354ee6e5f9b5f4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NeighborhoodMap
-  halfExtent: 1001
-  groundLevel: 0
-  minY: -80
-  maxY: 100
-  spawnPosition: {x: 0, y: 0.08, z: 0}
-  isOfficialCity: 1
-  mapCameraHeight: 160
-  worldCode: centro_teste
-  displayName: Cidade Horizonte
---- !u!114 &233444077
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 233444072}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 00a034d67837a1144ac399b8ad14d280, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CitySectorStreaming
-  sectors:
-  - scene: CitySector_-7_1
-    bounds:
-      m_Center: {x: -774.62024, y: -4.4565196, z: 229.2294}
-      m_Extent: {x: 3.286621, y: 1.2867008, z: 39.473328}
-  - scene: CitySector_-7_2
-    bounds:
-      m_Center: {x: -781.1682, y: -1.3784552, z: 269.2069}
-      m_Extent: {x: 12.30542, y: 9.559706, z: 85.09326}
-  - scene: CitySector_-6_-2
-    bounds:
-      m_Center: {x: -683.72784, y: 0.18819594, z: -241.173}
-      m_Extent: {x: 15.612305, y: 3.0496867, z: 78.29636}
-  - scene: CitySector_-6_-1
-    bounds:
-      m_Center: {x: -677.8211, y: -0.5944576, z: -55.721565}
-      m_Extent: {x: 70.81763, y: 12.73432, z: 109.81689}
-  - scene: CitySector_-6_0
-    bounds:
-      m_Center: {x: -709.2419, y: -1.5005264, z: 99.499016}
-      m_Extent: {x: 81.099915, y: 17.498642, z: 90.03467}
-  - scene: CitySector_-6_1
-    bounds:
-      m_Center: {x: -698.6088, y: 3.2537146, z: 191.0973}
-      m_Extent: {x: 78.80475, y: 11.484976, z: 85.426346}
-  - scene: CitySector_-6_2
-    bounds:
-      m_Center: {x: -696.9015, y: 5.6171103, z: 338.69803}
-      m_Extent: {x: 91.05896, y: 15.211885, z: 102.74783}
-  - scene: CitySector_-6_3
-    bounds:
-      m_Center: {x: -719.92163, y: -6.065468, z: 441.1467}
-      m_Extent: {x: 75.907104, y: 15.356586, z: 88.92288}
-  - scene: CitySector_-6_4
-    bounds:
-      m_Center: {x: -676.3733, y: 6.3975315, z: 563.38666}
-      m_Extent: {x: 97.92102, y: 21.166946, z: 69.44818}
-  - scene: CitySector_-6_5
-    bounds:
-      m_Center: {x: -655.7696, y: -6.0616837, z: 680.5145}
-      m_Extent: {x: 73.493645, y: 4.984461, z: 53.810547}
-  - scene: CitySector_-5_-2
-    bounds:
-      m_Center: {x: -575.20215, y: 3.9656, z: -166.18336}
-      m_Extent: {x: 108.93848, y: 6.2760725, z: 88.0117}
-  - scene: CitySector_-5_-1
-    bounds:
-      m_Center: {x: -633.2146, y: 6.564465, z: -62.323143}
-      m_Extent: {x: 102.7583, y: 8.402489, z: 107.65804}
-  - scene: CitySector_-5_0
-    bounds:
-      m_Center: {x: -567.8523, y: 4.6806245, z: 20.181145}
-      m_Extent: {x: 100.35571, y: 7.1552825, z: 101.33471}
-  - scene: CitySector_-5_1
-    bounds:
-      m_Center: {x: -595.13074, y: 7.9383783, z: 170.96518}
-      m_Extent: {x: 88.02844, y: 10.821957, z: 114.3407}
-  - scene: CitySector_-5_2
-    bounds:
-      m_Center: {x: -580.1144, y: 7.4790297, z: 341.8465}
-      m_Extent: {x: 86.9115, y: 10.373986, z: 89.773926}
-  - scene: CitySector_-5_3
-    bounds:
-      m_Center: {x: -573.1364, y: 6.761092, z: 455.68848}
-      m_Extent: {x: 105.23291, y: 13.827609, z: 84.476135}
-  - scene: CitySector_-5_4
-    bounds:
-      m_Center: {x: -589.4622, y: 0.63453865, z: 569.7783}
-      m_Extent: {x: 90.91315, y: 11.525631, z: 90.35242}
-  - scene: CitySector_-5_5
-    bounds:
-      m_Center: {x: -545.07117, y: -5.7430754, z: 682.7838}
-      m_Extent: {x: 73.33008, y: 11.466359, z: 73.32373}
-  - scene: CitySector_-5_6
-    bounds:
-      m_Center: {x: -541.954, y: -15.6593485, z: 781.79114}
-      m_Extent: {x: 62.194824, y: 4.917098, z: 66.47778}
-  - scene: CitySector_-4_-2
-    bounds:
-      m_Center: {x: -449.92828, y: 6.076301, z: -173.98297}
-      m_Extent: {x: 97.20337, y: 8.79085, z: 81.21307}
-  - scene: CitySector_-4_-1
-    bounds:
-      m_Center: {x: -436.91608, y: 7.9730825, z: -37.845604}
-      m_Extent: {x: 85.41339, y: 10.391654, z: 78.474594}
-  - scene: CitySector_-4_0
-    bounds:
-      m_Center: {x: -457.8532, y: 7.449069, z: 31.700722}
-      m_Extent: {x: 128.01624, y: 9.405392, z: 79.24138}
-  - scene: CitySector_-4_1
-    bounds:
-      m_Center: {x: -473.70117, y: 2.9784498, z: 198.62479}
-      m_Extent: {x: 112.41759, y: 9.778678, z: 122.29181}
-  - scene: CitySector_-4_2
-    bounds:
-      m_Center: {x: -421.8296, y: 2.0835881, z: 360.085}
-      m_Extent: {x: 93.602356, y: 7.2687964, z: 99.31302}
-  - scene: CitySector_-4_3
-    bounds:
-      m_Center: {x: -443.52893, y: 3.803297, z: 451.3365}
-      m_Extent: {x: 93.4126, y: 12.24515, z: 102.92871}
-  - scene: CitySector_-4_4
-    bounds:
-      m_Center: {x: -445.28665, y: -6.645393, z: 563.3073}
-      m_Extent: {x: 109.816864, y: 6.6993527, z: 102.203186}
-  - scene: CitySector_-4_5
-    bounds:
-      m_Center: {x: -433.7177, y: -12.571742, z: 711.2819}
-      m_Extent: {x: 60.71338, y: 3.9412165, z: 65.42157}
-  - scene: CitySector_-3_-2
-    bounds:
-      m_Center: {x: -303.03198, y: 3.7768703, z: -187.544}
-      m_Extent: {x: 70.944824, y: 7.0776215, z: 70.08588}
-  - scene: CitySector_-3_-1
-    bounds:
-      m_Center: {x: -304.89474, y: 6.7616887, z: -70.30922}
-      m_Extent: {x: 106.16373, y: 8.594767, z: 101.40257}
-  - scene: CitySector_-3_0
-    bounds:
-      m_Center: {x: -347.49017, y: 5.558675, z: 102.055275}
-      m_Extent: {x: 96.361084, y: 7.81306, z: 76.320786}
-  - scene: CitySector_-3_1
-    bounds:
-      m_Center: {x: -313.09293, y: 6.176139, z: 201.84312}
-      m_Extent: {x: 75.65585, y: 8.063625, z: 85.2003}
-  - scene: CitySector_-3_2
-    bounds:
-      m_Center: {x: -327.64215, y: 11.68939, z: 337.25623}
-      m_Extent: {x: 94.52344, y: 17.10122, z: 121.0282}
-  - scene: CitySector_-3_3
-    bounds:
-      m_Center: {x: -311.16547, y: -1.3826847, z: 469.51044}
-      m_Extent: {x: 110.12824, y: 13.414528, z: 91.36279}
-  - scene: CitySector_-3_4
-    bounds:
-      m_Center: {x: -296.12558, y: -3.639594, z: 579.9332}
-      m_Extent: {x: 115.509186, y: 9.026709, z: 101.61035}
-  - scene: CitySector_-2_-2
-    bounds:
-      m_Center: {x: -165.45596, y: 4.9043875, z: -157.9296}
-      m_Extent: {x: 90.253204, y: 9.77807, z: 87.42675}
-  - scene: CitySector_-2_-1
-    bounds:
-      m_Center: {x: -148.73767, y: 12.17346, z: -93.15799}
-      m_Extent: {x: 73.71719, y: 16.47153, z: 45.458527}
-  - scene: CitySector_-2_0
-    bounds:
-      m_Center: {x: -201.90906, y: 9.427914, z: 67.77204}
-      m_Extent: {x: 109.474976, y: 11.936685, z: 83.84343}
-  - scene: CitySector_-2_1
-    bounds:
-      m_Center: {x: -180.6551, y: 8.670033, z: 169.26082}
-      m_Extent: {x: 123.54784, y: 10.316336, z: 117.55809}
-  - scene: CitySector_-2_2
-    bounds:
-      m_Center: {x: -202.89267, y: 8.471058, z: 333.0146}
-      m_Extent: {x: 106.8101, y: 13.8876915, z: 100.23917}
-  - scene: CitySector_-2_3
-    bounds:
-      m_Center: {x: -173.43718, y: 4.11563, z: 423.97516}
-      m_Extent: {x: 120.40608, y: 13.107479, z: 103.92255}
-  - scene: CitySector_-2_4
-    bounds:
-      m_Center: {x: -239.12964, y: -8.329931, z: 552.7519}
-      m_Extent: {x: 49.855705, y: 2.9148955, z: 42.474182}
-  - scene: CitySector_-1_-2
-    bounds:
-      m_Center: {x: -70.33331, y: 6.7464905, z: -155.54286}
-      m_Extent: {x: 84.067444, y: 11.735527, z: 84.8501}
-  - scene: CitySector_-1_-1
-    bounds:
-      m_Center: {x: -92.44322, y: 11.27272, z: -74.79405}
-      m_Extent: {x: 115.64598, y: 16.20762, z: 68.54631}
-  - scene: CitySector_-1_0
-    bounds:
-      m_Center: {x: -44.19561, y: 4.735166, z: 92.499504}
-      m_Extent: {x: 98.581184, y: 7.7986875, z: 105.14345}
-  - scene: CitySector_-1_1
-    bounds:
-      m_Center: {x: -78.496735, y: 5.7210164, z: 197.35342}
-      m_Extent: {x: 89.1407, y: 7.550722, z: 114.54523}
-  - scene: CitySector_-1_2
-    bounds:
-      m_Center: {x: -68.684616, y: 5.116014, z: 302.35175}
-      m_Extent: {x: 90.76875, y: 8.269157, z: 95.56256}
-  - scene: CitySector_-1_3
-    bounds:
-      m_Center: {x: -93.24014, y: 4.035043, z: 401.83438}
-      m_Extent: {x: 78.220215, y: 9.260511, z: 66.49896}
-  - scene: CitySector_0_-2
-    bounds:
-      m_Center: {x: 31.938408, y: 1.7135601, z: -188.78357}
-      m_Extent: {x: 72.02518, y: 9.653614, z: 72.559814}
-  - scene: CitySector_0_-1
-    bounds:
-      m_Center: {x: 47.68386, y: 5.6930695, z: -103.00275}
-      m_Extent: {x: 88.472534, y: 13.295816, z: 136.5881}
-  - scene: CitySector_0_0
-    bounds:
-      m_Center: {x: 62.598198, y: 7.155613, z: 75.21308}
-      m_Extent: {x: 78.79454, y: 7.8222733, z: 75.66493}
-  - scene: CitySector_0_1
-    bounds:
-      m_Center: {x: 53.98861, y: 3.6119785, z: 192.88786}
-      m_Extent: {x: 81.18294, y: 10.657448, z: 139.02203}
-  - scene: CitySector_0_2
-    bounds:
-      m_Center: {x: 86.87549, y: -0.21847439, z: 272.833}
-      m_Extent: {x: 94.03735, y: 13.586763, z: 93.46338}
-  - scene: CitySector_1_-2
-    bounds:
-      m_Center: {x: 189.33102, y: -2.7503424, z: -200.2634}
-      m_Extent: {x: 89.10626, y: 10.561349, z: 51.75824}
-  - scene: CitySector_1_-1
-    bounds:
-      m_Center: {x: 175.24292, y: 5.6426964, z: -78.09822}
-      m_Extent: {x: 43.249374, y: 15.48399, z: 90.70929}
-  - scene: CitySector_1_0
-    bounds:
-      m_Center: {x: 211.43518, y: -4.333172, z: 117.4785}
-      m_Extent: {x: 79.131775, y: 20.998829, z: 114.29051}
-  - scene: CitySector_1_1
-    bounds:
-      m_Center: {x: 166.13004, y: -3.34579, z: 188.35713}
-      m_Extent: {x: 78.03711, y: 8.7255125, z: 130.88768}
-  target: {fileID: 123454362}
-  mobileLoadDistance: 125
-  desktopLoadDistance: 190
---- !u!1 &238237123
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 238237124}
-  m_Layer: 0
-  m_Name: Piso verificado 22
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &238237124
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 238237123}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -157.1018, y: -1.0581024, z: -24.143696}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &293540960
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 293540961}
-  m_Layer: 0
-  m_Name: Piso verificado 11
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &293540961
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 293540960}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 109.89825, y: 0.8001853, z: 21.11309}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &361484341
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 361484342}
-  m_Layer: 0
-  m_Name: Piso verificado 0
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &361484342
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 361484341}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -16.469885, y: -0.8035387, z: -19.235565}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &420916196
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 420916197}
-  m_Layer: 0
-  m_Name: Piso verificado 4
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &420916197
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 420916196}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 2.730041, y: 0.078980625, z: -2.8428645}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &469796697
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 469796698}
-  m_Layer: 0
-  m_Name: Piso verificado 14
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &469796698
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 469796697}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 109.89825, y: 0.9238099, z: 38.757133}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &471115974
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 471115975}
-  m_Layer: 0
-  m_Name: Piso verificado 19
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &471115975
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 471115974}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -157.1018, y: -1.1022506, z: -38.785835}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &677949205
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 677949206}
-  m_Layer: 0
-  m_Name: Piso verificado 5
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &677949206
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 677949205}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 21.929966, y: 0.2483586, z: -2.842865}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &697213881
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 697213883}
-  - component: {fileID: 697213882}
-  m_Layer: 0
-  m_Name: Sol do teste
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!108 &697213882
+--- !u!108 &728695922
 Light:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 697213881}
+  m_GameObject: {fileID: 728695921}
   m_Enabled: 1
   serializedVersion: 13
   m_Type: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 1.12
-  m_Range: 10
-  m_SpotAngle: 30
-  m_InnerSpotAngle: 21.80208
-  m_CookieSize2D: {x: 0.5, y: 0.5}
-  m_Shadows:
-    m_Type: 2
-    m_Resolution: -1
-    m_CustomResolution: -1
-    m_Strength: 1
-    m_Bias: 0.035
-    m_NormalBias: 0.2
-    m_NearPlane: 0.2
-    m_CullingMatrixOverride:
-      e00: 1
-      e01: 0
-      e02: 0
-      e03: 0
-      e10: 0
-      e11: 1
-      e12: 0
-      e13: 0
-      e20: 0
-      e21: 0
-      e22: 1
-      e23: 0
-      e30: 0
-      e31: 0
-      e32: 0
-      e33: 1
-    m_UseCullingMatrixOverride: 0
-  m_Cookie: {fileID: 0}
-  m_DrawHalo: 0
-  m_Flare: {fileID: 0}
-  m_RenderMode: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_RenderingLayerMask: 1
-  m_Lightmapping: 4
-  m_LightShadowCasterMode: 0
-  m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 1
-  m_ColorTemperature: 6570
-  m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
-  m_UseBoundingSphereOverride: 0
-  m_UseViewFrustumForShadowCasterCull: 1
-  m_ForceVisible: 0
-  m_ShapeRadius: 0.025
-  m_ShadowAngle: 0
-  m_LightUnit: 1
-  m_LuxAtDistance: 1
-  m_EnableSpotReflector: 1
---- !u!4 &697213883
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 697213881}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0.34178162, y: -0.28073305, z: 0.10776333, w: 0.8903715}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &922405643
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 922405644}
-  m_Layer: 0
-  m_Name: Piso verificado 12
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &922405644
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 922405643}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 58.361824, y: 0.9221159, z: 38.757133}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &923509719
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 923509720}
-  m_Layer: 0
-  m_Name: Piso verificado 17
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &923509720
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 923509719}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -115.38486, y: 4.256725, z: -53.427975}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &971900263
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 971900264}
-  m_Layer: 0
-  m_Name: Piso verificado 1
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &971900264
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 971900263}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 2.7300413, y: -0.58480173, z: -19.235565}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1410537719
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1410537720}
-  m_Layer: 0
-  m_Name: Piso verificado 2
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1410537720
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1410537719}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 21.929968, y: 0.7334681, z: -19.235569}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1462591646
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1462591647}
-  m_Layer: 0
-  m_Name: Piso verificado 21
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1462591647
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1462591646}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -73.6679, y: -1.0138446, z: -38.785835}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1535912803
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1535912805}
-  m_Layer: 0
-  m_Name: Teste local do mapa GTA
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1535912805
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1535912803}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 361484342}
-  - {fileID: 971900264}
-  - {fileID: 1410537720}
-  - {fileID: 1874489446}
-  - {fileID: 420916197}
-  - {fileID: 677949206}
-  - {fileID: 1756002051}
-  - {fileID: 168794802}
-  - {fileID: 1664765603}
-  - {fileID: 66613062}
-  - {fileID: 157115226}
-  - {fileID: 293540961}
-  - {fileID: 922405644}
-  - {fileID: 1988069910}
-  - {fileID: 469796698}
-  - {fileID: 1740116832}
-  - {fileID: 1590940380}
-  - {fileID: 923509720}
-  - {fileID: 194907051}
-  - {fileID: 471115975}
-  - {fileID: 1832951340}
-  - {fileID: 1462591647}
-  - {fileID: 238237124}
-  - {fileID: 1804814044}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1590940379
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1590940380}
-  m_Layer: 0
-  m_Name: Piso verificado 16
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1590940380
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1590940379}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 109.89825, y: 0.88537747, z: 56.401176}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1664765602
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1664765603}
-  m_Layer: 0
-  m_Name: Piso verificado 8
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1664765603
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1664765602}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 21.929968, y: 0.82302624, z: 13.549835}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1704379103
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1704379104}
-  - component: {fileID: 1704379107}
-  - component: {fileID: 1704379106}
-  - component: {fileID: 1704379105}
-  m_Layer: 0
-  m_Name: Main Camera
-  m_TagString: MainCamera
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1704379104
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1704379103}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0.13917312, y: 0, z: 0, w: 0.9902681}
-  m_LocalPosition: {x: 0, y: 2.4, z: -4.2}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1704379105
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1704379103}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ff917d459cce890479ee06009b870efe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ThirdPersonCamera
-  target: {fileID: 123454362}
-  distance: 4.2
-  pitch: 16
-  yaw: 0
-  sensitivity: 1
-  obstacleMask:
-    serializedVersion: 2
-    m_Bits: 1
---- !u!81 &1704379106
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1704379103}
-  m_Enabled: 1
---- !u!20 &1704379107
-Camera:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1704379103}
-  m_Enabled: 1
-  serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.48, g: 0.67, b: 0.85, a: 1}
-  m_projectionMatrixMode: 1
-  m_GateFitMode: 2
-  m_FOVAxisMode: 0
-  m_Iso: 200
-  m_ShutterSpeed: 0.005
-  m_Aperture: 16
-  m_FocusDistance: 10
-  m_FocalLength: 50
-  m_BladeCount: 5
-  m_Curvature: {x: 2, y: 11}
-  m_BarrelClipping: 0.25
-  m_Anamorphism: 0
-  m_SensorSize: {x: 36, y: 24}
-  m_LensShift: {x: 0, y: 0}
-  m_NormalizedViewPortRect:
-    serializedVersion: 2
-    x: 0
-    y: 0
-    width: 1
-    height: 1
-  near clip plane: 0.15
-  far clip plane: 1200
-  field of view: 58
-  orthographic: 0
-  orthographic size: 5
-  m_Depth: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_RenderingPath: -1
-  m_TargetTexture: {fileID: 0}
-  m_TargetDisplay: 0
-  m_TargetEye: 3
-  m_HDR: 1
-  m_AllowMSAA: 1
-  m_AllowDynamicResolution: 0
-  m_ForceIntoRT: 0
-  m_OcclusionCulling: 1
-  m_StereoConvergence: 10
-  m_StereoSeparation: 0.022
---- !u!1 &1740116831
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1740116832}
-  m_Layer: 0
-  m_Name: Piso verificado 15
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1740116832
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1740116831}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 58.361824, y: 0.95723677, z: 56.401176}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1756002050
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1756002051}
-  m_Layer: 0
-  m_Name: Piso verificado 6
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1756002051
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1756002050}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -16.469883, y: -0.168827, z: 13.549835}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1804814043
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1804814044}
-  m_Layer: 0
-  m_Name: Piso verificado 23
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1804814044
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1804814043}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -115.38486, y: -1.0624747, z: -24.143698}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1832951339
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1832951340}
-  m_Layer: 0
-  m_Name: Piso verificado 20
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1832951340
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1832951339}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -115.38486, y: -1.1008062, z: -38.785835}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1874489445
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1874489446}
-  m_Layer: 0
-  m_Name: Piso verificado 3
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1874489446
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1874489445}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -16.469885, y: -0.50848424, z: -2.842865}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1535912805}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1891867751
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1891867753}
-  - component: {fileID: 1891867752}
-  m_Layer: 0
-  m_Name: Luz da lua
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!108 &1891867752
-Light:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1891867751}
-  m_Enabled: 0
-  serializedVersion: 13
-  m_Type: 1
-  m_Color: {r: 0.68, g: 0.75, b: 0.88, a: 1}
-  m_Intensity: 0.6
+  m_Intensity: 1.05
   m_Range: 10
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
@@ -1591,22 +201,22 @@ Light:
   m_LightUnit: 1
   m_LuxAtDistance: 1
   m_EnableSpotReflector: 1
---- !u!4 &1891867753
+--- !u!4 &728695923
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1891867751}
+  m_GameObject: {fileID: 728695921}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.23087429, y: 0.76817393, z: -0.39988604, w: 0.44350538}
-  m_LocalPosition: {x: 60, y: -4.3016357, z: -45}
+  m_LocalRotation: {x: 0.39098036, y: -0.25180724, z: 0.112111814, w: 0.87815624}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 233444073}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1988069909
+--- !u!1 &1176478089
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1614,35 +224,3406 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1988069910}
+  - component: {fileID: 1176478091}
+  - component: {fileID: 1176478090}
   m_Layer: 0
-  m_Name: Piso verificado 13
+  m_Name: Panorama de Los Santos GTA SA
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1988069910
+--- !u!20 &1176478090
+Camera:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1176478089}
+  m_Enabled: 0
+  serializedVersion: 2
+  m_ClearFlags: 1
+  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_projectionMatrixMode: 1
+  m_GateFitMode: 2
+  m_FOVAxisMode: 0
+  m_Iso: 200
+  m_ShutterSpeed: 0.005
+  m_Aperture: 16
+  m_FocusDistance: 10
+  m_FocalLength: 50
+  m_BladeCount: 5
+  m_Curvature: {x: 2, y: 11}
+  m_BarrelClipping: 0.25
+  m_Anamorphism: 0
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: 0.1
+  far clip plane: 430
+  field of view: 54
+  orthographic: 0
+  orthographic size: 5
+  m_Depth: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingPath: -1
+  m_TargetTexture: {fileID: 0}
+  m_TargetDisplay: 0
+  m_TargetEye: 3
+  m_HDR: 1
+  m_AllowMSAA: 1
+  m_AllowDynamicResolution: 0
+  m_ForceIntoRT: 0
+  m_OcclusionCulling: 1
+  m_StereoConvergence: 10
+  m_StereoSeparation: 0.022
+--- !u!4 &1176478091
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1988069909}
+  m_GameObject: {fileID: 1176478089}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 84.130035, y: 0.9229751, z: 38.757133}
+  m_LocalRotation: {x: 0.22775893, y: 0.425736, z: -0.111637875, w: 0.8685688}
+  m_LocalPosition: {x: 2409.2969, y: 74.296875, z: 1606.5}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1535912805}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1234129043
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1234129045}
+  - component: {fileID: 1234129044}
+  m_Layer: 0
+  m_Name: "Vista a\xE9rea de Los Santos GTA SA"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!20 &1234129044
+Camera:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1234129043}
+  m_Enabled: 0
+  serializedVersion: 2
+  m_ClearFlags: 1
+  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_projectionMatrixMode: 1
+  m_GateFitMode: 2
+  m_FOVAxisMode: 0
+  m_Iso: 200
+  m_ShutterSpeed: 0.005
+  m_Aperture: 16
+  m_FocusDistance: 10
+  m_FocalLength: 50
+  m_BladeCount: 5
+  m_Curvature: {x: 2, y: 11}
+  m_BarrelClipping: 0.25
+  m_Anamorphism: 0
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: 0.1
+  far clip plane: 430
+  field of view: 54
+  orthographic: 0
+  orthographic size: 5
+  m_Depth: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingPath: -1
+  m_TargetTexture: {fileID: 0}
+  m_TargetDisplay: 0
+  m_TargetEye: 3
+  m_HDR: 1
+  m_AllowMSAA: 1
+  m_AllowDynamicResolution: 0
+  m_ForceIntoRT: 0
+  m_OcclusionCulling: 1
+  m_StereoConvergence: 10
+  m_StereoSeparation: 0.022
+--- !u!4 &1234129045
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1234129043}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.4924534, y: 0.19817105, z: -0.11625248, w: 0.8394661}
+  m_LocalPosition: {x: 2434.2969, y: 232.29688, z: 1558.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1455694799
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1455694802}
+  - component: {fileID: 1455694801}
+  - component: {fileID: 1455694800}
+  m_Layer: 0
+  m_Name: "\xC1gua original GTA SA (dados water.dat)"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!23 &1455694800
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1455694799}
+  m_Enabled: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 2a713a1aa6b56d24eac0d65856ebf45f, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
+--- !u!33 &1455694801
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1455694799}
+  m_Mesh: {fileID: 4300000, guid: b41feea5a497bcc42a95ce651fa597aa, type: 2}
+--- !u!4 &1455694802
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1455694799}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1711077964
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1711077968}
+  - component: {fileID: 1711077967}
+  - component: {fileID: 1711077966}
+  - component: {fileID: 1711077965}
+  - component: {fileID: 1711077969}
+  m_Layer: 0
+  m_Name: "Mapa GTA San Andreas modificado \u2014 TESTE SEPARADO"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1711077965
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1711077964}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b764e7fd2884a1f46840b42c29394883, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GtaSaMapPreview
+  player: {fileID: 1774575648}
+  integratedReview: 1
+  streaming: {fileID: 1711077966}
+  reviewCameras:
+  - {fileID: 1234129044}
+  - {fileID: 1176478090}
+  destinations:
+  - name: Los Santos
+    position: {x: 2046, y: 12, z: 1613}
+  - name: San Fierro
+    position: {x: -1936.2266, y: 6.1875, z: -1334.3516}
+  - name: Las Venturas
+    position: {x: 2517.3906, y: 9.7421875, z: -1583.2266}
+  - name: "\xC1rea rural"
+    position: {x: -229.56, y: 18.59, z: -1001.39}
+  - name: Favela Natan
+    position: {x: 1162, y: 65, z: 2108}
+  focus: {x: 2489.2969, y: 12.296875, z: 1668.5}
+  reviewDirectory: C:\SistemaAdr\gta\tools\map-integration\review
+--- !u!114 &1711077966
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1711077964}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d54931da3812a6429769f8e469bd178, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GtaSaSectorStreaming
+  sectors:
+  - scene: GTASASector_m10_m1
+    bounds:
+      m_Center: {x: -2430.435, y: 0, z: 104.41075}
+      m_Extent: {x: 164.33936, y: 400, z: 152.8471}
+    instances: 237
+  - scene: GTASASector_m10_m10
+    bounds:
+      m_Center: {x: -2460.2017, y: 0, z: 2450.105}
+      m_Extent: {x: 156.20166, y: 400, z: 147.479}
+    instances: 34
+  - scene: GTASASector_m10_m11
+    bounds:
+      m_Center: {x: -2412.8716, y: 0, z: 2660.5708}
+      m_Extent: {x: 157.48975, y: 400, z: 155.4292}
+    instances: 24
+  - scene: GTASASector_m10_m12
+    bounds:
+      m_Center: {x: -2431.568, y: 0, z: 2905.3855}
+      m_Extent: {x: 128.43188, y: 400, z: 166.6145}
+    instances: 4
+  - scene: GTASASector_m10_m2
+    bounds:
+      m_Center: {x: -2397.4424, y: 0, z: 352.41434}
+      m_Extent: {x: 190.73145, y: 400, z: 163.83572}
+    instances: 157
+  - scene: GTASASector_m10_m3
+    bounds:
+      m_Center: {x: -2435.6594, y: 0, z: 618.094}
+      m_Extent: {x: 235.41821, y: 400, z: 149.906}
+    instances: 140
+  - scene: GTASASector_m10_m4
+    bounds:
+      m_Center: {x: -2407.3384, y: 0, z: 888.77203}
+      m_Extent: {x: 205.58496, y: 400, z: 178.3775}
+    instances: 39
+  - scene: GTASASector_m10_m5
+    bounds:
+      m_Center: {x: -2421.8433, y: 0, z: 1138.6796}
+      m_Extent: {x: 138.15674, y: 400, z: 141.32043}
+    instances: 14
+  - scene: GTASASector_m10_m6
+    bounds:
+      m_Center: {x: -2431.2954, y: 106.92389, z: 1428.6218}
+      m_Extent: {x: 133.66895, y: 506.9239, z: 216.7085}
+    instances: 8
+  - scene: GTASASector_m10_m7
+    bounds:
+      m_Center: {x: -2446.4612, y: 60.012756, z: 1711.5691}
+      m_Extent: {x: 142.46118, y: 460.01276, z: 175.56909}
+    instances: 13
+  - scene: GTASASector_m10_m8
+    bounds:
+      m_Center: {x: -2442.1287, y: 9.895782, z: 1944.426}
+      m_Extent: {x: 139.98755, y: 409.89578, z: 162.90698}
+    instances: 23
+  - scene: GTASASector_m10_m9
+    bounds:
+      m_Center: {x: -2477.52, y: 0, z: 2227.656}
+      m_Extent: {x: 185.35645, y: 400, z: 188.7395}
+    instances: 65
+  - scene: GTASASector_m10_p0
+    bounds:
+      m_Center: {x: -2437.7695, y: 0, z: -124.56433}
+      m_Extent: {x: 175.82227, y: 400, z: 185.77713}
+    instances: 251
+  - scene: GTASASector_m10_p1
+    bounds:
+      m_Center: {x: -2433.5474, y: 0, z: -341.77097}
+      m_Extent: {x: 188.63379, y: 400, z: 172.23123}
+    instances: 188
+  - scene: GTASASector_m10_p10
+    bounds:
+      m_Center: {x: -2417.3079, y: 0, z: -2707.7773}
+      m_Extent: {x: 153.85815, y: 400, z: 154.58496}
+    instances: 94
+  - scene: GTASASector_m10_p11
+    bounds:
+      m_Center: {x: -2355.4707, y: 0, z: -2943.5623}
+      m_Extent: {x: 213.86426, y: 400, z: 128.43774}
+    instances: 18
+  - scene: GTASASector_m10_p2
+    bounds:
+      m_Center: {x: -2426.7249, y: 0, z: -706.2091}
+      m_Extent: {x: 190.08472, y: 400, z: 230.59949}
+    instances: 208
+  - scene: GTASASector_m10_p3
+    bounds:
+      m_Center: {x: -2446.4937, y: 0, z: -902.0824}
+      m_Extent: {x: 170.43994, y: 400, z: 187.05164}
+    instances: 157
+  - scene: GTASASector_m10_p4
+    bounds:
+      m_Center: {x: -2435.668, y: 0, z: -1166.1665}
+      m_Extent: {x: 201.17236, y: 400, z: 198.0054}
+    instances: 117
+  - scene: GTASASector_m10_p5
+    bounds:
+      m_Center: {x: -2434.6995, y: 0, z: -1370.0074}
+      m_Extent: {x: 152.5774, y: 400, z: 166.47375}
+    instances: 97
+  - scene: GTASASector_m10_p6
+    bounds:
+      m_Center: {x: -2428.0527, y: 0, z: -1659.6667}
+      m_Extent: {x: 131.94727, y: 400, z: 132.33325}
+    instances: 51
+  - scene: GTASASector_m10_p8
+    bounds:
+      m_Center: {x: -2423.6516, y: 0, z: -2196.4988}
+      m_Extent: {x: 199.6726, y: 400, z: 148.49878}
+    instances: 81
+  - scene: GTASASector_m10_p9
+    bounds:
+      m_Center: {x: -2421.0413, y: 0, z: -2410.9822}
+      m_Extent: {x: 188.18042, y: 400, z: 164.45825}
+    instances: 235
+  - scene: GTASASector_m11_m1
+    bounds:
+      m_Center: {x: -2677.337, y: 0, z: 111.14062}
+      m_Extent: {x: 145.12695, y: 400, z: 169.17181}
+    instances: 363
+  - scene: GTASASector_m11_m10
+    bounds:
+      m_Center: {x: -2616.6975, y: 0, z: 2392.2336}
+      m_Extent: {x: 199.30249, y: 400, z: 167.76636}
+    instances: 10
+  - scene: GTASASector_m11_m11
+    bounds:
+      m_Center: {x: -2666.5588, y: 0, z: 2679.9182}
+      m_Extent: {x: 149.44116, y: 400, z: 136.08179}
+    instances: 2
+  - scene: GTASASector_m11_m12
+    bounds:
+      m_Center: {x: -2677.1768, y: 0, z: 2921.522}
+      m_Extent: {x: 138.82324, y: 400, z: 150.47803}
+    instances: 4
+  - scene: GTASASector_m11_m2
+    bounds:
+      m_Center: {x: -2651.4644, y: 0, z: 379.55005}
+      m_Extent: {x: 175.86572, y: 400, z: 161.12512}
+    instances: 180
+  - scene: GTASASector_m11_m3
+    bounds:
+      m_Center: {x: -2705.2627, y: 0, z: 636.91315}
+      m_Extent: {x: 145.2627, y: 400, z: 134.90729}
+    instances: 58
+  - scene: GTASASector_m11_m4
+    bounds:
+      m_Center: {x: -2663.4802, y: 0, z: 896.6846}
+      m_Extent: {x: 193.44067, y: 400, z: 189.85791}
+    instances: 28
+  - scene: GTASASector_m11_m5
+    bounds:
+      m_Center: {x: -2668.5361, y: 0, z: 1133.9775}
+      m_Extent: {x: 147.46387, y: 400, z: 146.02246}
+    instances: 2
+  - scene: GTASASector_m11_m6
+    bounds:
+      m_Center: {x: -2680.399, y: 0, z: 1386.1953}
+      m_Extent: {x: 159.51025, y: 400, z: 166.29834}
+    instances: 13
+  - scene: GTASASector_m11_m7
+    bounds:
+      m_Center: {x: -2692.1323, y: 17.095276, z: 1672.3541}
+      m_Extent: {x: 162.24365, y: 417.09528, z: 231.53357}
+    instances: 29
+  - scene: GTASASector_m11_m8
+    bounds:
+      m_Center: {x: -2667.2153, y: 0, z: 1951.2479}
+      m_Extent: {x: 148.78455, y: 400, z: 168.69812}
+    instances: 22
+  - scene: GTASASector_m11_m9
+    bounds:
+      m_Center: {x: -2652.8716, y: 0, z: 2193.9214}
+      m_Extent: {x: 163.12842, y: 400, z: 154.20996}
+    instances: 14
+  - scene: GTASASector_m11_p0
+    bounds:
+      m_Center: {x: -2648.8333, y: 0, z: -108.005646}
+      m_Extent: {x: 173.94702, y: 400, z: 170.8631}
+    instances: 452
+  - scene: GTASASector_m11_p1
+    bounds:
+      m_Center: {x: -2696.4285, y: 0, z: -357.9946}
+      m_Extent: {x: 168.03052, y: 400, z: 168.31155}
+    instances: 230
+  - scene: GTASASector_m11_p10
+    bounds:
+      m_Center: {x: -2688.441, y: 0, z: -2644.4817}
+      m_Extent: {x: 128.44092, y: 400, z: 189.12329}
+    instances: 135
+  - scene: GTASASector_m11_p11
+    bounds:
+      m_Center: {x: -2731.5684, y: 0, z: -2940.435}
+      m_Extent: {x: 201.52832, y: 400, z: 131.56494}
+    instances: 12
+  - scene: GTASASector_m11_p2
+    bounds:
+      m_Center: {x: -2687.939, y: 0, z: -638.2068}
+      m_Extent: {x: 153.60693, y: 400, z: 169.56567}
+    instances: 132
+  - scene: GTASASector_m11_p3
+    bounds:
+      m_Center: {x: -2697.3376, y: 0, z: -890.96136}
+      m_Extent: {x: 160.6477, y: 400, z: 233.81671}
+    instances: 318
+  - scene: GTASASector_m11_p4
+    bounds:
+      m_Center: {x: -2674.0095, y: 0, z: -1181.3586}
+      m_Extent: {x: 163.3274, y: 400, z: 173.87964}
+    instances: 134
+  - scene: GTASASector_m11_p5
+    bounds:
+      m_Center: {x: -2749.8662, y: 0, z: -1472.272}
+      m_Extent: {x: 247.71143, y: 400, z: 258.59888}
+    instances: 77
+  - scene: GTASASector_m11_p6
+    bounds:
+      m_Center: {x: -2688, y: 0, z: -1662.7996}
+      m_Extent: {x: 128, y: 400, z: 129.20044}
+    instances: 11
+  - scene: GTASASector_m11_p7
+    bounds:
+      m_Center: {x: -2749.8662, y: 0, z: -1936.9923}
+      m_Extent: {x: 247.71143, y: 400, z: 212.36975}
+    instances: 13
+  - scene: GTASASector_m11_p8
+    bounds:
+      m_Center: {x: -2749.1396, y: 0, z: -2110.6082}
+      m_Extent: {x: 244.67432, y: 400, z: 215.81519}
+    instances: 75
+  - scene: GTASASector_m11_p9
+    bounds:
+      m_Center: {x: -2669.662, y: 0, z: -2447.1274}
+      m_Extent: {x: 168.8418, y: 400, z: 171.1289}
+    instances: 116
+  - scene: GTASASector_m12_m1
+    bounds:
+      m_Center: {x: -2937.4888, y: 0, z: 154.19595}
+      m_Extent: {x: 134.51123, y: 400, z: 166.18665}
+    instances: 12
+  - scene: GTASASector_m12_m10
+    bounds:
+      m_Center: {x: -2919.5884, y: 0, z: 2432}
+      m_Extent: {x: 152.41162, y: 400, z: 128}
+    instances: 2
+  - scene: GTASASector_m12_m11
+    bounds:
+      m_Center: {x: -2919.5884, y: 0, z: 2681.401}
+      m_Extent: {x: 152.41162, y: 400, z: 134.59912}
+    instances: 2
+  - scene: GTASASector_m12_m12
+    bounds:
+      m_Center: {x: -2919.5884, y: 0, z: 2921.7004}
+      m_Extent: {x: 152.41162, y: 400, z: 150.29956}
+    instances: 2
+  - scene: GTASASector_m12_m2
+    bounds:
+      m_Center: {x: -2933.4229, y: 0, z: 411.18826}
+      m_Extent: {x: 138.57715, y: 400, z: 168.03128}
+    instances: 18
+  - scene: GTASASector_m12_m3
+    bounds:
+      m_Center: {x: -2926.4778, y: 0, z: 662.90356}
+      m_Extent: {x: 145.52222, y: 400, z: 184.4884}
+    instances: 21
+  - scene: GTASASector_m12_m4
+    bounds:
+      m_Center: {x: -2928.3232, y: 0, z: 884.9825}
+      m_Extent: {x: 143.67676, y: 400, z: 179.46588}
+    instances: 14
+  - scene: GTASASector_m12_m5
+    bounds:
+      m_Center: {x: -2908.984, y: 0, z: 1097.3145}
+      m_Extent: {x: 163.01611, y: 400, z: 182.68555}
+    instances: 20
+  - scene: GTASASector_m12_m6
+    bounds:
+      m_Center: {x: -2910.8408, y: 0, z: 1374.8501}
+      m_Extent: {x: 161.15918, y: 400, z: 175.64233}
+    instances: 22
+  - scene: GTASASector_m12_m7
+    bounds:
+      m_Center: {x: -2910.4429, y: 0, z: 1660.8047}
+      m_Extent: {x: 161.55713, y: 400, z: 236.9978}
+    instances: 26
+  - scene: GTASASector_m12_m8
+    bounds:
+      m_Center: {x: -2897.8267, y: 0, z: 1942.8098}
+      m_Extent: {x: 174.17334, y: 400, z: 154.79419}
+    instances: 9
+  - scene: GTASASector_m12_m9
+    bounds:
+      m_Center: {x: -2919.5884, y: 0, z: 2185.1016}
+      m_Extent: {x: 152.41162, y: 400, z: 137.10156}
+    instances: 2
+  - scene: GTASASector_m12_p0
+    bounds:
+      m_Center: {x: -2936.9119, y: 0, z: -87.8087}
+      m_Extent: {x: 135.08813, y: 400, z: 168.1913}
+    instances: 13
+  - scene: GTASASector_m12_p1
+    bounds:
+      m_Center: {x: -2937.9731, y: 0, z: -359.82764}
+      m_Extent: {x: 134.02686, y: 400, z: 152.17236}
+    instances: 35
+  - scene: GTASASector_m12_p10
+    bounds:
+      m_Center: {x: -2916.7437, y: 0, z: -2729.6064}
+      m_Extent: {x: 155.25635, y: 400, z: 261.3296}
+    instances: 29
+  - scene: GTASASector_m12_p11
+    bounds:
+      m_Center: {x: -2911.3235, y: 0, z: -2940.38}
+      m_Extent: {x: 160.67651, y: 400, z: 131.62}
+    instances: 3
+  - scene: GTASASector_m12_p2
+    bounds:
+      m_Center: {x: -2927.3452, y: 0, z: -639.7929}
+      m_Extent: {x: 144.65479, y: 400, z: 165.805}
+    instances: 48
+  - scene: GTASASector_m12_p3
+    bounds:
+      m_Center: {x: -2920.09, y: 0, z: -866.9103}
+      m_Extent: {x: 151.90991, y: 400, z: 229.51758}
+    instances: 69
+  - scene: GTASASector_m12_p4
+    bounds:
+      m_Center: {x: -2932.6045, y: 0, z: -1176.1335}
+      m_Extent: {x: 139.39551, y: 400, z: 187.68091}
+    instances: 73
+  - scene: GTASASector_m12_p5
+    bounds:
+      m_Center: {x: -2944, y: 0, z: -1408}
+      m_Extent: {x: 128, y: 400, z: 128}
+    instances: 5
+  - scene: GTASASector_m12_p8
+    bounds:
+      m_Center: {x: -2920.1006, y: 0, z: -2288.2588}
+      m_Extent: {x: 151.89941, y: 400, z: 240.25879}
+    instances: 31
+  - scene: GTASASector_m12_p9
+    bounds:
+      m_Center: {x: -2941.9841, y: 0, z: -2431.4841}
+      m_Extent: {x: 130.01587, y: 400, z: 128.51587}
+    instances: 35
+  - scene: GTASASector_m1_m1
+    bounds:
+      m_Center: {x: -98.74332, y: 0, z: 83.73212}
+      m_Extent: {x: 200.57285, y: 400, z: 242.29718}
+    instances: 94
+  - scene: GTASASector_m1_m10
+    bounds:
+      m_Center: {x: -74.51056, y: 0, z: 2471.5037}
+      m_Extent: {x: 222.8825, y: 400, z: 210.05786}
+    instances: 94
+  - scene: GTASASector_m1_m11
+    bounds:
+      m_Center: {x: -100.17804, y: 0, z: 2667.5027}
+      m_Extent: {x: 170.5765, y: 400, z: 260.56128}
+    instances: 97
+  - scene: GTASASector_m1_m12
+    bounds:
+      m_Center: {x: -52.010406, y: 0, z: 2866.794}
+      m_Extent: {x: 203.9896, y: 400, z: 205.20605}
+    instances: 10
+  - scene: GTASASector_m1_m2
+    bounds:
+      m_Center: {x: -138.01453, y: 0, z: 378.4631}
+      m_Extent: {x: 178.06018, y: 400, z: 218.56253}
+    instances: 81
+  - scene: GTASASector_m1_m3
+    bounds:
+      m_Center: {x: -78.629654, y: 0, z: 659.588}
+      m_Extent: {x: 177.37035, y: 400, z: 258.27753}
+    instances: 11
+  - scene: GTASASector_m1_m4
+    bounds:
+      m_Center: {x: -137.63757, y: 0, z: 887.47406}
+      m_Extent: {x: 187.2893, y: 400, z: 187.50702}
+    instances: 25
+  - scene: GTASASector_m1_m5
+    bounds:
+      m_Center: {x: -132.4703, y: 0, z: 1191.5374}
+      m_Extent: {x: 209.53845, y: 400, z: 184.55591}
+    instances: 96
+  - scene: GTASASector_m1_m6
+    bounds:
+      m_Center: {x: -111.57474, y: 0, z: 1418.8826}
+      m_Extent: {x: 180.08093, y: 400, z: 154.7356}
+    instances: 20
+  - scene: GTASASector_m1_m7
+    bounds:
+      m_Center: {x: -115.45831, y: 0, z: 1641.9564}
+      m_Extent: {x: 247.34113, y: 400, z: 286.83142}
+    instances: 59
+  - scene: GTASASector_m1_m9
+    bounds:
+      m_Center: {x: -58.329163, y: 0, z: 2108.6697}
+      m_Extent: {x: 206.70111, y: 400, z: 195.33032}
+    instances: 12
+  - scene: GTASASector_m1_p0
+    bounds:
+      m_Center: {x: -116.84659, y: 0, z: -124.98892}
+      m_Extent: {x: 171.53134, y: 400, z: 145.323}
+    instances: 58
+  - scene: GTASASector_m1_p1
+    bounds:
+      m_Center: {x: -191.35968, y: 0, z: -346.60236}
+      m_Extent: {x: 229.58527, y: 400, z: 169.11371}
+    instances: 19
+  - scene: GTASASector_m1_p10
+    bounds:
+      m_Center: {x: -120.764435, y: 0, z: -2655.9717}
+      m_Extent: {x: 227.47092, y: 400, z: 160.02832}
+    instances: 73
+  - scene: GTASASector_m1_p11
+    bounds:
+      m_Center: {x: -128, y: 0, z: -2898.6938}
+      m_Extent: {x: 128, y: 400, z: 173.30603}
+    instances: 2
+  - scene: GTASASector_m1_p2
+    bounds:
+      m_Center: {x: -118.54382, y: 0, z: -628.3251}
+      m_Extent: {x: 236.25833, y: 400, z: 163.90125}
+    instances: 16
+  - scene: GTASASector_m1_p3
+    bounds:
+      m_Center: {x: -155.44052, y: 0, z: -893.9785}
+      m_Extent: {x: 163.23444, y: 400, z: 197.72339}
+    instances: 123
+  - scene: GTASASector_m1_p4
+    bounds:
+      m_Center: {x: -100.24187, y: 0, z: -1112.5704}
+      m_Extent: {x: 201.02174, y: 400, z: 167.42957}
+    instances: 273
+  - scene: GTASASector_m1_p5
+    bounds:
+      m_Center: {x: -125.26248, y: 0, z: -1398.4718}
+      m_Extent: {x: 151.77441, y: 400, z: 149.24255}
+    instances: 43
+  - scene: GTASASector_m1_p6
+    bounds:
+      m_Center: {x: -92.559494, y: 0, z: -1614.8109}
+      m_Extent: {x: 203.28508, y: 400, z: 193.87732}
+    instances: 19
+  - scene: GTASASector_m1_p7
+    bounds:
+      m_Center: {x: -141.90265, y: 0, z: -1925.963}
+      m_Extent: {x: 238.57831, y: 400, z: 133.96301}
+    instances: 9
+  - scene: GTASASector_m1_p8
+    bounds:
+      m_Center: {x: -90.80887, y: 0, z: -2183.2651}
+      m_Extent: {x: 172.79834, y: 400, z: 155.79834}
+    instances: 11
+  - scene: GTASASector_m1_p9
+    bounds:
+      m_Center: {x: -173.72028, y: 0, z: -2467.4014}
+      m_Extent: {x: 173.72028, y: 400, z: 163.40137}
+    instances: 12
+  - scene: GTASASector_m2_m1
+    bounds:
+      m_Center: {x: -426.50183, y: 0, z: 131.50137}
+      m_Extent: {x: 170.50183, y: 400, z: 185.22354}
+    instances: 46
+  - scene: GTASASector_m2_m10
+    bounds:
+      m_Center: {x: -442.0824, y: 0, z: 2414.9324}
+      m_Extent: {x: 186.0824, y: 400, z: 145.06763}
+    instances: 4
+  - scene: GTASASector_m2_m11
+    bounds:
+      m_Center: {x: -358.28406, y: 0, z: 2677.0957}
+      m_Extent: {x: 153.71594, y: 400, z: 229.65088}
+    instances: 6
+  - scene: GTASASector_m2_m12
+    bounds:
+      m_Center: {x: -410.4591, y: 0, z: 2917.6738}
+      m_Extent: {x: 297.30646, y: 400, z: 154.32617}
+    instances: 10
+  - scene: GTASASector_m2_m2
+    bounds:
+      m_Center: {x: -407.96155, y: 0, z: 371.85797}
+      m_Extent: {x: 247.25769, y: 400, z: 233.29742}
+    instances: 87
+  - scene: GTASASector_m2_m3
+    bounds:
+      m_Center: {x: -437.43127, y: 0, z: 617.4588}
+      m_Extent: {x: 242.294, y: 400, z: 241.48468}
+    instances: 43
+  - scene: GTASASector_m2_m4
+    bounds:
+      m_Center: {x: -309.4209, y: 0, z: 941.11273}
+      m_Extent: {x: 232.2561, y: 400, z: 179.59906}
+    instances: 45
+  - scene: GTASASector_m2_m5
+    bounds:
+      m_Center: {x: -417.01697, y: 0, z: 1139.4716}
+      m_Extent: {x: 175.02826, y: 400, z: 140.52844}
+    instances: 52
+  - scene: GTASASector_m2_m6
+    bounds:
+      m_Center: {x: -453.49533, y: 0, z: 1372.9526}
+      m_Extent: {x: 197.49533, y: 400, z: 185.28955}
+    instances: 38
+  - scene: GTASASector_m2_m7
+    bounds:
+      m_Center: {x: -420.29947, y: 0, z: 1675.4147}
+      m_Extent: {x: 237.306, y: 400, z: 268.68323}
+    instances: 40
+  - scene: GTASASector_m2_m8
+    bounds:
+      m_Center: {x: -370.01157, y: 0, z: 1948.2716}
+      m_Extent: {x: 160.92642, y: 400, z: 242.97424}
+    instances: 74
+  - scene: GTASASector_m2_m9
+    bounds:
+      m_Center: {x: -301.81992, y: 0, z: 2215.2913}
+      m_Extent: {x: 242.42563, y: 400, z: 272.9348}
+    instances: 51
+  - scene: GTASASector_m2_p0
+    bounds:
+      m_Center: {x: -377.91095, y: 0, z: -93.25336}
+      m_Extent: {x: 144.82758, y: 400, z: 162.74664}
+    instances: 12
+  - scene: GTASASector_m2_p1
+    bounds:
+      m_Center: {x: -363.11115, y: 0, z: -352.5552}
+      m_Extent: {x: 164.8982, y: 400, z: 159.4448}
+    instances: 5
+  - scene: GTASASector_m2_p10
+    bounds:
+      m_Center: {x: -411.33054, y: 0, z: -2646.746}
+      m_Extent: {x: 174.72836, y: 400, z: 169.2539}
+    instances: 46
+  - scene: GTASASector_m2_p11
+    bounds:
+      m_Center: {x: -331.2685, y: 0, z: -2900.0317}
+      m_Extent: {x: 180.7315, y: 400, z: 171.96838}
+    instances: 2
+  - scene: GTASASector_m2_p2
+    bounds:
+      m_Center: {x: -405.29016, y: 0, z: -636.3084}
+      m_Extent: {x: 149.29016, y: 400, z: 131.69159}
+    instances: 17
+  - scene: GTASASector_m2_p3
+    bounds:
+      m_Center: {x: -361.20746, y: 0, z: -887.3906}
+      m_Extent: {x: 174.4638, y: 400, z: 186.60938}
+    instances: 26
+  - scene: GTASASector_m2_p4
+    bounds:
+      m_Center: {x: -380.9595, y: 0, z: -1109.3157}
+      m_Extent: {x: 215.07559, y: 400, z: 170.68433}
+    instances: 96
+  - scene: GTASASector_m2_p5
+    bounds:
+      m_Center: {x: -360.46075, y: 0, z: -1364.8606}
+      m_Extent: {x: 151.53925, y: 400, z: 181.48462}
+    instances: 19
+  - scene: GTASASector_m2_p6
+    bounds:
+      m_Center: {x: -387.1144, y: 0, z: -1653.2002}
+      m_Extent: {x: 236.6116, y: 400, z: 180.06494}
+    instances: 25
+  - scene: GTASASector_m2_p7
+    bounds:
+      m_Center: {x: -430.16678, y: 0, z: -1902.2539}
+      m_Extent: {x: 181.12564, y: 400, z: 150.78223}
+    instances: 19
+  - scene: GTASASector_m2_p8
+    bounds:
+      m_Center: {x: -387.9941, y: 0, z: -2149.93}
+      m_Extent: {x: 166.76047, y: 400, z: 154.07007}
+    instances: 41
+  - scene: GTASASector_m2_p9
+    bounds:
+      m_Center: {x: -326.46927, y: 0, z: -2451.5618}
+      m_Extent: {x: 188.00967, y: 400, z: 189.29517}
+    instances: 13
+  - scene: GTASASector_m3_m1
+    bounds:
+      m_Center: {x: -666.9536, y: 0, z: 119.97421}
+      m_Extent: {x: 182.04492, y: 400, z: 144.45029}
+    instances: 69
+  - scene: GTASASector_m3_m10
+    bounds:
+      m_Center: {x: -645.2835, y: 0, z: 2410.3245}
+      m_Extent: {x: 180.88275, y: 400, z: 149.67554}
+    instances: 43
+  - scene: GTASASector_m3_m11
+    bounds:
+      m_Center: {x: -616.3257, y: 0, z: 2642.6143}
+      m_Extent: {x: 183.1305, y: 400, z: 206.2334}
+    instances: 32
+  - scene: GTASASector_m3_m12
+    bounds:
+      m_Center: {x: -722.8406, y: 0, z: 2935.9785}
+      m_Extent: {x: 210.84059, y: 400, z: 136.02148}
+    instances: 1
+  - scene: GTASASector_m3_m2
+    bounds:
+      m_Center: {x: -676.7081, y: 0, z: 392.25223}
+      m_Extent: {x: 217.95789, y: 400, z: 160.60794}
+    instances: 60
+  - scene: GTASASector_m3_m3
+    bounds:
+      m_Center: {x: -701.3963, y: 0, z: 586.49866}
+      m_Extent: {x: 205.82965, y: 400, z: 181.50134}
+    instances: 16
+  - scene: GTASASector_m3_m4
+    bounds:
+      m_Center: {x: -608.68256, y: 0, z: 895.98694}
+      m_Extent: {x: 234.26666, y: 400, z: 224.15381}
+    instances: 18
+  - scene: GTASASector_m3_m5
+    bounds:
+      m_Center: {x: -690.093, y: 0, z: 1146.7085}
+      m_Extent: {x: 198.47803, y: 400, z: 137.18701}
+    instances: 41
+  - scene: GTASASector_m3_m6
+    bounds:
+      m_Center: {x: -641.1659, y: 0, z: 1477.6792}
+      m_Extent: {x: 129.1659, y: 400, z: 253.95361}
+    instances: 42
+  - scene: GTASASector_m3_m7
+    bounds:
+      m_Center: {x: -639.50415, y: 0, z: 1650.3905}
+      m_Extent: {x: 142.34521, y: 400, z: 220.66052}
+    instances: 9
+  - scene: GTASASector_m3_m8
+    bounds:
+      m_Center: {x: -721.32935, y: 0, z: 1848.0942}
+      m_Extent: {x: 259.58813, y: 400, z: 217.24976}
+    instances: 31
+  - scene: GTASASector_m3_m9
+    bounds:
+      m_Center: {x: -603.0124, y: 0, z: 2101.2134}
+      m_Extent: {x: 192.6897, y: 400, z: 227.95801}
+    instances: 41
+  - scene: GTASASector_m3_p0
+    bounds:
+      m_Center: {x: -690.22485, y: 0, z: -120.80025}
+      m_Extent: {x: 224.8086, y: 400, z: 200.44624}
+    instances: 39
+  - scene: GTASASector_m3_p1
+    bounds:
+      m_Center: {x: -629.2103, y: 0, z: -366.1006}
+      m_Extent: {x: 222.47864, y: 400, z: 220.46655}
+    instances: 2
+  - scene: GTASASector_m3_p10
+    bounds:
+      m_Center: {x: -589.91016, y: 0, z: -2690.9192}
+      m_Extent: {x: 203.11642, y: 400, z: 178.27173}
+    instances: 27
+  - scene: GTASASector_m3_p11
+    bounds:
+      m_Center: {x: -638.38043, y: 0, z: -2902.7734}
+      m_Extent: {x: 247.48491, y: 400, z: 169.22656}
+    instances: 4
+  - scene: GTASASector_m3_p2
+    bounds:
+      m_Center: {x: -636.29114, y: 0, z: -640}
+      m_Extent: {x: 131.70886, y: 400, z: 128}
+    instances: 8
+  - scene: GTASASector_m3_p3
+    bounds:
+      m_Center: {x: -613.9457, y: 0, z: -787.2537}
+      m_Extent: {x: 167.26514, y: 400, z: 245.13397}
+    instances: 94
+  - scene: GTASASector_m3_p4
+    bounds:
+      m_Center: {x: -626.32263, y: 0, z: -1204.8223}
+      m_Extent: {x: 201.68347, y: 400, z: 231.95312}
+    instances: 27
+  - scene: GTASASector_m3_p5
+    bounds:
+      m_Center: {x: -642.40106, y: 0, z: -1407.0657}
+      m_Extent: {x: 130.40106, y: 400, z: 227.39941}
+    instances: 39
+  - scene: GTASASector_m3_p6
+    bounds:
+      m_Center: {x: -690.6604, y: 0, z: -1681.8667}
+      m_Extent: {x: 285.5642, y: 400, z: 291.1914}
+    instances: 19
+  - scene: GTASASector_m3_p7
+    bounds:
+      m_Center: {x: -632.21, y: 0, z: -1961.8138}
+      m_Extent: {x: 191.05267, y: 400, z: 169.81384}
+    instances: 27
+  - scene: GTASASector_m3_p8
+    bounds:
+      m_Center: {x: -626.0304, y: 0, z: -2193.5708}
+      m_Extent: {x: 141.9696, y: 400, z: 145.5708}
+    instances: 6
+  - scene: GTASASector_m3_p9
+    bounds:
+      m_Center: {x: -664.5097, y: 0, z: -2413.232}
+      m_Extent: {x: 205.66022, y: 400, z: 146.76807}
+    instances: 54
+  - scene: GTASASector_m4_m1
+    bounds:
+      m_Center: {x: -867.0555, y: 0, z: 154.77469}
+      m_Extent: {x: 156.94452, y: 400, z: 154.77469}
+    instances: 30
+  - scene: GTASASector_m4_m10
+    bounds:
+      m_Center: {x: -852.36615, y: 0, z: 2370.7666}
+      m_Extent: {x: 178.72284, y: 400, z: 221.92578}
+    instances: 36
+  - scene: GTASASector_m4_m11
+    bounds:
+      m_Center: {x: -826.0825, y: 0, z: 2667.2139}
+      m_Extent: {x: 197.91748, y: 400, z: 242.48242}
+    instances: 33
+  - scene: GTASASector_m4_m12
+    bounds:
+      m_Center: {x: -910.7781, y: 0, z: 2924.4814}
+      m_Extent: {x: 208.86987, y: 400, z: 147.51855}
+    instances: 8
+  - scene: GTASASector_m4_m2
+    bounds:
+      m_Center: {x: -971.441, y: 0, z: 486.26074}
+      m_Extent: {x: 203.44098, y: 400, z: 232.24768}
+    instances: 78
+  - scene: GTASASector_m4_m3
+    bounds:
+      m_Center: {x: -896.63196, y: 0, z: 637.71643}
+      m_Extent: {x: 128.63196, y: 400, z: 130.28357}
+    instances: 80
+  - scene: GTASASector_m4_m4
+    bounds:
+      m_Center: {x: -843.33, y: 0, z: 851.5366}
+      m_Extent: {x: 189.86261, y: 400, z: 236.98975}
+    instances: 20
+  - scene: GTASASector_m4_m5
+    bounds:
+      m_Center: {x: -878.807, y: 0, z: 1179.0535}
+      m_Extent: {x: 174.66895, y: 400, z: 234.09326}
+    instances: 46
+  - scene: GTASASector_m4_m6
+    bounds:
+      m_Center: {x: -926.25476, y: 0, z: 1466.5287}
+      m_Extent: {x: 174.79504, y: 400, z: 218.84558}
+    instances: 34
+  - scene: GTASASector_m4_m7
+    bounds:
+      m_Center: {x: -901.4245, y: 0, z: 1669.751}
+      m_Extent: {x: 143.9223, y: 400, z: 162.53223}
+    instances: 134
+  - scene: GTASASector_m4_m8
+    bounds:
+      m_Center: {x: -891.57416, y: 0, z: 1920.396}
+      m_Extent: {x: 237.47626, y: 400, z: 206.1289}
+    instances: 33
+  - scene: GTASASector_m4_m9
+    bounds:
+      m_Center: {x: -933.6272, y: 0, z: 2126.4126}
+      m_Extent: {x: 218.73071, y: 400, z: 223.2002}
+    instances: 87
+  - scene: GTASASector_m4_p0
+    bounds:
+      m_Center: {x: -839.3408, y: 0, z: -89.507385}
+      m_Extent: {x: 184.65918, y: 400, z: 166.49261}
+    instances: 10
+  - scene: GTASASector_m4_p10
+    bounds:
+      m_Center: {x: -873.8421, y: 0, z: -2655.1472}
+      m_Extent: {x: 162.0539, y: 400, z: 160.85278}
+    instances: 39
+  - scene: GTASASector_m4_p11
+    bounds:
+      m_Center: {x: -947.1352, y: 0, z: -2899.38}
+      m_Extent: {x: 179.1352, y: 400, z: 172.62012}
+    instances: 2
+  - scene: GTASASector_m4_p2
+    bounds:
+      m_Center: {x: -878.6835, y: 0, z: -649.4108}
+      m_Extent: {x: 190.33972, y: 400, z: 137.41083}
+    instances: 6
+  - scene: GTASASector_m4_p3
+    bounds:
+      m_Center: {x: -877.4434, y: 0, z: -903.3319}
+      m_Extent: {x: 146.55658, y: 400, z: 179.73962}
+    instances: 24
+  - scene: GTASASector_m4_p4
+    bounds:
+      m_Center: {x: -916.55164, y: 0, z: -1138.9727}
+      m_Extent: {x: 234.01575, y: 400, z: 190.77649}
+    instances: 27
+  - scene: GTASASector_m4_p5
+    bounds:
+      m_Center: {x: -918.55505, y: 0, z: -1422.293}
+      m_Extent: {x: 223.19812, y: 400, z: 237.99512}
+    instances: 90
+  - scene: GTASASector_m4_p6
+    bounds:
+      m_Center: {x: -918.89246, y: 0, z: -1674.439}
+      m_Extent: {x: 175.8822, y: 400, z: 192.5249}
+    instances: 76
+  - scene: GTASASector_m4_p7
+    bounds:
+      m_Center: {x: -944.82715, y: 0, z: -1954.9258}
+      m_Extent: {x: 242.57056, y: 400, z: 176.7019}
+    instances: 45
+  - scene: GTASASector_m4_p8
+    bounds:
+      m_Center: {x: -910.9717, y: 0, z: -2149.7808}
+      m_Extent: {x: 230.84094, y: 400, z: 224.65234}
+    instances: 19
+  - scene: GTASASector_m4_p9
+    bounds:
+      m_Center: {x: -835.7677, y: 0, z: -2422.0537}
+      m_Extent: {x: 188.2323, y: 400, z: 137.94629}
+    instances: 32
+  - scene: GTASASector_m5_m1
+    bounds:
+      m_Center: {x: -1123.217, y: 0, z: 110.7959}
+      m_Extent: {x: 272.40503, y: 400, z: 303.48364}
+    instances: 17
+  - scene: GTASASector_m5_m10
+    bounds:
+      m_Center: {x: -1151.241, y: 0, z: 2397.3057}
+      m_Extent: {x: 251.62769, y: 400, z: 229.9668}
+    instances: 41
+  - scene: GTASASector_m5_m11
+    bounds:
+      m_Center: {x: -1087.6117, y: 0, z: 2763.8848}
+      m_Extent: {x: 209.70398, y: 400, z: 286.36816}
+    instances: 34
+  - scene: GTASASector_m5_m12
+    bounds:
+      m_Center: {x: -1130.0598, y: 0, z: 2944}
+      m_Extent: {x: 149.94016, y: 400, z: 128}
+    instances: 13
+  - scene: GTASASector_m5_m2
+    bounds:
+      m_Center: {x: -1137.743, y: 0, z: 395.9828}
+      m_Extent: {x: 142.25696, y: 400, z: 188.67053}
+    instances: 14
+  - scene: GTASASector_m5_m3
+    bounds:
+      m_Center: {x: -1099.6101, y: 0, z: 642.1569}
+      m_Extent: {x: 223.90698, y: 400, z: 203.65619}
+    instances: 62
+  - scene: GTASASector_m5_m4
+    bounds:
+      m_Center: {x: -1166.3568, y: 0, z: 916.47003}
+      m_Extent: {x: 150.3158, y: 400, z: 154.84698}
+    instances: 23
+  - scene: GTASASector_m5_m5
+    bounds:
+      m_Center: {x: -1174.676, y: 0, z: 1195.353}
+      m_Extent: {x: 158.2666, y: 400, z: 171.35303}
+    instances: 210
+  - scene: GTASASector_m5_m6
+    bounds:
+      m_Center: {x: -1163.186, y: 0, z: 1400.2937}
+      m_Extent: {x: 224.41016, y: 400, z: 139.77222}
+    instances: 67
+  - scene: GTASASector_m5_m7
+    bounds:
+      m_Center: {x: -1093.1776, y: 0, z: 1676.781}
+      m_Extent: {x: 269.7975, y: 400, z: 188.12866}
+    instances: 155
+  - scene: GTASASector_m5_m8
+    bounds:
+      m_Center: {x: -1206.9912, y: 0, z: 1920.6356}
+      m_Extent: {x: 227.9524, y: 400, z: 254.2384}
+    instances: 13
+  - scene: GTASASector_m5_m9
+    bounds:
+      m_Center: {x: -1134.7112, y: 0, z: 2180.7202}
+      m_Extent: {x: 229.97803, y: 400, z: 205.42773}
+    instances: 19
+  - scene: GTASASector_m5_p0
+    bounds:
+      m_Center: {x: -1173.7961, y: 0, z: -127.481125}
+      m_Extent: {x: 149.79614, y: 400, z: 128.51888}
+    instances: 18
+  - scene: GTASASector_m5_p1
+    bounds:
+      m_Center: {x: -1064.2697, y: 0, z: -389.62744}
+      m_Extent: {x: 215.73035, y: 400, z: 196.9397}
+    instances: 13
+  - scene: GTASASector_m5_p10
+    bounds:
+      m_Center: {x: -1109.1332, y: 0, z: -2594.55}
+      m_Extent: {x: 267.41736, y: 400, z: 222.87036}
+    instances: 13
+  - scene: GTASASector_m5_p11
+    bounds:
+      m_Center: {x: -1152, y: 0, z: -2937.6567}
+      m_Extent: {x: 128, y: 400, z: 134.34326}
+    instances: 3
+  - scene: GTASASector_m5_p2
+    bounds:
+      m_Center: {x: -1152, y: 0, z: -650.0224}
+      m_Extent: {x: 128, y: 400, z: 138.0224}
+    instances: 2
+  - scene: GTASASector_m5_p3
+    bounds:
+      m_Center: {x: -1066.9976, y: 0, z: -925.44666}
+      m_Extent: {x: 214.93506, y: 400, z: 207.74402}
+    instances: 10
+  - scene: GTASASector_m5_p4
+    bounds:
+      m_Center: {x: -1152.5425, y: 0, z: -1112.3599}
+      m_Extent: {x: 128.54248, y: 400, z: 167.64014}
+    instances: 7
+  - scene: GTASASector_m5_p5
+    bounds:
+      m_Center: {x: -1161.458, y: 0, z: -1308.3507}
+      m_Extent: {x: 137.45801, y: 400, z: 227.64929}
+    instances: 5
+  - scene: GTASASector_m5_p6
+    bounds:
+      m_Center: {x: -1124.2896, y: 0, z: -1634.0966}
+      m_Extent: {x: 194.05078, y: 400, z: 213.74744}
+    instances: 22
+  - scene: GTASASector_m5_p7
+    bounds:
+      m_Center: {x: -1199.0258, y: 0, z: -1926.7045}
+      m_Extent: {x: 175.02576, y: 400, z: 135.73328}
+    instances: 26
+  - scene: GTASASector_m5_p8
+    bounds:
+      m_Center: {x: -1106.0774, y: 0, z: -2190.5518}
+      m_Extent: {x: 173.9226, y: 400, z: 160.35547}
+    instances: 5
+  - scene: GTASASector_m5_p9
+    bounds:
+      m_Center: {x: -1127.2693, y: 0, z: -2420.0393}
+      m_Extent: {x: 152.73071, y: 400, z: 179.55737}
+    instances: 6
+  - scene: GTASASector_m6_m1
+    bounds:
+      m_Center: {x: -1321.582, y: 0, z: 133.81248}
+      m_Extent: {x: 214.41797, y: 400, z: 238.74232}
+    instances: 16
+  - scene: GTASASector_m6_m10
+    bounds:
+      m_Center: {x: -1398.1653, y: 0, z: 2445.888}
+      m_Extent: {x: 137.83472, y: 400, z: 141.88794}
+    instances: 19
+  - scene: GTASASector_m6_m11
+    bounds:
+      m_Center: {x: -1414.5028, y: 0, z: 2689.7766}
+      m_Extent: {x: 134.68005, y: 400, z: 140.40796}
+    instances: 98
+  - scene: GTASASector_m6_m12
+    bounds:
+      m_Center: {x: -1416.5618, y: 0, z: 2916.9626}
+      m_Extent: {x: 206.4978, y: 400, z: 155.03735}
+    instances: 19
+  - scene: GTASASector_m6_m2
+    bounds:
+      m_Center: {x: -1446.2074, y: 0, z: 394.25113}
+      m_Extent: {x: 166.2074, y: 400, z: 138.25113}
+    instances: 49
+  - scene: GTASASector_m6_m3
+    bounds:
+      m_Center: {x: -1351.1709, y: 0, z: 597.9686}
+      m_Extent: {x: 229.7998, y: 400, z: 209.34363}
+    instances: 17
+  - scene: GTASASector_m6_m4
+    bounds:
+      m_Center: {x: -1425.7671, y: 0, z: 917.2742}
+      m_Extent: {x: 209.5603, y: 400, z: 161.83374}
+    instances: 30
+  - scene: GTASASector_m6_m5
+    bounds:
+      m_Center: {x: -1379.1349, y: 0, z: 1216.6904}
+      m_Extent: {x: 250.1615, y: 400, z: 192.69043}
+    instances: 10
+  - scene: GTASASector_m6_m6
+    bounds:
+      m_Center: {x: -1464.4998, y: 0, z: 1458.9956}
+      m_Extent: {x: 200.02222, y: 400, z: 196.76758}
+    instances: 68
+  - scene: GTASASector_m6_m7
+    bounds:
+      m_Center: {x: -1456.9496, y: 0, z: 1644.1257}
+      m_Extent: {x: 216.72107, y: 400, z: 186.34497}
+    instances: 42
+  - scene: GTASASector_m6_m8
+    bounds:
+      m_Center: {x: -1458.8425, y: 0, z: 1883.0565}
+      m_Extent: {x: 178.84253, y: 400, z: 164.94348}
+    instances: 11
+  - scene: GTASASector_m6_m9
+    bounds:
+      m_Center: {x: -1365.4998, y: 0, z: 2174.8015}
+      m_Extent: {x: 170.50024, y: 400, z: 239.44556}
+    instances: 18
+  - scene: GTASASector_m6_p0
+    bounds:
+      m_Center: {x: -1390.9537, y: 0, z: -77.63342}
+      m_Extent: {x: 190.01697, y: 400, z: 189.17053}
+    instances: 11
+  - scene: GTASASector_m6_p1
+    bounds:
+      m_Center: {x: -1382.1431, y: 0, z: -389.62744}
+      m_Extent: {x: 201.17236, y: 400, z: 196.9397}
+    instances: 205
+  - scene: GTASASector_m6_p10
+    bounds:
+      m_Center: {x: -1445.9272, y: 0, z: -2653.2627}
+      m_Extent: {x: 165.92725, y: 400, z: 162.7373}
+    instances: 147
+  - scene: GTASASector_m6_p11
+    bounds:
+      m_Center: {x: -1354.9226, y: 0, z: -2907.5396}
+      m_Extent: {x: 181.07733, y: 400, z: 164.46045}
+    instances: 2
+  - scene: GTASASector_m6_p2
+    bounds:
+      m_Center: {x: -1410.6323, y: 0, z: -658.3733}
+      m_Extent: {x: 174.33887, y: 400, z: 147.43396}
+    instances: 40
+  - scene: GTASASector_m6_p3
+    bounds:
+      m_Center: {x: -1398.8965, y: 0, z: -835.46826}
+      m_Extent: {x: 149.11938, y: 400, z: 248.90112}
+    instances: 28
+  - scene: GTASASector_m6_p4
+    bounds:
+      m_Center: {x: -1428.1466, y: 0, z: -1208.6119}
+      m_Extent: {x: 165.8053, y: 400, z: 197.24353}
+    instances: 15
+  - scene: GTASASector_m6_p5
+    bounds:
+      m_Center: {x: -1499.9585, y: 0, z: -1445.8208}
+      m_Extent: {x: 227.49829, y: 400, z: 165.8208}
+    instances: 17
+  - scene: GTASASector_m6_p6
+    bounds:
+      m_Center: {x: -1385.8496, y: 0, z: -1629.4402}
+      m_Extent: {x: 231.4773, y: 400, z: 182.19165}
+    instances: 8
+  - scene: GTASASector_m6_p7
+    bounds:
+      m_Center: {x: -1390.051, y: 0, z: -1914.1305}
+      m_Extent: {x: 225.57007, y: 400, z: 148.29602}
+    instances: 30
+  - scene: GTASASector_m6_p8
+    bounds:
+      m_Center: {x: -1402.8645, y: 0, z: -2288.0588}
+      m_Extent: {x: 244.6546, y: 400, z: 268.75073}
+    instances: 24
+  - scene: GTASASector_m6_p9
+    bounds:
+      m_Center: {x: -1359.8615, y: 0, z: -2409.142}
+      m_Extent: {x: 182.74329, y: 400, z: 154.88818}
+    instances: 33
+  - scene: GTASASector_m7_m1
+    bounds:
+      m_Center: {x: -1586.7279, y: 0, z: 148.37411}
+      m_Extent: {x: 227.94519, y: 400, z: 241.02072}
+    instances: 49
+  - scene: GTASASector_m7_m10
+    bounds:
+      m_Center: {x: -1631.829, y: 0, z: 2448.4763}
+      m_Extent: {x: 160.17102, y: 400, z: 144.47632}
+    instances: 14
+  - scene: GTASASector_m7_m11
+    bounds:
+      m_Center: {x: -1668.7874, y: 0, z: 2690.4036}
+      m_Extent: {x: 228.68237, y: 400, z: 149.41772}
+    instances: 44
+  - scene: GTASASector_m7_m12
+    bounds:
+      m_Center: {x: -1693.9417, y: 0, z: 2921.7004}
+      m_Extent: {x: 157.94165, y: 400, z: 150.29956}
+    instances: 2
+  - scene: GTASASector_m7_m2
+    bounds:
+      m_Center: {x: -1642.5428, y: 0, z: 397.101}
+      m_Extent: {x: 165.18665, y: 400, z: 189.78876}
+    instances: 49
+  - scene: GTASASector_m7_m3
+    bounds:
+      m_Center: {x: -1658.3184, y: 0, z: 611.5383}
+      m_Extent: {x: 170.75342, y: 400, z: 242.88623}
+    instances: 34
+  - scene: GTASASector_m7_m4
+    bounds:
+      m_Center: {x: -1648.0839, y: 0, z: 928.22687}
+      m_Extent: {x: 177.73401, y: 400, z: 160.22687}
+    instances: 27
+  - scene: GTASASector_m7_m5
+    bounds:
+      m_Center: {x: -1649.4358, y: 0, z: 1096.9242}
+      m_Extent: {x: 156.55591, y: 400, z: 255.67126}
+    instances: 26
+  - scene: GTASASector_m7_m6
+    bounds:
+      m_Center: {x: -1728.0615, y: 0, z: 1423.5358}
+      m_Extent: {x: 218.18945, y: 400, z: 192.52722}
+    instances: 23
+  - scene: GTASASector_m7_m7
+    bounds:
+      m_Center: {x: -1664.6017, y: 0, z: 1674.779}
+      m_Extent: {x: 234.83142, y: 400, z: 235.56738}
+    instances: 21
+  - scene: GTASASector_m7_m8
+    bounds:
+      m_Center: {x: -1621.906, y: 0, z: 1968.8423}
+      m_Extent: {x: 177.96948, y: 400, z: 176.84229}
+    instances: 10
+  - scene: GTASASector_m7_m9
+    bounds:
+      m_Center: {x: -1652.2822, y: 0, z: 2200.2183}
+      m_Extent: {x: 239.86646, y: 400, z: 189.4776}
+    instances: 25
+  - scene: GTASASector_m7_p0
+    bounds:
+      m_Center: {x: -1638.2953, y: 0, z: -49.668976}
+      m_Extent: {x: 182.51599, y: 400, z: 256.9812}
+    instances: 63
+  - scene: GTASASector_m7_p1
+    bounds:
+      m_Center: {x: -1655.1178, y: 0, z: -445.9478}
+      m_Extent: {x: 185.89148, y: 400, z: 189.94781}
+    instances: 82
+  - scene: GTASASector_m7_p10
+    bounds:
+      m_Center: {x: -1687.267, y: 0, z: -2652.0637}
+      m_Extent: {x: 154.95178, y: 400, z: 163.93628}
+    instances: 74
+  - scene: GTASASector_m7_p11
+    bounds:
+      m_Center: {x: -1608.1283, y: 0, z: -2901.4043}
+      m_Extent: {x: 183.8717, y: 400, z: 170.5957}
+    instances: 9
+  - scene: GTASASector_m7_p2
+    bounds:
+      m_Center: {x: -1653.735, y: 0, z: -654.44995}
+      m_Extent: {x: 167.82385, y: 400, z: 174.25879}
+    instances: 103
+  - scene: GTASASector_m7_p3
+    bounds:
+      m_Center: {x: -1743.56, y: 0, z: -849.6895}
+      m_Extent: {x: 241.41772, y: 400, z: 213.79388}
+    instances: 237
+  - scene: GTASASector_m7_p4
+    bounds:
+      m_Center: {x: -1755.1555, y: 0, z: -1150.6821}
+      m_Extent: {x: 261.93628, y: 400, z: 248.16943}
+    instances: 118
+  - scene: GTASASector_m7_p5
+    bounds:
+      m_Center: {x: -1682.2701, y: 0, z: -1413.5398}
+      m_Extent: {x: 186.57166, y: 400, z: 133.5398}
+    instances: 103
+  - scene: GTASASector_m7_p6
+    bounds:
+      m_Center: {x: -1659.3556, y: 0, z: -1674.6625}
+      m_Extent: {x: 132.64441, y: 400, z: 138.66248}
+    instances: 2
+  - scene: GTASASector_m7_p7
+    bounds:
+      m_Center: {x: -1649.2992, y: 0, z: -1926.7289}
+      m_Extent: {x: 209.08118, y: 400, z: 139.01282}
+    instances: 20
+  - scene: GTASASector_m7_p8
+    bounds:
+      m_Center: {x: -1689.9897, y: 0, z: -2161.644}
+      m_Extent: {x: 153.98975, y: 400, z: 142.35596}
+    instances: 12
+  - scene: GTASASector_m7_p9
+    bounds:
+      m_Center: {x: -1650.3, y: 0, z: -2408.25}
+      m_Extent: {x: 233.02124, y: 400, z: 151.75}
+    instances: 40
+  - scene: GTASASector_m8_m1
+    bounds:
+      m_Center: {x: -1925.623, y: 0, z: 125.19678}
+      m_Extent: {x: 171.5669, y: 400, z: 190.25061}
+    instances: 140
+  - scene: GTASASector_m8_m10
+    bounds:
+      m_Center: {x: -1896.9927, y: 0, z: 2438.0366}
+      m_Extent: {x: 219.8794, y: 400, z: 134.03662}
+    instances: 67
+  - scene: GTASASector_m8_m11
+    bounds:
+      m_Center: {x: -1968.2646, y: 0, z: 2679.4048}
+      m_Extent: {x: 176.26465, y: 400, z: 189.86768}
+    instances: 28
+  - scene: GTASASector_m8_m12
+    bounds:
+      m_Center: {x: -1936.3534, y: 0, z: 2944}
+      m_Extent: {x: 144.3534, y: 400, z: 128}
+    instances: 2
+  - scene: GTASASector_m8_m2
+    bounds:
+      m_Center: {x: -1913.5779, y: 0, z: 404.03796}
+      m_Extent: {x: 141.44165, y: 400, z: 188}
+    instances: 62
+  - scene: GTASASector_m8_m3
+    bounds:
+      m_Center: {x: -1874.5471, y: 0, z: 670.8271}
+      m_Extent: {x: 214.64062, y: 400, z: 184.04388}
+    instances: 83
+  - scene: GTASASector_m8_m4
+    bounds:
+      m_Center: {x: -1917.5372, y: 0, z: 929.8954}
+      m_Extent: {x: 134.60413, y: 400, z: 220.45068}
+    instances: 186
+  - scene: GTASASector_m8_m5
+    bounds:
+      m_Center: {x: -1917.6799, y: 0, z: 1173.478}
+      m_Extent: {x: 195.17407, y: 400, z: 201.10132}
+    instances: 47
+  - scene: GTASASector_m8_m6
+    bounds:
+      m_Center: {x: -1899.4332, y: 0, z: 1391.023}
+      m_Extent: {x: 197.97351, y: 400, z: 182.76147}
+    instances: 42
+  - scene: GTASASector_m8_m7
+    bounds:
+      m_Center: {x: -1910.6423, y: 0, z: 1671.2028}
+      m_Extent: {x: 186.61353, y: 400, z: 238.73254}
+    instances: 38
+  - scene: GTASASector_m8_m8
+    bounds:
+      m_Center: {x: -1910.8313, y: 0, z: 1914.3457}
+      m_Extent: {x: 226.33984, y: 400, z: 216.61206}
+    instances: 26
+  - scene: GTASASector_m8_m9
+    bounds:
+      m_Center: {x: -1982.4246, y: 0, z: 2189.6377}
+      m_Extent: {x: 196.92139, y: 400, z: 141.6377}
+    instances: 18
+  - scene: GTASASector_m8_p0
+    bounds:
+      m_Center: {x: -1923.0153, y: 0, z: -149.10971}
+      m_Extent: {x: 137.80115, y: 400, z: 209.3876}
+    instances: 275
+  - scene: GTASASector_m8_p1
+    bounds:
+      m_Center: {x: -1922.7534, y: 0, z: -372.89124}
+      m_Extent: {x: 194.03638, y: 400, z: 220.50452}
+    instances: 185
+  - scene: GTASASector_m8_p10
+    bounds:
+      m_Center: {x: -1929.7948, y: 0, z: -2638.179}
+      m_Extent: {x: 137.7948, y: 400, z: 177.82104}
+    instances: 31
+  - scene: GTASASector_m8_p11
+    bounds:
+      m_Center: {x: -1920.5521, y: 0, z: -2893.8975}
+      m_Extent: {x: 246.42102, y: 400, z: 178.10254}
+    instances: 4
+  - scene: GTASASector_m8_p2
+    bounds:
+      m_Center: {x: -1896.9457, y: 0, z: -670.0425}
+      m_Extent: {x: 182.66785, y: 400, z: 158.35303}
+    instances: 126
+  - scene: GTASASector_m8_p3
+    bounds:
+      m_Center: {x: -1914.7567, y: 0, z: -856.52826}
+      m_Extent: {x: 216.95935, y: 400, z: 238.25653}
+    instances: 152
+  - scene: GTASASector_m8_p4
+    bounds:
+      m_Center: {x: -1920.1608, y: 0, z: -1132.7378}
+      m_Extent: {x: 202.38391, y: 400, z: 167.76782}
+    instances: 111
+  - scene: GTASASector_m8_p5
+    bounds:
+      m_Center: {x: -1900.5674, y: 0, z: -1400.09}
+      m_Extent: {x: 161.74634, y: 400, z: 135.91003}
+    instances: 45
+  - scene: GTASASector_m8_p6
+    bounds:
+      m_Center: {x: -1815.6986, y: 0, z: -1592.7708}
+      m_Extent: {x: 232.30139, y: 400, z: 199.22925}
+    instances: 2
+  - scene: GTASASector_m8_p7
+    bounds:
+      m_Center: {x: -1818.4893, y: 0, z: -1848.8862}
+      m_Extent: {x: 237.37744, y: 400, z: 237.24463}
+    instances: 6
+  - scene: GTASASector_m8_p8
+    bounds:
+      m_Center: {x: -1932.508, y: 0, z: -2165.2405}
+      m_Extent: {x: 140.50806, y: 400, z: 138.75952}
+    instances: 20
+  - scene: GTASASector_m8_p9
+    bounds:
+      m_Center: {x: -1964.7034, y: 0, z: -2318.4233}
+      m_Extent: {x: 184.1726, y: 400, z: 242.44043}
+    instances: 28
+  - scene: GTASASector_m9_m1
+    bounds:
+      m_Center: {x: -2160.178, y: 0, z: 130.55386}
+      m_Extent: {x: 149.55737, y: 400, z: 150.8392}
+    instances: 169
+  - scene: GTASASector_m9_m10
+    bounds:
+      m_Center: {x: -2189.0044, y: 0, z: 2435.8608}
+      m_Extent: {x: 202.98242, y: 400, z: 189.12842}
+    instances: 313
+  - scene: GTASASector_m9_m11
+    bounds:
+      m_Center: {x: -2197.811, y: 0, z: 2661.5142}
+      m_Extent: {x: 149.81104, y: 400, z: 154.74658}
+    instances: 34
+  - scene: GTASASector_m9_m12
+    bounds:
+      m_Center: {x: -2182.0933, y: 0, z: 2911.0645}
+      m_Extent: {x: 134.09332, y: 400, z: 160.93555}
+    instances: 4
+  - scene: GTASASector_m9_m2
+    bounds:
+      m_Center: {x: -2136.6367, y: 0, z: 384.58124}
+      m_Extent: {x: 171.43457, y: 400, z: 184.81561}
+    instances: 124
+  - scene: GTASASector_m9_m3
+    bounds:
+      m_Center: {x: -2156.5278, y: 0, z: 695.34}
+      m_Extent: {x: 208.88916, y: 400, z: 246.39056}
+    instances: 52
+  - scene: GTASASector_m9_m4
+    bounds:
+      m_Center: {x: -2199.1362, y: 0, z: 919.64417}
+      m_Extent: {x: 206.22461, y: 400, z: 210.15784}
+    instances: 112
+  - scene: GTASASector_m9_m5
+    bounds:
+      m_Center: {x: -2183.45, y: 0, z: 1150.3391}
+      m_Extent: {x: 135.59247, y: 400, z: 132.09863}
+    instances: 40
+  - scene: GTASASector_m9_m6
+    bounds:
+      m_Center: {x: -2164.9983, y: 0, z: 1405.8804}
+      m_Extent: {x: 155.07007, y: 400, z: 170.85693}
+    instances: 20
+  - scene: GTASASector_m9_m7
+    bounds:
+      m_Center: {x: -2178.6094, y: 44.918213, z: 1675.2952}
+      m_Extent: {x: 148.28418, y: 444.9182, z: 210.01929}
+    instances: 21
+  - scene: GTASASector_m9_m8
+    bounds:
+      m_Center: {x: -2178.167, y: 0, z: 1926.8481}
+      m_Extent: {x: 180.02295, y: 400, z: 185.2605}
+    instances: 32
+  - scene: GTASASector_m9_m9
+    bounds:
+      m_Center: {x: -2186.9456, y: 0, z: 2190.6633}
+      m_Extent: {x: 153.34595, y: 400, z: 168.5603}
+    instances: 101
+  - scene: GTASASector_m9_p0
+    bounds:
+      m_Center: {x: -2155.7896, y: 0, z: -125.048416}
+      m_Extent: {x: 158.59912, y: 400, z: 185.32936}
+    instances: 290
+  - scene: GTASASector_m9_p1
+    bounds:
+      m_Center: {x: -2187.8154, y: 0, z: -365.66052}
+      m_Extent: {x: 171.17334, y: 400, z: 147.43909}
+    instances: 145
+  - scene: GTASASector_m9_p10
+    bounds:
+      m_Center: {x: -2205.7515, y: 0, z: -2666.1655}
+      m_Extent: {x: 190.4624, y: 400, z: 203.51709}
+    instances: 47
+  - scene: GTASASector_m9_p11
+    bounds:
+      m_Center: {x: -2214.2896, y: 0, z: -2930.425}
+      m_Extent: {x: 166.28955, y: 400, z: 141.57495}
+    instances: 12
+  - scene: GTASASector_m9_p2
+    bounds:
+      m_Center: {x: -2153.0928, y: 0, z: -644.11945}
+      m_Extent: {x: 161.42578, y: 400, z: 174.29633}
+    instances: 201
+  - scene: GTASASector_m9_p3
+    bounds:
+      m_Center: {x: -2171.2148, y: 0, z: -911.9845}
+      m_Extent: {x: 156.37988, y: 400, z: 172.54065}
+    instances: 154
+  - scene: GTASASector_m9_p4
+    bounds:
+      m_Center: {x: -2171.7324, y: 0, z: -1150.5569}
+      m_Extent: {x: 160.46191, y: 400, z: 196.92871}
+    instances: 102
+  - scene: GTASASector_m9_p5
+    bounds:
+      m_Center: {x: -2258.8274, y: 0, z: -1492.6907}
+      m_Extent: {x: 243.3274, y: 400, z: 238.18018}
+    instances: 77
+  - scene: GTASASector_m9_p7
+    bounds:
+      m_Center: {x: -2268.666, y: 0, z: -1881.7324}
+      m_Extent: {x: 241.6513, y: 400, z: 197.31567}
+    instances: 2
+  - scene: GTASASector_m9_p8
+    bounds:
+      m_Center: {x: -2176, y: 0, z: -2176}
+      m_Extent: {x: 128, y: 400, z: 128}
+    instances: 3
+  - scene: GTASASector_m9_p9
+    bounds:
+      m_Center: {x: -2199.198, y: 0, z: -2325.334}
+      m_Extent: {x: 305.48853, y: 400, z: 249.35107}
+    instances: 54
+  - scene: GTASASector_p0_m1
+    bounds:
+      m_Center: {x: 115.88406, y: 0, z: 99.536316}
+      m_Extent: {x: 246.65848, y: 400, z: 259.62317}
+    instances: 253
+  - scene: GTASASector_p0_m10
+    bounds:
+      m_Center: {x: 123.69701, y: 0, z: 2432}
+      m_Extent: {x: 132.30301, y: 400, z: 128}
+    instances: 1
+  - scene: GTASASector_p0_m11
+    bounds:
+      m_Center: {x: 123.58189, y: 0, z: 2686.7383}
+      m_Extent: {x: 132.41812, y: 400, z: 129.26172}
+    instances: 4
+  - scene: GTASASector_p0_m2
+    bounds:
+      m_Center: {x: 129.7512, y: 0, z: 365.3537}
+      m_Extent: {x: 137.18091, y: 400, z: 146.6463}
+    instances: 110
+  - scene: GTASASector_p0_m3
+    bounds:
+      m_Center: {x: 209.53653, y: 0, z: 601.81354}
+      m_Extent: {x: 246.56284, y: 400, z: 237.13446}
+    instances: 35
+  - scene: GTASASector_p0_m4
+    bounds:
+      m_Center: {x: 115.31309, y: 0, z: 881.4965}
+      m_Extent: {x: 238.2249, y: 400, z: 144.76117}
+    instances: 14
+  - scene: GTASASector_p0_m5
+    bounds:
+      m_Center: {x: 85.8338, y: 0, z: 1123.0222}
+      m_Extent: {x: 272.45966, y: 400, z: 281.9856}
+    instances: 63
+  - scene: GTASASector_p0_m6
+    bounds:
+      m_Center: {x: 152.33018, y: 0, z: 1376.7349}
+      m_Extent: {x: 167.16133, y: 400, z: 191.16016}
+    instances: 182
+  - scene: GTASASector_p0_m7
+    bounds:
+      m_Center: {x: 169.84862, y: 0, z: 1678.6965}
+      m_Extent: {x: 169.84862, y: 400, z: 161.65894}
+    instances: 89
+  - scene: GTASASector_p0_m8
+    bounds:
+      m_Center: {x: 128, y: 0, z: 1920}
+      m_Extent: {x: 128, y: 400, z: 128}
+    instances: 26
+  - scene: GTASASector_p0_p0
+    bounds:
+      m_Center: {x: 95.91368, y: 0, z: -103.2498}
+      m_Extent: {x: 169.0497, y: 400, z: 152.7502}
+    instances: 21
+  - scene: GTASASector_p0_p1
+    bounds:
+      m_Center: {x: 220.23865, y: 0, z: -376.72046}
+      m_Extent: {x: 220.23865, y: 400, z: 225.20312}
+    instances: 4
+  - scene: GTASASector_p0_p10
+    bounds:
+      m_Center: {x: 167.60335, y: 0, z: -2672.268}
+      m_Extent: {x: 197.27472, y: 400, z: 143.73193}
+    instances: 28
+  - scene: GTASASector_p0_p11
+    bounds:
+      m_Center: {x: 76.99393, y: 0, z: -2904.6143}
+      m_Extent: {x: 179.00607, y: 400, z: 167.38586}
+    instances: 2
+  - scene: GTASASector_p0_p2
+    bounds:
+      m_Center: {x: 136.11841, y: 0, z: -640}
+      m_Extent: {x: 136.11841, y: 400, z: 128}
+    instances: 4
+  - scene: GTASASector_p0_p3
+    bounds:
+      m_Center: {x: 91.97049, y: 0, z: -870.8937}
+      m_Extent: {x: 170.79166, y: 400, z: 153.10632}
+    instances: 45
+  - scene: GTASASector_p0_p4
+    bounds:
+      m_Center: {x: 90.47804, y: 0, z: -1117.5803}
+      m_Extent: {x: 170.27916, y: 400, z: 183.68506}
+    instances: 154
+  - scene: GTASASector_p0_p5
+    bounds:
+      m_Center: {x: 137.98969, y: 0, z: -1410.4624}
+      m_Extent: {x: 229.80566, y: 400, z: 223.36768}
+    instances: 114
+  - scene: GTASASector_p0_p6
+    bounds:
+      m_Center: {x: 165.4223, y: 0, z: -1681.4385}
+      m_Extent: {x: 165.4223, y: 400, z: 145.43848}
+    instances: 10
+  - scene: GTASASector_p0_p7
+    bounds:
+      m_Center: {x: 160.66672, y: 0, z: -1926.527}
+      m_Extent: {x: 160.66672, y: 400, z: 134.52698}
+    instances: 38
+  - scene: GTASASector_p0_p8
+    bounds:
+      m_Center: {x: 126.26973, y: 0, z: -2121.7515}
+      m_Extent: {x: 144.28072, y: 400, z: 182.24841}
+    instances: 5
+  - scene: GTASASector_p0_p9
+    bounds:
+      m_Center: {x: 131.14561, y: 0, z: -2416.1304}
+      m_Extent: {x: 245.59949, y: 400, z: 143.86963}
+    instances: 26
+  - scene: GTASASector_p10_m1
+    bounds:
+      m_Center: {x: 2689.339, y: 0, z: 172.512}
+      m_Extent: {x: 146.46411, y: 400, z: 206.48389}
+    instances: 20
+  - scene: GTASASector_p10_m10
+    bounds:
+      m_Center: {x: 2669.2842, y: 0, z: 2388.7695}
+      m_Extent: {x: 162.20312, y: 400, z: 177.18115}
+    instances: 196
+  - scene: GTASASector_p10_m11
+    bounds:
+      m_Center: {x: 2661.5405, y: 0, z: 2710.723}
+      m_Extent: {x: 154.45947, y: 400, z: 150.7229}
+    instances: 6
+  - scene: GTASASector_p10_m12
+    bounds:
+      m_Center: {x: 2661.5405, y: 0, z: 2944}
+      m_Extent: {x: 154.45947, y: 400, z: 128}
+    instances: 2
+  - scene: GTASASector_p10_m2
+    bounds:
+      m_Center: {x: 2686.1865, y: 0, z: 396.1081}
+      m_Extent: {x: 219.29883, y: 400, z: 212.8172}
+    instances: 35
+  - scene: GTASASector_p10_m3
+    bounds:
+      m_Center: {x: 2658.3289, y: 0, z: 656.6979}
+      m_Extent: {x: 157.67114, y: 400, z: 144.69788}
+    instances: 6
+  - scene: GTASASector_p10_m4
+    bounds:
+      m_Center: {x: 2730.8486, y: 0, z: 914.25604}
+      m_Extent: {x: 173.70947, y: 400, z: 146.25604}
+    instances: 66
+  - scene: GTASASector_p10_m5
+    bounds:
+      m_Center: {x: 2680.3809, y: 0, z: 1209.1178}
+      m_Extent: {x: 185.27246, y: 400, z: 191.12976}
+    instances: 431
+  - scene: GTASASector_p10_m6
+    bounds:
+      m_Center: {x: 2694.3357, y: 0, z: 1422.7361}
+      m_Extent: {x: 172.74585, y: 400, z: 177.71729}
+    instances: 146
+  - scene: GTASASector_p10_m7
+    bounds:
+      m_Center: {x: 2699.3977, y: 0, z: 1661.8862}
+      m_Extent: {x: 161.70288, y: 400, z: 227.469}
+    instances: 114
+  - scene: GTASASector_p10_m8
+    bounds:
+      m_Center: {x: 2695.0544, y: 0, z: 1911.5466}
+      m_Extent: {x: 155.11987, y: 400, z: 167.72876}
+    instances: 231
+  - scene: GTASASector_p10_m9
+    bounds:
+      m_Center: {x: 2694.4082, y: 0, z: 2188.8457}
+      m_Extent: {x: 153.5083, y: 400, z: 149.6128}
+    instances: 230
+  - scene: GTASASector_p10_p0
+    bounds:
+      m_Center: {x: 2646.8257, y: 0, z: -158.02165}
+      m_Extent: {x: 238.56104, y: 400, z: 245.81642}
+    instances: 48
+  - scene: GTASASector_p10_p1
+    bounds:
+      m_Center: {x: 2586.827, y: 0, z: -389.3537}
+      m_Extent: {x: 229.1731, y: 400, z: 213.13562}
+    instances: 20
+  - scene: GTASASector_p10_p10
+    bounds:
+      m_Center: {x: 2668.833, y: 0, z: -2669.955}
+      m_Extent: {x: 208.5625, y: 400, z: 188.33984}
+    instances: 99
+  - scene: GTASASector_p10_p11
+    bounds:
+      m_Center: {x: 2646.6975, y: 0, z: -2907.6155}
+      m_Extent: {x: 169.30249, y: 400, z: 164.38452}
+    instances: 76
+  - scene: GTASASector_p10_p2
+    bounds:
+      m_Center: {x: 2643.1619, y: 0, z: -666.0696}
+      m_Extent: {x: 172.83813, y: 400, z: 154.06958}
+    instances: 60
+  - scene: GTASASector_p10_p3
+    bounds:
+      m_Center: {x: 2647.4106, y: 0, z: -917.8691}
+      m_Extent: {x: 183.17041, y: 400, z: 174.59918}
+    instances: 142
+  - scene: GTASASector_p10_p4
+    bounds:
+      m_Center: {x: 2636.6907, y: 0, z: -1117.7615}
+      m_Extent: {x: 187.21411, y: 400, z: 185.48022}
+    instances: 91
+  - scene: GTASASector_p10_p5
+    bounds:
+      m_Center: {x: 2699.2217, y: 0, z: -1398.0156}
+      m_Extent: {x: 162.32617, y: 400, z: 174.844}
+    instances: 122
+  - scene: GTASASector_p10_p6
+    bounds:
+      m_Center: {x: 2701.9958, y: 0, z: -1632.168}
+      m_Extent: {x: 170.31616, y: 400, z: 169.09814}
+    instances: 111
+  - scene: GTASASector_p10_p7
+    bounds:
+      m_Center: {x: 2677.392, y: 0, z: -1934.9685}
+      m_Extent: {x: 160.00342, y: 400, z: 168.31274}
+    instances: 156
+  - scene: GTASASector_p10_p8
+    bounds:
+      m_Center: {x: 2657.5972, y: 0, z: -2135.858}
+      m_Extent: {x: 180.20654, y: 400, z: 192.62549}
+    instances: 254
+  - scene: GTASASector_p10_p9
+    bounds:
+      m_Center: {x: 2645.1216, y: 0, z: -2401.6125}
+      m_Extent: {x: 189.02002, y: 400, z: 158.38745}
+    instances: 199
+  - scene: GTASASector_p11_m1
+    bounds:
+      m_Center: {x: 2919.56, y: 0, z: 145.30553}
+      m_Extent: {x: 152.43994, y: 400, z: 149.85507}
+    instances: 8
+  - scene: GTASASector_p11_m10
+    bounds:
+      m_Center: {x: 2938.261, y: 0, z: 2442.5256}
+      m_Extent: {x: 133.73901, y: 400, z: 181.07983}
+    instances: 21
+  - scene: GTASASector_p11_m11
+    bounds:
+      m_Center: {x: 2939.5405, y: 0, z: 2710.723}
+      m_Extent: {x: 132.45947, y: 400, z: 150.7229}
+    instances: 2
+  - scene: GTASASector_p11_m12
+    bounds:
+      m_Center: {x: 2939.5405, y: 0, z: 2944}
+      m_Extent: {x: 132.45947, y: 400, z: 128}
+    instances: 2
+  - scene: GTASASector_p11_m2
+    bounds:
+      m_Center: {x: 2898.7422, y: 0, z: 400.8037}
+      m_Extent: {x: 173.25781, y: 400, z: 144.80371}
+    instances: 5
+  - scene: GTASASector_p11_m3
+    bounds:
+      m_Center: {x: 2906.85, y: 0, z: 656.1759}
+      m_Extent: {x: 165.1499, y: 400, z: 144.1759}
+    instances: 12
+  - scene: GTASASector_p11_m4
+    bounds:
+      m_Center: {x: 2944, y: 0, z: 935.819}
+      m_Extent: {x: 128, y: 400, z: 167.81897}
+    instances: 17
+  - scene: GTASASector_p11_m5
+    bounds:
+      m_Center: {x: 2933.3079, y: 0, z: 1157.9462}
+      m_Extent: {x: 138.69214, y: 400, z: 133.94617}
+    instances: 50
+  - scene: GTASASector_p11_m6
+    bounds:
+      m_Center: {x: 2918.9434, y: 0, z: 1375.4675}
+      m_Extent: {x: 153.05664, y: 400, z: 271.9314}
+    instances: 93
+  - scene: GTASASector_p11_m7
+    bounds:
+      m_Center: {x: 2944, y: 0, z: 1663.3141}
+      m_Extent: {x: 128, y: 400, z: 218.25647}
+    instances: 56
+  - scene: GTASASector_p11_m8
+    bounds:
+      m_Center: {x: 2939.5405, y: 0, z: 1989.8328}
+      m_Extent: {x: 132.45947, y: 400, z: 271.61304}
+    instances: 39
+  - scene: GTASASector_p11_m9
+    bounds:
+      m_Center: {x: 2895.7822, y: 0, z: 2176}
+      m_Extent: {x: 176.21777, y: 400, z: 128}
+    instances: 56
+  - scene: GTASASector_p11_p0
+    bounds:
+      m_Center: {x: 2889.1812, y: 0, z: -136.82474}
+      m_Extent: {x: 182.81885, y: 400, z: 193.8277}
+    instances: 12
+  - scene: GTASASector_p11_p1
+    bounds:
+      m_Center: {x: 2906.1533, y: 0, z: -401.59784}
+      m_Extent: {x: 165.84668, y: 400, z: 145.59784}
+    instances: 2
+  - scene: GTASASector_p11_p10
+    bounds:
+      m_Center: {x: 2894.6978, y: 0, z: -2658.1772}
+      m_Extent: {x: 177.30225, y: 400, z: 157.82275}
+    instances: 10
+  - scene: GTASASector_p11_p11
+    bounds:
+      m_Center: {x: 2893.6282, y: 0, z: -2907.6155}
+      m_Extent: {x: 178.37183, y: 400, z: 164.38452}
+    instances: 6
+  - scene: GTASASector_p11_p2
+    bounds:
+      m_Center: {x: 2888.3281, y: 0, z: -670.5408}
+      m_Extent: {x: 183.67188, y: 400, z: 172.72987}
+    instances: 4
+  - scene: GTASASector_p11_p3
+    bounds:
+      m_Center: {x: 2894.5625, y: 0, z: -929.28217}
+      m_Extent: {x: 177.4375, y: 400, z: 161.28217}
+    instances: 45
+  - scene: GTASASector_p11_p4
+    bounds:
+      m_Center: {x: 2904.1055, y: 0, z: -1173.6028}
+      m_Extent: {x: 167.89453, y: 400, z: 149.60278}
+    instances: 10
+  - scene: GTASASector_p11_p5
+    bounds:
+      m_Center: {x: 2904.6963, y: 0, z: -1398.0261}
+      m_Extent: {x: 167.30371, y: 400, z: 174.80054}
+    instances: 25
+  - scene: GTASASector_p11_p6
+    bounds:
+      m_Center: {x: 2942.5234, y: 0, z: -1668.6318}
+      m_Extent: {x: 129.47656, y: 400, z: 132.63184}
+    instances: 31
+  - scene: GTASASector_p11_p7
+    bounds:
+      m_Center: {x: 2904.621, y: 0, z: -1915.3853}
+      m_Extent: {x: 167.3789, y: 400, z: 132.61475}
+    instances: 8
+  - scene: GTASASector_p11_p8
+    bounds:
+      m_Center: {x: 2904.6243, y: 0, z: -2206.4072}
+      m_Extent: {x: 167.37573, y: 400, z: 201.82275}
+    instances: 70
+  - scene: GTASASector_p11_p9
+    bounds:
+      m_Center: {x: 2873.2346, y: 0, z: -2439.2224}
+      m_Extent: {x: 198.76538, y: 400, z: 169.09937}
+    instances: 60
+  - scene: GTASASector_p1_m1
+    bounds:
+      m_Center: {x: 390.62827, y: 0, z: 141.06453}
+      m_Extent: {x: 147.82022, y: 400, z: 163.63223}
+    instances: 168
+  - scene: GTASASector_p1_m10
+    bounds:
+      m_Center: {x: 372.3023, y: 0, z: 2432.7227}
+      m_Extent: {x: 223.93036, y: 400, z: 128.72266}
+    instances: 4
+  - scene: GTASASector_p1_m11
+    bounds:
+      m_Center: {x: 372.3023, y: 0, z: 2662.2246}
+      m_Extent: {x: 223.93036, y: 400, z: 153.77539}
+    instances: 4
+  - scene: GTASASector_p1_m12
+    bounds:
+      m_Center: {x: 372.3023, y: 0, z: 2891.723}
+      m_Extent: {x: 223.93036, y: 400, z: 180.2771}
+    instances: 4
+  - scene: GTASASector_p1_m2
+    bounds:
+      m_Center: {x: 364.75198, y: 0, z: 339.6394}
+      m_Extent: {x: 170.97507, y: 400, z: 210.65247}
+    instances: 58
+  - scene: GTASASector_p1_m3
+    bounds:
+      m_Center: {x: 376.34454, y: 0, z: 598.94794}
+      m_Extent: {x: 165.1977, y: 400, z: 182.17987}
+    instances: 32
+  - scene: GTASASector_p1_m4
+    bounds:
+      m_Center: {x: 407.22107, y: 0, z: 856.67084}
+      m_Extent: {x: 161.30524, y: 400, z: 177.52948}
+    instances: 32
+  - scene: GTASASector_p1_m5
+    bounds:
+      m_Center: {x: 369.9038, y: 0, z: 1151.8695}
+      m_Extent: {x: 246.60327, y: 400, z: 162.52771}
+    instances: 213
+  - scene: GTASASector_p1_m6
+    bounds:
+      m_Center: {x: 353.62735, y: 0, z: 1420.9401}
+      m_Extent: {x: 170.65836, y: 400, z: 176.27332}
+    instances: 304
+  - scene: GTASASector_p1_m7
+    bounds:
+      m_Center: {x: 396.24945, y: 0, z: 1636.3136}
+      m_Extent: {x: 175.78973, y: 400, z: 169.18274}
+    instances: 337
+  - scene: GTASASector_p1_m8
+    bounds:
+      m_Center: {x: 372.3023, y: 0, z: 1930.5941}
+      m_Extent: {x: 223.93036, y: 400, z: 180.85168}
+    instances: 123
+  - scene: GTASASector_p1_m9
+    bounds:
+      m_Center: {x: 372.3023, y: 0, z: 2161.0872}
+      m_Extent: {x: 223.93036, y: 400, z: 148.8601}
+    instances: 25
+  - scene: GTASASector_p1_p0
+    bounds:
+      m_Center: {x: 413.18164, y: 0, z: -127.8882}
+      m_Extent: {x: 197.29297, y: 400, z: 195.584}
+    instances: 68
+  - scene: GTASASector_p1_p1
+    bounds:
+      m_Center: {x: 392.10846, y: 0, z: -394.53488}
+      m_Extent: {x: 136.10846, y: 400, z: 138.53488}
+    instances: 2
+  - scene: GTASASector_p1_p10
+    bounds:
+      m_Center: {x: 419.08743, y: 0, z: -2666.4329}
+      m_Extent: {x: 196.02792, y: 400, z: 159.59155}
+    instances: 35
+  - scene: GTASASector_p1_p11
+    bounds:
+      m_Center: {x: 378.242, y: 0, z: -2906.8804}
+      m_Extent: {x: 233.76447, y: 400, z: 165.11963}
+    instances: 8
+  - scene: GTASASector_p1_p2
+    bounds:
+      m_Center: {x: 370.17633, y: 0, z: -628.01526}
+      m_Extent: {x: 157.38153, y: 400, z: 160.69666}
+    instances: 15
+  - scene: GTASASector_p1_p3
+    bounds:
+      m_Center: {x: 419.21585, y: 0, z: -923.33453}
+      m_Extent: {x: 212.95023, y: 400, z: 164.96051}
+    instances: 34
+  - scene: GTASASector_p1_p4
+    bounds:
+      m_Center: {x: 377.35034, y: 0, z: -1131.0485}
+      m_Extent: {x: 237.76501, y: 400, z: 165.26746}
+    instances: 93
+  - scene: GTASASector_p1_p5
+    bounds:
+      m_Center: {x: 408.653, y: 0, z: -1396.7772}
+      m_Extent: {x: 152.65302, y: 400, z: 184.49915}
+    instances: 61
+  - scene: GTASASector_p1_p6
+    bounds:
+      m_Center: {x: 415.0481, y: 0, z: -1631.9088}
+      m_Extent: {x: 159.0481, y: 400, z: 197.40881}
+    instances: 20
+  - scene: GTASASector_p1_p7
+    bounds:
+      m_Center: {x: 383.05066, y: 0, z: -1914.9951}
+      m_Extent: {x: 128.94934, y: 400, z: 133.00488}
+    instances: 174
+  - scene: GTASASector_p1_p8
+    bounds:
+      m_Center: {x: 349.10022, y: 0, z: -2139.1055}
+      m_Extent: {x: 162.89978, y: 400, z: 164.89465}
+    instances: 5
+  - scene: GTASASector_p1_p9
+    bounds:
+      m_Center: {x: 390.1463, y: 0, z: -2422.1472}
+      m_Extent: {x: 201.51093, y: 400, z: 150.63745}
+    instances: 74
+  - scene: GTASASector_p2_m1
+    bounds:
+      m_Center: {x: 645.58167, y: 0, z: 102.91437}
+      m_Extent: {x: 193.12305, y: 400, z: 153.08563}
+    instances: 26
+  - scene: GTASASector_p2_m2
+    bounds:
+      m_Center: {x: 622.1664, y: 0, z: 351.09143}
+      m_Extent: {x: 169.70773, y: 400, z: 189.06274}
+    instances: 98
+  - scene: GTASASector_p2_m3
+    bounds:
+      m_Center: {x: 635.72253, y: 0, z: 595.2397}
+      m_Extent: {x: 233.90051, y: 400, z: 190.80829}
+    instances: 149
+  - scene: GTASASector_p2_m4
+    bounds:
+      m_Center: {x: 657.71326, y: 0, z: 902.6617}
+      m_Extent: {x: 197.7002, y: 400, z: 222.15985}
+    instances: 64
+  - scene: GTASASector_p2_m5
+    bounds:
+      m_Center: {x: 599.03436, y: 0, z: 1139.7146}
+      m_Extent: {x: 220.76984, y: 400, z: 219.14526}
+    instances: 234
+  - scene: GTASASector_p2_m6
+    bounds:
+      m_Center: {x: 640.2229, y: 0, z: 1414.7573}
+      m_Extent: {x: 147.68628, y: 400, z: 162.15625}
+    instances: 175
+  - scene: GTASASector_p2_m7
+    bounds:
+      m_Center: {x: 645.2833, y: 0, z: 1677.8833}
+      m_Extent: {x: 192.21973, y: 400, z: 141.8833}
+    instances: 336
+  - scene: GTASASector_p2_m8
+    bounds:
+      m_Center: {x: 645.41974, y: 0, z: 1894.5277}
+      m_Extent: {x: 143.27594, y: 400, z: 153.47229}
+    instances: 106
+  - scene: GTASASector_p2_p0
+    bounds:
+      m_Center: {x: 612.2548, y: 0, z: -109.51492}
+      m_Extent: {x: 178.9129, y: 400, z: 240.80984}
+    instances: 19
+  - scene: GTASASector_p2_p1
+    bounds:
+      m_Center: {x: 657.7258, y: 0, z: -389.33966}
+      m_Extent: {x: 223.98267, y: 400, z: 157.85602}
+    instances: 75
+  - scene: GTASASector_p2_p10
+    bounds:
+      m_Center: {x: 629.30664, y: 0, z: -2653.7214}
+      m_Extent: {x: 138.69336, y: 400, z: 162.27856}
+    instances: 2
+  - scene: GTASASector_p2_p11
+    bounds:
+      m_Center: {x: 675.15393, y: 0, z: -2906.9055}
+      m_Extent: {x: 163.15393, y: 400, z: 165.09448}
+    instances: 2
+  - scene: GTASASector_p2_p2
+    bounds:
+      m_Center: {x: 630.47943, y: 0, z: -613.1267}
+      m_Extent: {x: 286.50995, y: 400, z: 204.95703}
+    instances: 12
+  - scene: GTASASector_p2_p3
+    bounds:
+      m_Center: {x: 616.54315, y: 0, z: -880.97797}
+      m_Extent: {x: 172.0882, y: 400, z: 143.02203}
+    instances: 44
+  - scene: GTASASector_p2_p4
+    bounds:
+      m_Center: {x: 633.7765, y: 0, z: -1151.2092}
+      m_Extent: {x: 218.85693, y: 400, z: 199.12769}
+    instances: 45
+  - scene: GTASASector_p2_p5
+    bounds:
+      m_Center: {x: 637.21436, y: 0, z: -1380.1309}
+      m_Extent: {x: 130.78564, y: 400, z: 155.86914}
+    instances: 43
+  - scene: GTASASector_p2_p6
+    bounds:
+      m_Center: {x: 636.0562, y: 0, z: -1669.609}
+      m_Extent: {x: 131.94379, y: 400, z: 173.66443}
+    instances: 43
+  - scene: GTASASector_p2_p7
+    bounds:
+      m_Center: {x: 640.16394, y: 0, z: -1933.5271}
+      m_Extent: {x: 149.45557, y: 400, z: 223.75879}
+    instances: 82
+  - scene: GTASASector_p2_p8
+    bounds:
+      m_Center: {x: 608.74963, y: 0, z: -2225.6921}
+      m_Extent: {x: 177.88184, y: 400, z: 199.13354}
+    instances: 25
+  - scene: GTASASector_p2_p9
+    bounds:
+      m_Center: {x: 634.3102, y: 0, z: -2413.84}
+      m_Extent: {x: 136.96988, y: 400, z: 146.15991}
+    instances: 9
+  - scene: GTASASector_p3_m1
+    bounds:
+      m_Center: {x: 905.87445, y: 0, z: 120.05379}
+      m_Extent: {x: 155.20087, y: 400, z: 135.94621}
+    instances: 40
+  - scene: GTASASector_p3_m10
+    bounds:
+      m_Center: {x: 810.11633, y: 0, z: 2387.1948}
+      m_Extent: {x: 213.88367, y: 400, z: 174.25098}
+    instances: 2
+  - scene: GTASASector_p3_m11
+    bounds:
+      m_Center: {x: 810.11633, y: 0, z: 2710.723}
+      m_Extent: {x: 213.88367, y: 400, z: 150.7229}
+    instances: 2
+  - scene: GTASASector_p3_m12
+    bounds:
+      m_Center: {x: 810.11633, y: 0, z: 2944}
+      m_Extent: {x: 213.88367, y: 400, z: 128}
+    instances: 2
+  - scene: GTASASector_p3_m2
+    bounds:
+      m_Center: {x: 914.5148, y: 0, z: 374.9276}
+      m_Extent: {x: 202.80164, y: 400, z: 201.86725}
+    instances: 82
+  - scene: GTASASector_p3_m3
+    bounds:
+      m_Center: {x: 874.99567, y: 0, z: 636.57544}
+      m_Extent: {x: 183.28265, y: 400, z: 200.06372}
+    instances: 163
+  - scene: GTASASector_p3_m4
+    bounds:
+      m_Center: {x: 924.82745, y: 0, z: 895.16724}
+      m_Extent: {x: 222.24213, y: 400, z: 169.17432}
+    instances: 270
+  - scene: GTASASector_p3_m5
+    bounds:
+      m_Center: {x: 921.8627, y: 0, z: 1145.9851}
+      m_Extent: {x: 159.4679, y: 400, z: 164.22656}
+    instances: 211
+  - scene: GTASASector_p3_m6
+    bounds:
+      m_Center: {x: 907.1458, y: 0, z: 1400.5132}
+      m_Extent: {x: 145.53302, y: 400, z: 176.06665}
+    instances: 266
+  - scene: GTASASector_p3_m7
+    bounds:
+      m_Center: {x: 834.01245, y: 0, z: 1664.8661}
+      m_Extent: {x: 195.89783, y: 400, z: 139.6969}
+    instances: 458
+  - scene: GTASASector_p3_m8
+    bounds:
+      m_Center: {x: 819.77344, y: 0, z: 1940.3584}
+      m_Extent: {x: 223.54077, y: 400, z: 171.0874}
+    instances: 256
+  - scene: GTASASector_p3_m9
+    bounds:
+      m_Center: {x: 821.5629, y: 0, z: 2118.2646}
+      m_Extent: {x: 225.33026, y: 400, z: 185.73535}
+    instances: 82
+  - scene: GTASASector_p3_p0
+    bounds:
+      m_Center: {x: 882.64514, y: 0, z: -153.39763}
+      m_Extent: {x: 198.0697, y: 400, z: 211.90321}
+    instances: 15
+  - scene: GTASASector_p3_p1
+    bounds:
+      m_Center: {x: 929.5814, y: 0, z: -425.3694}
+      m_Extent: {x: 220.0177, y: 400, z: 177.75916}
+    instances: 36
+  - scene: GTASASector_p3_p10
+    bounds:
+      m_Center: {x: 885.4913, y: 0, z: -2655.368}
+      m_Extent: {x: 185.67548, y: 400, z: 160.63208}
+    instances: 14
+  - scene: GTASASector_p3_p11
+    bounds:
+      m_Center: {x: 896, y: 0, z: -2904.5225}
+      m_Extent: {x: 128, y: 400, z: 167.47754}
+    instances: 2
+  - scene: GTASASector_p3_p2
+    bounds:
+      m_Center: {x: 959.3093, y: 0, z: -635.77765}
+      m_Extent: {x: 191.30933, y: 400, z: 187.60016}
+    instances: 15
+  - scene: GTASASector_p3_p3
+    bounds:
+      m_Center: {x: 887.91077, y: 0, z: -908.6552}
+      m_Extent: {x: 151.43591, y: 400, z: 157.99872}
+    instances: 59
+  - scene: GTASASector_p3_p4
+    bounds:
+      m_Center: {x: 896, y: 0, z: -1121.7714}
+      m_Extent: {x: 128, y: 400, z: 158.22864}
+    instances: 53
+  - scene: GTASASector_p3_p5
+    bounds:
+      m_Center: {x: 861.9079, y: 0, z: -1419.8142}
+      m_Extent: {x: 162.0921, y: 400, z: 236.49268}
+    instances: 19
+  - scene: GTASASector_p3_p6
+    bounds:
+      m_Center: {x: 891.51685, y: 0, z: -1699.6125}
+      m_Extent: {x: 145.87866, y: 400, z: 163.61255}
+    instances: 103
+  - scene: GTASASector_p3_p7
+    bounds:
+      m_Center: {x: 895.59204, y: 0, z: -1963.2252}
+      m_Extent: {x: 151.79858, y: 400, z: 179.99963}
+    instances: 113
+  - scene: GTASASector_p3_p8
+    bounds:
+      m_Center: {x: 922.0257, y: 0, z: -2165.2087}
+      m_Extent: {x: 189.13531, y: 400, z: 141.98267}
+    instances: 77
+  - scene: GTASASector_p3_p9
+    bounds:
+      m_Center: {x: 907.0013, y: 0, z: -2445.4277}
+      m_Extent: {x: 193.51239, y: 400, z: 222.19824}
+    instances: 33
+  - scene: GTASASector_p4_m1
+    bounds:
+      m_Center: {x: 1133.6216, y: 0, z: 181.80328}
+      m_Extent: {x: 231.99365, y: 400, z: 194.76685}
+    instances: 28
+  - scene: GTASASector_p4_m10
+    bounds:
+      m_Center: {x: 1161.9503, y: 0, z: 2413.4563}
+      m_Extent: {x: 170.0387, y: 400, z: 206.84937}
+    instances: 282
+  - scene: GTASASector_p4_m11
+    bounds:
+      m_Center: {x: 1157.0808, y: 0, z: 2710.723}
+      m_Extent: {x: 150, y: 400, z: 150.7229}
+    instances: 2
+  - scene: GTASASector_p4_m12
+    bounds:
+      m_Center: {x: 1157.0808, y: 0, z: 2944}
+      m_Extent: {x: 150, y: 400, z: 128}
+    instances: 2
+  - scene: GTASASector_p4_m2
+    bounds:
+      m_Center: {x: 1204.0939, y: 0, z: 375.34717}
+      m_Extent: {x: 186.12048, y: 400, z: 196.31348}
+    instances: 83
+  - scene: GTASASector_p4_m3
+    bounds:
+      m_Center: {x: 1092.762, y: 0, z: 608.6348}
+      m_Extent: {x: 188.5122, y: 400, z: 182.51813}
+    instances: 56
+  - scene: GTASASector_p4_m4
+    bounds:
+      m_Center: {x: 1164.5339, y: 0, z: 891.7114}
+      m_Extent: {x: 191.96411, y: 400, z: 138.06079}
+    instances: 165
+  - scene: GTASASector_p4_m5
+    bounds:
+      m_Center: {x: 1158.25, y: 0, z: 1170.2026}
+      m_Extent: {x: 185.62476, y: 400, z: 225.75562}
+    instances: 253
+  - scene: GTASASector_p4_m6
+    bounds:
+      m_Center: {x: 1165.3518, y: 0, z: 1414.8181}
+      m_Extent: {x: 167.31812, y: 400, z: 154.00122}
+    instances: 232
+  - scene: GTASASector_p4_m7
+    bounds:
+      m_Center: {x: 1132.1096, y: 0, z: 1632.8467}
+      m_Extent: {x: 165.33179, y: 400, z: 209.41797}
+    instances: 243
+  - scene: GTASASector_p4_m8
+    bounds:
+      m_Center: {x: 1111.3257, y: 0, z: 1931.0222}
+      m_Extent: {x: 211.19897, y: 400, z: 187.03247}
+    instances: 380
+  - scene: GTASASector_p4_m9
+    bounds:
+      m_Center: {x: 1206.9357, y: 0, z: 2226.877}
+      m_Extent: {x: 207.14832, y: 400, z: 212.43701}
+    instances: 852
+  - scene: GTASASector_p4_p0
+    bounds:
+      m_Center: {x: 1146.1389, y: 0, z: -181.4689}
+      m_Extent: {x: 177.38037, y: 400, z: 280.1323}
+    instances: 76
+  - scene: GTASASector_p4_p1
+    bounds:
+      m_Center: {x: 1180.7258, y: 0, z: -449.70383}
+      m_Extent: {x: 200.44458, y: 400, z: 215.99905}
+    instances: 92
+  - scene: GTASASector_p4_p10
+    bounds:
+      m_Center: {x: 1186.8074, y: 0, z: -2663.812}
+      m_Extent: {x: 188.91626, y: 400, z: 179.41895}
+    instances: 81
+  - scene: GTASASector_p4_p11
+    bounds:
+      m_Center: {x: 1137.3955, y: 0, z: -2907.6155}
+      m_Extent: {x: 200, y: 400, z: 164.38452}
+    instances: 31
+  - scene: GTASASector_p4_p2
+    bounds:
+      m_Center: {x: 1105.5549, y: 0, z: -667.06335}
+      m_Extent: {x: 242.82251, y: 400, z: 155.06335}
+    instances: 21
+  - scene: GTASASector_p4_p3
+    bounds:
+      m_Center: {x: 1203.044, y: 0, z: -902.8053}
+      m_Extent: {x: 210.68945, y: 400, z: 160.57263}
+    instances: 75
+  - scene: GTASASector_p4_p4
+    bounds:
+      m_Center: {x: 1121.5969, y: 0, z: -1132.9519}
+      m_Extent: {x: 175.7688, y: 400, z: 171.00098}
+    instances: 98
+  - scene: GTASASector_p4_p5
+    bounds:
+      m_Center: {x: 1144.8799, y: 0, z: -1440.7002}
+      m_Extent: {x: 147.47119, y: 400, z: 237.52173}
+    instances: 96
+  - scene: GTASASector_p4_p6
+    bounds:
+      m_Center: {x: 1161.7504, y: 0, z: -1663.0867}
+      m_Extent: {x: 144.35486, y: 400, z: 140.15112}
+    instances: 63
+  - scene: GTASASector_p4_p7
+    bounds:
+      m_Center: {x: 1157.3926, y: 0, z: -1923.1384}
+      m_Extent: {x: 159.99805, y: 400, z: 140.09448}
+    instances: 155
+  - scene: GTASASector_p4_p8
+    bounds:
+      m_Center: {x: 1147.3955, y: 0, z: -2184.3289}
+      m_Extent: {x: 150, y: 400, z: 161.10327}
+    instances: 149
+  - scene: GTASASector_p4_p9
+    bounds:
+      m_Center: {x: 1192.535, y: 0, z: -2363.7046}
+      m_Extent: {x: 224.90979, y: 400, z: 220.53271}
+    instances: 48
+  - scene: GTASASector_p5_m1
+    bounds:
+      m_Center: {x: 1451.7, y: 0, z: 135.55539}
+      m_Extent: {x: 183.01147, y: 400, z: 256.73627}
+    instances: 28
+  - scene: GTASASector_p5_m10
+    bounds:
+      m_Center: {x: 1475.9595, y: 0, z: 2433.798}
+      m_Extent: {x: 197.9956, y: 400, z: 137.37671}
+    instances: 56
+  - scene: GTASASector_p5_m11
+    bounds:
+      m_Center: {x: 1452.6117, y: 0, z: 2685.3489}
+      m_Extent: {x: 221.34314, y: 400, z: 176.09692}
+    instances: 23
+  - scene: GTASASector_p5_m12
+    bounds:
+      m_Center: {x: 1443.5404, y: 0, z: 2944}
+      m_Extent: {x: 163.5404, y: 400, z: 128}
+    instances: 2
+  - scene: GTASASector_p5_m2
+    bounds:
+      m_Center: {x: 1386.3037, y: 0, z: 433.96814}
+      m_Extent: {x: 163.29218, y: 400, z: 177.96814}
+    instances: 14
+  - scene: GTASASector_p5_m3
+    bounds:
+      m_Center: {x: 1432.3474, y: 0, z: 577.9241}
+      m_Extent: {x: 263.07812, y: 400, z: 200.48242}
+    instances: 63
+  - scene: GTASASector_p5_m4
+    bounds:
+      m_Center: {x: 1442.2185, y: 0, z: 853.5691}
+      m_Extent: {x: 245.23755, y: 400, z: 193.00647}
+    instances: 187
+  - scene: GTASASector_p5_m5
+    bounds:
+      m_Center: {x: 1397.0114, y: 0, z: 1153.4739}
+      m_Extent: {x: 170.80481, y: 400, z: 137.37256}
+    instances: 275
+  - scene: GTASASector_p5_m6
+    bounds:
+      m_Center: {x: 1429.9781, y: 0, z: 1422.3676}
+      m_Extent: {x: 170.14099, y: 400, z: 172.0238}
+    instances: 222
+  - scene: GTASASector_p5_m7
+    bounds:
+      m_Center: {x: 1417.46, y: 0, z: 1668.4343}
+      m_Extent: {x: 139.57983, y: 400, z: 170.02368}
+    instances: 248
+  - scene: GTASASector_p5_m8
+    bounds:
+      m_Center: {x: 1442.6475, y: 0, z: 1915.3993}
+      m_Extent: {x: 204.99805, y: 400, z: 193.19446}
+    instances: 480
+  - scene: GTASASector_p5_m9
+    bounds:
+      m_Center: {x: 1405.5865, y: 0, z: 2217.706}
+      m_Extent: {x: 187.41248, y: 400, z: 173.07422}
+    instances: 256
+  - scene: GTASASector_p5_p0
+    bounds:
+      m_Center: {x: 1386.7738, y: 0, z: -110.21747}
+      m_Extent: {x: 178.92712, y: 400, z: 181.2406}
+    instances: 132
+  - scene: GTASASector_p5_p1
+    bounds:
+      m_Center: {x: 1395.2529, y: 0, z: -344.60406}
+      m_Extent: {x: 246.0957, y: 400, z: 204.10052}
+    instances: 291
+  - scene: GTASASector_p5_p10
+    bounds:
+      m_Center: {x: 1399.1652, y: 0, z: -2673.2844}
+      m_Extent: {x: 177.15613, y: 400, z: 189.94702}
+    instances: 167
+  - scene: GTASASector_p5_p11
+    bounds:
+      m_Center: {x: 1408, y: 0, z: -2897.6155}
+      m_Extent: {x: 128, y: 400, z: 174.38452}
+    instances: 20
+  - scene: GTASASector_p5_p2
+    bounds:
+      m_Center: {x: 1353.3741, y: 0, z: -663.06683}
+      m_Extent: {x: 204.06165, y: 400, z: 160.16498}
+    instances: 76
+  - scene: GTASASector_p5_p3
+    bounds:
+      m_Center: {x: 1420.4407, y: 0, z: -915.6891}
+      m_Extent: {x: 156.9524, y: 400, z: 147.68909}
+    instances: 142
+  - scene: GTASASector_p5_p4
+    bounds:
+      m_Center: {x: 1407.7468, y: 0, z: -1125.7107}
+      m_Extent: {x: 175.59497, y: 400, z: 210.45654}
+    instances: 163
+  - scene: GTASASector_p5_p5
+    bounds:
+      m_Center: {x: 1386.6832, y: 0, z: -1388.0774}
+      m_Extent: {x: 149.31677, y: 400, z: 147.9226}
+    instances: 28
+  - scene: GTASASector_p5_p6
+    bounds:
+      m_Center: {x: 1386.6832, y: 0, z: -1663.2196}
+      m_Extent: {x: 149.31677, y: 400, z: 200.01184}
+    instances: 38
+  - scene: GTASASector_p5_p7
+    bounds:
+      m_Center: {x: 1437.3892, y: 0, z: -1925.7388}
+      m_Extent: {x: 160.00146, y: 400, z: 142.50903}
+    instances: 242
+  - scene: GTASASector_p5_p8
+    bounds:
+      m_Center: {x: 1418.2391, y: 0, z: -2173.7178}
+      m_Extent: {x: 161.0299, y: 400, z: 150.49268}
+    instances: 145
+  - scene: GTASASector_p5_p9
+    bounds:
+      m_Center: {x: 1356.2013, y: 0, z: -2409.939}
+      m_Extent: {x: 222.12561, y: 400, z: 150.06104}
+    instances: 110
+  - scene: GTASASector_p6_m1
+    bounds:
+      m_Center: {x: 1685.4966, y: 0, z: 128.61629}
+      m_Extent: {x: 178.76953, y: 400, z: 251.55919}
+    instances: 27
+  - scene: GTASASector_p6_m10
+    bounds:
+      m_Center: {x: 1685.59, y: 0, z: 2430.8025}
+      m_Extent: {x: 201.1864, y: 400, z: 144.27222}
+    instances: 90
+  - scene: GTASASector_p6_m11
+    bounds:
+      m_Center: {x: 1720.4552, y: 0, z: 2686.9802}
+      m_Extent: {x: 186.62561, y: 400, z: 174.46558}
+    instances: 24
+  - scene: GTASASector_p6_m12
+    bounds:
+      m_Center: {x: 1721.5404, y: 0, z: 2944}
+      m_Extent: {x: 185.5404, y: 400, z: 128}
+    instances: 2
+  - scene: GTASASector_p6_m2
+    bounds:
+      m_Center: {x: 1632.8678, y: 0, z: 372.1608}
+      m_Extent: {x: 248.43787, y: 400, z: 250.38657}
+    instances: 31
+  - scene: GTASASector_p6_m3
+    bounds:
+      m_Center: {x: 1664, y: 0, z: 632.45233}
+      m_Extent: {x: 128, y: 400, z: 212.12592}
+    instances: 22
+  - scene: GTASASector_p6_m4
+    bounds:
+      m_Center: {x: 1667.5483, y: 0, z: 885.0969}
+      m_Extent: {x: 141.07397, y: 400, z: 138.90308}
+    instances: 102
+  - scene: GTASASector_p6_m5
+    bounds:
+      m_Center: {x: 1662.2289, y: 0, z: 1123.1697}
+      m_Extent: {x: 170.26697, y: 400, z: 167.70117}
+    instances: 301
+  - scene: GTASASector_p6_m6
+    bounds:
+      m_Center: {x: 1638.3483, y: 0, z: 1417.513}
+      m_Extent: {x: 198.78967, y: 400, z: 166.61206}
+    instances: 266
+  - scene: GTASASector_p6_m7
+    bounds:
+      m_Center: {x: 1658.1752, y: 0, z: 1677.8121}
+      m_Extent: {x: 166.86462, y: 400, z: 164.4989}
+    instances: 270
+  - scene: GTASASector_p6_m8
+    bounds:
+      m_Center: {x: 1666.2988, y: 0, z: 1946.0682}
+      m_Extent: {x: 149.83301, y: 400, z: 203.78186}
+    instances: 152
+  - scene: GTASASector_p6_m9
+    bounds:
+      m_Center: {x: 1666.73, y: 0, z: 2205.177}
+      m_Extent: {x: 182.23657, y: 400, z: 183.0935}
+    instances: 186
+  - scene: GTASASector_p6_p0
+    bounds:
+      m_Center: {x: 1593.054, y: 0, z: -86.31583}
+      m_Extent: {x: 198.94604, y: 400, z: 227.65024}
+    instances: 35
+  - scene: GTASASector_p6_p1
+    bounds:
+      m_Center: {x: 1662.6115, y: 0, z: -347.7945}
+      m_Extent: {x: 253.91321, y: 400, z: 199.40118}
+    instances: 34
+  - scene: GTASASector_p6_p10
+    bounds:
+      m_Center: {x: 1647.3939, y: 0, z: -2663.705}
+      m_Extent: {x: 250.00232, y: 400, z: 177.07812}
+    instances: 243
+  - scene: GTASASector_p6_p11
+    bounds:
+      m_Center: {x: 1664.7451, y: 0, z: -2897.6155}
+      m_Extent: {x: 147.34961, y: 400, z: 174.38452}
+    instances: 69
+  - scene: GTASASector_p6_p2
+    bounds:
+      m_Center: {x: 1582.7993, y: 0, z: -614.0582}
+      m_Extent: {x: 235.25537, y: 400, z: 209.21094}
+    instances: 94
+  - scene: GTASASector_p6_p3
+    bounds:
+      m_Center: {x: 1651.3113, y: 0, z: -953.45386}
+      m_Extent: {x: 153.99194, y: 400, z: 190.60474}
+    instances: 218
+  - scene: GTASASector_p6_p4
+    bounds:
+      m_Center: {x: 1616.7407, y: 0, z: -1123.9133}
+      m_Extent: {x: 179.32031, y: 400, z: 180.72925}
+    instances: 270
+  - scene: GTASASector_p6_p5
+    bounds:
+      m_Center: {x: 1646.7214, y: 0, z: -1451.9988}
+      m_Extent: {x: 149.3396, y: 400, z: 171.99878}
+    instances: 98
+  - scene: GTASASector_p6_p6
+    bounds:
+      m_Center: {x: 1645.7316, y: 0, z: -1663.2484}
+      m_Extent: {x: 148.33899, y: 400, z: 199.98303}
+    instances: 80
+  - scene: GTASASector_p6_p7
+    bounds:
+      m_Center: {x: 1651.386, y: 0, z: -1901.1687}
+      m_Extent: {x: 153.99536, y: 400, z: 177.93921}
+    instances: 288
+  - scene: GTASASector_p6_p8
+    bounds:
+      m_Center: {x: 1676.359, y: 0, z: -2170.9712}
+      m_Extent: {x: 161.03406, y: 400, z: 147.7539}
+    instances: 412
+  - scene: GTASASector_p6_p9
+    bounds:
+      m_Center: {x: 1656.0027, y: 0, z: -2424.9307}
+      m_Extent: {x: 158.55664, y: 400, z: 142.60889}
+    instances: 122
+  - scene: GTASASector_p7_m1
+    bounds:
+      m_Center: {x: 1938.8306, y: 0, z: 152.26303}
+      m_Extent: {x: 146.83057, y: 400, z: 197.77219}
+    instances: 9
+  - scene: GTASASector_p7_m10
+    bounds:
+      m_Center: {x: 1944.5964, y: 0, z: 2399.105}
+      m_Extent: {x: 228.9585, y: 400, z: 175.96973}
+    instances: 28
+  - scene: GTASASector_p7_m11
+    bounds:
+      m_Center: {x: 1952.5415, y: 0, z: 2645.627}
+      m_Extent: {x: 197.56445, y: 400, z: 170.37305}
+    instances: 22
+  - scene: GTASASector_p7_m2
+    bounds:
+      m_Center: {x: 1923.0659, y: 0, z: 370.13428}
+      m_Extent: {x: 156.53613, y: 400, z: 166.81885}
+    instances: 16
+  - scene: GTASASector_p7_m3
+    bounds:
+      m_Center: {x: 1889.4003, y: 0, z: 612.24817}
+      m_Extent: {x: 177.91638, y: 400, z: 181.05151}
+    instances: 17
+  - scene: GTASASector_p7_m4
+    bounds:
+      m_Center: {x: 1940.031, y: 0, z: 906.5334}
+      m_Extent: {x: 227.76392, y: 400, z: 154.26324}
+    instances: 48
+  - scene: GTASASector_p7_m5
+    bounds:
+      m_Center: {x: 1941.94, y: 0, z: 1145.1187}
+      m_Extent: {x: 178.88379, y: 400, z: 139.57007}
+    instances: 253
+  - scene: GTASASector_p7_m6
+    bounds:
+      m_Center: {x: 1939.3633, y: 0, z: 1392.9668}
+      m_Extent: {x: 181.90039, y: 400, z: 143.0332}
+    instances: 167
+  - scene: GTASASector_p7_m7
+    bounds:
+      m_Center: {x: 1941.2065, y: 0, z: 1649.5497}
+      m_Extent: {x: 171.47388, y: 400, z: 178.65442}
+    instances: 278
+  - scene: GTASASector_p7_m8
+    bounds:
+      m_Center: {x: 1954.7594, y: 0, z: 1940.7545}
+      m_Extent: {x: 184.10315, y: 400, z: 159.20447}
+    instances: 307
+  - scene: GTASASector_p7_m9
+    bounds:
+      m_Center: {x: 1868.9507, y: 0, z: 2178.1309}
+      m_Extent: {x: 186.32642, y: 400, z: 184.53809}
+    instances: 162
+  - scene: GTASASector_p7_p0
+    bounds:
+      m_Center: {x: 1881.5817, y: 0, z: -193.95282}
+      m_Extent: {x: 246.73938, y: 400, z: 193.95282}
+    instances: 43
+  - scene: GTASASector_p7_p1
+    bounds:
+      m_Center: {x: 1921.9851, y: 0, z: -378.23468}
+      m_Extent: {x: 231.33984, y: 400, z: 148.55762}
+    instances: 17
+  - scene: GTASASector_p7_p10
+    bounds:
+      m_Center: {x: 1923.2592, y: 0, z: -2666.9507}
+      m_Extent: {x: 194.13904, y: 400, z: 173.84521}
+    instances: 229
+  - scene: GTASASector_p7_p11
+    bounds:
+      m_Center: {x: 1872.3281, y: 0, z: -2925.3093}
+      m_Extent: {x: 175.67188, y: 400, z: 146.69067}
+    instances: 48
+  - scene: GTASASector_p7_p2
+    bounds:
+      m_Center: {x: 2007.4901, y: 0, z: -660.5376}
+      m_Extent: {x: 255.5221, y: 400, z: 162.72668}
+    instances: 129
+  - scene: GTASASector_p7_p3
+    bounds:
+      m_Center: {x: 1947.384, y: 0, z: -943.2241}
+      m_Extent: {x: 170.00928, y: 400, z: 180.0061}
+    instances: 88
+  - scene: GTASASector_p7_p4
+    bounds:
+      m_Center: {x: 1897.356, y: 0, z: -1143.2314}
+      m_Extent: {x: 160.03271, y: 400, z: 160}
+    instances: 113
+  - scene: GTASASector_p7_p5
+    bounds:
+      m_Center: {x: 1896.7886, y: 0, z: -1379.1101}
+      m_Extent: {x: 159.40039, y: 400, z: 175.87988}
+    instances: 158
+  - scene: GTASASector_p7_p6
+    bounds:
+      m_Center: {x: 1897.3866, y: 0, z: -1642.4214}
+      m_Extent: {x: 160.00403, y: 400, z: 179.20166}
+    instances: 200
+  - scene: GTASASector_p7_p7
+    bounds:
+      m_Center: {x: 1931.8431, y: 0, z: -1923.2385}
+      m_Extent: {x: 177.14343, y: 400, z: 200.0022}
+    instances: 86
+  - scene: GTASASector_p7_p8
+    bounds:
+      m_Center: {x: 1927.1417, y: 0, z: -2178.7808}
+      m_Extent: {x: 190.24841, y: 400, z: 167.76416}
+    instances: 172
+  - scene: GTASASector_p7_p9
+    bounds:
+      m_Center: {x: 1886.3651, y: 0, z: -2426.1042}
+      m_Extent: {x: 196.36853, y: 400, z: 162.87915}
+    instances: 96
+  - scene: GTASASector_p8_m1
+    bounds:
+      m_Center: {x: 2178.427, y: 0, z: 111.300476}
+      m_Extent: {x: 130.427, y: 400, z: 144.69952}
+    instances: 134
+  - scene: GTASASector_p8_m10
+    bounds:
+      m_Center: {x: 2212.6704, y: 0, z: 2501.1167}
+      m_Extent: {x: 164.67041, y: 400, z: 204.3916}
+    instances: 101
+  - scene: GTASASector_p8_m11
+    bounds:
+      m_Center: {x: 2095.833, y: 0, z: 2659.535}
+      m_Extent: {x: 208.16699, y: 400, z: 201.91089}
+    instances: 44
+  - scene: GTASASector_p8_m12
+    bounds:
+      m_Center: {x: 2105.5405, y: 0, z: 2944}
+      m_Extent: {x: 198.45953, y: 400, z: 128}
+    instances: 2
+  - scene: GTASASector_p8_m2
+    bounds:
+      m_Center: {x: 2171.022, y: 0, z: 341.29242}
+      m_Extent: {x: 170.38428, y: 400, z: 196.8551}
+    instances: 12
+  - scene: GTASASector_p8_m3
+    bounds:
+      m_Center: {x: 2170.6123, y: 0, z: 643.57153}
+      m_Extent: {x: 181.0127, y: 400, z: 221.46802}
+    instances: 16
+  - scene: GTASASector_p8_m4
+    bounds:
+      m_Center: {x: 2215.8623, y: 0, z: 922.68036}
+      m_Extent: {x: 195.1294, y: 400, z: 163.2912}
+    instances: 128
+  - scene: GTASASector_p8_m5
+    bounds:
+      m_Center: {x: 2153.8206, y: 0, z: 1137.3843}
+      m_Extent: {x: 159.48853, y: 400, z: 176.6499}
+    instances: 325
+  - scene: GTASASector_p8_m6
+    bounds:
+      m_Center: {x: 2144.7063, y: 0, z: 1433.079}
+      m_Extent: {x: 187.84985, y: 400, z: 182.69373}
+    instances: 428
+  - scene: GTASASector_p8_m7
+    bounds:
+      m_Center: {x: 2207.8938, y: 0, z: 1653.4424}
+      m_Extent: {x: 187.99585, y: 400, z: 186.06885}
+    instances: 489
+  - scene: GTASASector_p8_m8
+    bounds:
+      m_Center: {x: 2198.9614, y: 0, z: 1942.1267}
+      m_Extent: {x: 209.97217, y: 400, z: 182.7915}
+    instances: 335
+  - scene: GTASASector_p8_m9
+    bounds:
+      m_Center: {x: 2177.86, y: 0, z: 2175.8982}
+      m_Extent: {x: 206.43481, y: 400, z: 203.31567}
+    instances: 272
+  - scene: GTASASector_p8_p0
+    bounds:
+      m_Center: {x: 2137.9766, y: 0, z: -80.30446}
+      m_Extent: {x: 216.73535, y: 400, z: 205.61922}
+    instances: 180
+  - scene: GTASASector_p8_p1
+    bounds:
+      m_Center: {x: 2131.0176, y: 0, z: -362.26733}
+      m_Extent: {x: 228.60596, y: 400, z: 164.80109}
+    instances: 12
+  - scene: GTASASector_p8_p10
+    bounds:
+      m_Center: {x: 2209.99, y: 0, z: -2663.683}
+      m_Extent: {x: 168.05933, y: 400, z: 160.46191}
+    instances: 110
+  - scene: GTASASector_p8_p11
+    bounds:
+      m_Center: {x: 2151.6572, y: 0, z: -2907.6152}
+      m_Extent: {x: 154.26184, y: 400, z: 164.38477}
+    instances: 30
+  - scene: GTASASector_p8_p2
+    bounds:
+      m_Center: {x: 2146.8447, y: 0, z: -667.6167}
+      m_Extent: {x: 290.54736, y: 400, z: 155.6167}
+    instances: 162
+  - scene: GTASASector_p8_p3
+    bounds:
+      m_Center: {x: 2217.4448, y: 0, z: -913.2262}
+      m_Extent: {x: 169.5415, y: 400, z: 190.00525}
+    instances: 138
+  - scene: GTASASector_p8_p4
+    bounds:
+      m_Center: {x: 2222.6968, y: 0, z: -1173.1255}
+      m_Extent: {x: 174.69678, y: 400, z: 190.1062}
+    instances: 152
+  - scene: GTASASector_p8_p5
+    bounds:
+      m_Center: {x: 2212.3901, y: 0, z: -1373.2385}
+      m_Extent: {x: 185.00049, y: 400, z: 170.00879}
+    instances: 184
+  - scene: GTASASector_p8_p6
+    bounds:
+      m_Center: {x: 2224.8896, y: 0, z: -1651.968}
+      m_Extent: {x: 192.50586, y: 400, z: 148.73657}
+    instances: 139
+  - scene: GTASASector_p8_p7
+    bounds:
+      m_Center: {x: 2197.0068, y: 0, z: -1916.1166}
+      m_Extent: {x: 180.38867, y: 400, z: 152.89001}
+    instances: 335
+  - scene: GTASASector_p8_p8
+    bounds:
+      m_Center: {x: 2157.9023, y: 0, z: -2197.348}
+      m_Extent: {x: 180.50684, y: 400, z: 185.88013}
+    instances: 205
+  - scene: GTASASector_p8_p9
+    bounds:
+      m_Center: {x: 2196.4497, y: 0, z: -2403.7473}
+      m_Extent: {x: 159.05908, y: 400, z: 186.58618}
+    instances: 332
+  - scene: GTASASector_p9_m1
+    bounds:
+      m_Center: {x: 2426.3906, y: 0, z: 150.85158}
+      m_Extent: {x: 142.53857, y: 400, z: 158.48972}
+    instances: 133
+  - scene: GTASASector_p9_m10
+    bounds:
+      m_Center: {x: 2396.5874, y: 0, z: 2419}
+      m_Extent: {x: 226.04541, y: 400, z: 262.7832}
+    instances: 89
+  - scene: GTASASector_p9_m11
+    bounds:
+      m_Center: {x: 2438.2002, y: 0, z: 2677.7458}
+      m_Extent: {x: 231.11914, y: 400, z: 183.69995}
+    instances: 59
+  - scene: GTASASector_p9_m12
+    bounds:
+      m_Center: {x: 2383.5405, y: 0, z: 2944}
+      m_Extent: {x: 176.45947, y: 400, z: 128}
+    instances: 2
+  - scene: GTASASector_p9_m2
+    bounds:
+      m_Center: {x: 2416.4382, y: 0, z: 395.6234}
+      m_Extent: {x: 181.94604, y: 400, z: 139.62341}
+    instances: 12
+  - scene: GTASASector_p9_m3
+    bounds:
+      m_Center: {x: 2407.0723, y: 0, z: 659.2175}
+      m_Extent: {x: 152.92773, y: 400, z: 147.21753}
+    instances: 19
+  - scene: GTASASector_p9_m4
+    bounds:
+      m_Center: {x: 2419.4937, y: 0, z: 920.7177}
+      m_Extent: {x: 237.8877, y: 400, z: 152.71771}
+    instances: 205
+  - scene: GTASASector_p9_m5
+    bounds:
+      m_Center: {x: 2438.829, y: 0, z: 1147.3513}
+      m_Extent: {x: 193.91748, y: 400, z: 143.74487}
+    instances: 447
+  - scene: GTASASector_p9_m6
+    bounds:
+      m_Center: {x: 2431.3892, y: 0, z: 1396.743}
+      m_Extent: {x: 153.41602, y: 400, z: 177.60315}
+    instances: 414
+  - scene: GTASASector_p9_m7
+    bounds:
+      m_Center: {x: 2422.0618, y: 0, z: 1640.7489}
+      m_Extent: {x: 215.89722, y: 400, z: 191.41833}
+    instances: 433
+  - scene: GTASASector_p9_m8
+    bounds:
+      m_Center: {x: 2392.977, y: 0, z: 1952.3661}
+      m_Extent: {x: 167.02295, y: 400, z: 193.04211}
+    instances: 316
+  - scene: GTASASector_p9_m9
+    bounds:
+      m_Center: {x: 2436.2012, y: 0, z: 2184.5894}
+      m_Extent: {x: 226.97559, y: 400, z: 149.02783}
+    instances: 158
+  - scene: GTASASector_p9_p0
+    bounds:
+      m_Center: {x: 2386.914, y: 0, z: -98.42952}
+      m_Extent: {x: 207.01465, y: 400, z: 240.76427}
+    instances: 365
+  - scene: GTASASector_p9_p1
+    bounds:
+      m_Center: {x: 2383.2722, y: 0, z: -367.60077}
+      m_Extent: {x: 236.31274, y: 400, z: 180.19354}
+    instances: 29
+  - scene: GTASASector_p9_p10
+    bounds:
+      m_Center: {x: 2370.1306, y: 0, z: -2683.7168}
+      m_Extent: {x: 252.74438, y: 400, z: 166.01709}
+    instances: 106
+  - scene: GTASASector_p9_p11
+    bounds:
+      m_Center: {x: 2424.6348, y: 0, z: -2897.6125}
+      m_Extent: {x: 192.80469, y: 400, z: 174.38745}
+    instances: 63
+  - scene: GTASASector_p9_p2
+    bounds:
+      m_Center: {x: 2472.6606, y: 0, z: -663.5216}
+      m_Extent: {x: 235.3086, y: 400, z: 165.7107}
+    instances: 113
+  - scene: GTASASector_p9_p3
+    bounds:
+      m_Center: {x: 2395.857, y: 0, z: -968.13434}
+      m_Extent: {x: 168.63037, y: 400, z: 215.09735}
+    instances: 75
+  - scene: GTASASector_p9_p4
+    bounds:
+      m_Center: {x: 2468.2488, y: 0, z: -1185.3491}
+      m_Extent: {x: 170.22876, y: 400, z: 245.51953}
+    instances: 176
+  - scene: GTASASector_p9_p5
+    bounds:
+      m_Center: {x: 2434.4075, y: 0, z: -1413.6451}
+      m_Extent: {x: 197.52075, y: 400, z: 210.91443}
+    instances: 217
+  - scene: GTASASector_p9_p6
+    bounds:
+      m_Center: {x: 2460.7002, y: 0, z: -1643.2251}
+      m_Extent: {x: 156.7002, y: 400, z: 160}
+    instances: 163
+  - scene: GTASASector_p9_p7
+    bounds:
+      m_Center: {x: 2439.712, y: 0, z: -1893.1108}
+      m_Extent: {x: 158.07031, y: 400, z: 169.87793}
+    instances: 235
+  - scene: GTASASector_p9_p8
+    bounds:
+      m_Center: {x: 2437.2852, y: 0, z: -2191.8252}
+      m_Extent: {x: 201.33203, y: 400, z: 158.72412}
+    instances: 248
+  - scene: GTASASector_p9_p9
+    bounds:
+      m_Center: {x: 2389.0156, y: 0, z: -2393.2292}
+      m_Extent: {x: 171.61914, y: 400, z: 189.99683}
+    instances: 298
+  target: {fileID: 1774575647}
+  desktopRadius: 350
+  mobileRadius: 150
+  maxMobileSectors: 9
+  unloadExtra: 90
+--- !u!114 &1711077967
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1711077964}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 242581165d18d0e459354ee6e5f9b5f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NeighborhoodMap
+  halfExtent: 4200
+  groundLevel: -0.15
+  minY: -200
+  maxY: 1000
+  spawnPosition: {x: 2489.2969, y: 62.296875, z: 1668.5}
+  isOfficialCity: 1
+  mapCameraHeight: 1100
+  worldCode: gta_sa_modificado_local
+  displayName: "San Andreas \xB7 integra\xE7\xE3o em avalia\xE7\xE3o"
+--- !u!4 &1711077968
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1711077964}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1711077969
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1711077964}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7b352d52116a52479636eaf0fa1e1dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::IntegratedMapEntry
+  streaming: {fileID: 1711077966}
+  player: {fileID: 1774575648}
+--- !u!1001 &1774575646
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2259970217975450199, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
+      propertyPath: spawnYaw
+      value: 40
+      objectReference: {fileID: 0}
+    - target: {fileID: 2259970217975450199, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
+      propertyPath: cameraTransform
+      value: 
+      objectReference: {fileID: 1844233238}
+    - target: {fileID: 2259970217975450199, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
+      propertyPath: spawnPosition.x
+      value: 2489.2969
+      objectReference: {fileID: 0}
+    - target: {fileID: 2259970217975450199, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
+      propertyPath: spawnPosition.y
+      value: 62.296875
+      objectReference: {fileID: 0}
+    - target: {fileID: 2259970217975450199, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
+      propertyPath: spawnPosition.z
+      value: 1668.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3791095538900701410, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
+      propertyPath: m_Name
+      value: "Jogador \u2014 mapa GTA SA separado"
+      objectReference: {fileID: 0}
+    - target: {fileID: 3791095538900701410, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6020868517937556383, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 2489.2969
+      objectReference: {fileID: 0}
+    - target: {fileID: 6020868517937556383, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 62.296875
+      objectReference: {fileID: 0}
+    - target: {fileID: 6020868517937556383, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 1668.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6020868517937556383, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.9396927
+      objectReference: {fileID: 0}
+    - target: {fileID: 6020868517937556383, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6020868517937556383, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.34202015
+      objectReference: {fileID: 0}
+    - target: {fileID: 6020868517937556383, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6020868517937556383, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6020868517937556383, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6020868517937556383, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
+--- !u!4 &1774575647 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6020868517937556383, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
+  m_PrefabInstance: {fileID: 1774575646}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1774575648 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2259970217975450199, guid: 3441f54342bf10c45bb4a928b8591eb8, type: 3}
+  m_PrefabInstance: {fileID: 1774575646}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4d83f4288651264ba70a5367ead9e19, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ThirdPersonPlayer
+--- !u!1 &1844233234
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1844233238}
+  - component: {fileID: 1844233237}
+  - component: {fileID: 1844233236}
+  - component: {fileID: 1844233235}
+  m_Layer: 0
+  m_Name: Main Camera
+  m_TagString: MainCamera
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1844233235
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1844233234}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff917d459cce890479ee06009b870efe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ThirdPersonCamera
+  target: {fileID: 1774575647}
+  distance: 4.2
+  pitch: 15
+  yaw: 40
+  sensitivity: 1
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 1
+--- !u!81 &1844233236
+AudioListener:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1844233234}
+  m_Enabled: 1
+--- !u!20 &1844233237
+Camera:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1844233234}
+  m_Enabled: 1
+  serializedVersion: 2
+  m_ClearFlags: 1
+  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_projectionMatrixMode: 1
+  m_GateFitMode: 2
+  m_FOVAxisMode: 0
+  m_Iso: 200
+  m_ShutterSpeed: 0.005
+  m_Aperture: 16
+  m_FocusDistance: 10
+  m_FocalLength: 50
+  m_BladeCount: 5
+  m_Curvature: {x: 2, y: 11}
+  m_BarrelClipping: 0.25
+  m_Anamorphism: 0
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_NormalizedViewPortRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 1
+    height: 1
+  near clip plane: 0.1
+  far clip plane: 650
+  field of view: 60
+  orthographic: 0
+  orthographic size: 5
+  m_Depth: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RenderingPath: -1
+  m_TargetTexture: {fileID: 0}
+  m_TargetDisplay: 0
+  m_TargetEye: 3
+  m_HDR: 1
+  m_AllowMSAA: 1
+  m_AllowDynamicResolution: 0
+  m_ForceIntoRT: 0
+  m_OcclusionCulling: 1
+  m_StereoConvergence: 10
+  m_StereoSeparation: 0.022
+--- !u!4 &1844233238
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1844233234}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 233444073}
-  - {fileID: 123454360}
-  - {fileID: 1704379104}
-  - {fileID: 697213883}
-  - {fileID: 1535912805}
+  - {fileID: 1711077968}
+  - {fileID: 1455694802}
+  - {fileID: 1774575646}
+  - {fileID: 1844233238}
+  - {fileID: 728695923}
+  - {fileID: 1234129045}
+  - {fileID: 1176478091}

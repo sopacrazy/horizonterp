@@ -12,8 +12,11 @@ public static class GameUpdateSetup
 {
     public const string GameScene="Assets/Scenes/TestePersonagem.unity";
     public const string BootScene="Assets/Scenes/Entrada.unity";
-    public static string[] Scenes => new[]{BootScene,GameScene}.Concat(
-        Directory.Exists("Assets/Scenes/CitySectors")?Directory.GetFiles("Assets/Scenes/CitySectors","*.unity").OrderBy(path=>path).Select(path=>path.Replace('\\','/')):Enumerable.Empty<string>()).ToArray();
+    public static string[] Scenes => EditorUserBuildSettings.activeBuildTarget==BuildTarget.Android&&File.Exists(LosSantosAndroidSetup.Marker)
+        ? LosSantosAndroidSetup.Scenes : new[]{BootScene,GameScene}.Concat(
+        Directory.Exists(SectorFolder)?Directory.GetFiles(SectorFolder,"*.unity").OrderBy(path=>path).Select(path=>path.Replace('\\','/')):Enumerable.Empty<string>()).ToArray();
+    static string SectorFolder => File.Exists("Assets/Scenes/SanAndreasIntegration.enabled")
+        ? "Assets/Scenes/GTASanAndreasModFullSectors" : "Assets/Scenes/CitySectors";
     public static void Prepare()
     {
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);

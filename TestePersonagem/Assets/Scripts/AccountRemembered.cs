@@ -53,7 +53,7 @@ public sealed partial class AccountSession
             State=reply.state;pending=null;leaving=false;
             if(HasCharacter)ShowRemembered();else {HideRemembered();ShowAccountCharacter();}
         }
-        else if(LastErrorCode=="CHARACTER_BLOCKED")
+        else if(LastErrorCode=="CHARACTER_BLOCKED"||LastErrorCode=="UNAUTHORIZED")
         {
             SessionVault.Clear();token=null;State=null;HideRemembered();ShowLogin(LastError);
         }

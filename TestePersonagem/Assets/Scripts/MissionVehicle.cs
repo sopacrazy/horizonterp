@@ -150,6 +150,14 @@ public sealed class MissionVehicle : MonoBehaviour
         if(Mathf.Abs(Speed)>.15f)transform.Rotate(0,input.x*65*Mathf.Clamp(Speed/3,-1,1)*Time.deltaTime,0);
         if(controller.isGrounded&&vertical<0)vertical=-2;vertical=Mathf.Max(-30,vertical-22*Time.deltaTime);
         Vector3 before=transform.position;controller.Move((transform.forward*Speed+Vector3.up*vertical)*Time.deltaTime);
+        var map=NeighborhoodMap.Active;
+        if(map&&map.restrictRegion&&!map.ContainsXZ(transform.position))
+        {
+            var bounded=transform.position;
+            bounded.x=Mathf.Clamp(bounded.x,map.regionMin.x+4,map.regionMax.x-4);
+            bounded.z=Mathf.Clamp(bounded.z,map.regionMin.y+4,map.regionMax.y-4);
+            controller.enabled=false;transform.position=bounded;controller.enabled=true;Speed=0;
+        }
         float moved=Vector3.ProjectOnPlane(transform.position-before,Vector3.up).magnitude;
         if(Mathf.Abs(Speed)>1&&moved<.001f)Speed=0;
         foreach(var wheel in wheels)wheel.Rotate(Vector3.right,Speed/.34f*Mathf.Rad2Deg*Time.deltaTime,Space.Self);

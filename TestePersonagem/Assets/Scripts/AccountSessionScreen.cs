@@ -153,6 +153,7 @@ public sealed partial class AccountSession
 
     void ShowLogin(string error="")
     {
+        Debug.Log("ACCOUNT_LOGIN_SHOWN authenticated="+Authenticated+" code="+LastErrorCode);
         HideRemembered();
         ReadyToEnterCity=false;HideCharacterLobby();AuthVisible=true;root.style.display=DisplayStyle.Flex;
         if(string.IsNullOrEmpty(error))ShowLanding();

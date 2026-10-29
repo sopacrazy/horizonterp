@@ -1,5 +1,5 @@
 from pathlib import Path
-import subprocess, re, hashlib, zipfile, json, shutil, argparse
+import subprocess, re, hashlib, zipfile, json, shutil, argparse, sys
 
 parser=argparse.ArgumentParser()
 parser.add_argument('--version',default='0.4.0')
@@ -16,12 +16,13 @@ parser.add_argument('--admin-chat',action='store_true')
 parser.add_argument('--admin-panel',action='store_true')
 parser.add_argument('--remembered-access',action='store_true')
 parser.add_argument('--official-city',action='store_true')
+parser.add_argument('--los-santos',action='store_true')
 args=parser.parse_args()
 assert re.fullmatch(r'\d+\.\d+\.\d+',args.version)
 
 root=Path(__file__).resolve().parents[1]
 apk=args.apk.resolve() if args.apk else root/'TestePersonagem/Builds/Android/TestePersonagem.apk'
-old=apk.parent/'HorizonteBrasil-0.5.7.apk'
+old=root/'TestePersonagem/Builds/Android/HorizonteBrasil-0.5.9.apk'
 android_tools=root/'tools/android'
 if not (android_tools/'SDK').is_dir():
     android_tools=Path(r'C:\Program Files\Unity\Hub\Editor\6000.6.7f1-x86_64\Editor\Data\PlaybackEngines\AndroidPlayer')
@@ -44,6 +45,7 @@ assert "sdkVersion:'26'" in badging and "native-code: 'arm64-v8a'" in badging
 assert "application-label:'Horizonte'" in badging
 assert 'android.permission.INTERNET' in badging
 if args.updater:
+    assert apk.stat().st_size<=300*1024*1024,'Existing Android updater accepts APKs up to 300 MiB; do not publish an incompatible manifest'
     assert 'android.permission.REQUEST_INSTALL_PACKAGES' in badging
     manifest=run([sdk/'aapt.exe','dump','xmltree',apk,'AndroidManifest.xml'])
     assert 'com.horizonte.update.HbrpApkProvider' in manifest
@@ -51,6 +53,34 @@ if args.updater:
 run([sdk/'zipalign.exe','-c','-P','16','4',apk])
 with zipfile.ZipFile(apk) as archive:
     assert archive.testzip() is None
+    # LZ4HC builds store serialized scenes/resources inside a UnityFS bundle.
+    # Inspect the actual decompressed files with the same checks as loose builds.
+    if 'assets/bin/Data/data.unity3d' in archive.namelist():
+        sys.path.insert(0,str(root/'tools/apk-inspection-deps'))
+        import UnityPy
+        environment=UnityPy.load(archive.read('assets/bin/Data/data.unity3d'))
+        bundle=next(iter(environment.files.values()))
+        packed={'assets/bin/Data/'+name: value for name,value in bundle.files.items()}
+        text_assets={}
+        for obj in environment.objects:
+            if obj.type.name=='TextAsset':
+                asset=obj.read()
+                text_assets[asset.m_Name]=asset.m_Script.encode('utf-8',errors='surrogateescape') if isinstance(asset.m_Script,str) else asset.m_Script
+        text_by_guid={}
+        for asset_name in ['Hud2AtlasLayout','GameVersion','ApiConfig']:
+            meta=(root/f'TestePersonagem/Assets/Resources/{asset_name}.json.meta').read_text()
+            guid=re.search(r'^guid: ([a-f0-9]+)',meta,re.MULTILINE).group(1)
+            text_by_guid['assets/bin/Data/'+guid]=text_assets[asset_name]
+        class PackedArchive:
+            def namelist(self):return list(dict.fromkeys(archive_names+list(packed)))
+            def read(self,name):
+                if name in text_by_guid:return text_by_guid[name]
+                if name not in packed:return original_read(name)
+                value=packed[name]
+                return value.reader.bytes if hasattr(value,'reader') else value.bytes
+        archive_names=archive.namelist()
+        original_read=archive.read
+        archive=PackedArchive()
     names=archive.namelist()
     assert 'lib/arm64-v8a/libil2cpp.so' in names
     metadata=archive.read('assets/bin/Data/Managed/Metadata/global-metadata.dat')
@@ -68,8 +98,19 @@ with zipfile.ZipFile(apk) as archive:
         assert b'Lcom/horizonte/update/HbrpSessionVault;' in vault_dex
         assert b'AndroidKeyStore' in vault_dex and b'AES/GCM/NoPadding' in vault_dex
     if args.official_city:
-        assert b'GtaCityEnvironment' in metadata and b'CitySectorStreaming' in metadata and b'NeighborhoodMap' in metadata
-        expected_sectors=list((root/'TestePersonagem/Assets/Scenes/CitySectors').glob('*.unity'))
+        assert b'NeighborhoodMap' in metadata
+        folder='GTASanAndreasModFullSectors' if (root/'TestePersonagem/Assets/Scenes/SanAndreasIntegration.enabled').exists() else 'CitySectors'
+        if folder=='GTASanAndreasModFullSectors':
+            assert b'GtaSaSectorStreaming' in metadata and b'IntegratedMapEntry' in metadata
+            assert b'CanApplyPlayerState' in metadata
+        else:
+            assert b'GtaCityEnvironment' in metadata and b'CitySectorStreaming' in metadata
+        expected_sectors=list((root/'TestePersonagem/Assets/Scenes'/folder).glob('*.unity'))
+        if args.los_santos:
+            expected_sectors=[root/'TestePersonagem'/line.strip() for line in
+                (root/'tools/android-los-santos/sectors.txt').read_text(encoding='utf-8-sig').splitlines() if line.strip()]
+            assert 20<len(expected_sectors)<300
+            assert b'MapRegionBoundary' in metadata and b'ContainsXZ' in metadata
         assert len(expected_sectors)>1,'Official city must include streaming sector sources'
         levels={re.match(r'assets/bin/Data/level(\d+)',name).group(1) for name in names if re.fullmatch(r'assets/bin/Data/level\d+(?:\.split\d+)?',name)}
         assert len(levels)==len(expected_sectors)+2,'APK must package boot, official city and every streaming sector'
@@ -124,6 +165,7 @@ report={'result':'ANDROID_RELEASE_VERIFIED','version':args.version,'versionCode'
     'admin_player_panel_and_command_catalog_included':args.admin_panel,
     'protected_remembered_access_included':args.remembered_access,
     'official_city_streaming_included':args.official_city,
+    'los_santos_only':args.los_santos,
     'bytes':release.stat().st_size,'sha256':hashlib.sha256(release.read_bytes()).hexdigest(),
     'device_runtime_tested':False,'file':str(release)}
 (root/('tools/android-'+args.version.replace('.','')+'-validation.json')).write_text(json.dumps(report,indent=2),encoding='utf-8')

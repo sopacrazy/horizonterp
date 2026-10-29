@@ -56,19 +56,24 @@ public sealed partial class AccountSession
         if(!HasCharacter||!ReadyToEnterCity||(leaving&&!path.EndsWith("/leave"))||VerificationTransport!=null){done(null);yield break;}
         using(var request=new UnityWebRequest(config.baseUrl+path,"POST"))
         {
+            string requestToken=token;
             request.timeout=4;request.redirectLimit=0;
             request.certificateHandler=new PinnedCertificate(config.certificateSha256);
             request.downloadHandler=new DownloadHandlerBuffer();
             request.uploadHandler=new UploadHandlerRaw(Encoding.UTF8.GetBytes(json));
             request.SetRequestHeader("Content-Type","application/json");
-            request.SetRequestHeader("Authorization","Bearer "+token);
+            request.SetRequestHeader("Authorization","Bearer "+requestToken);
             yield return request.SendWebRequest();
             MultiplayerReply reply=null;
             try{reply=JsonUtility.FromJson<MultiplayerReply>(request.downloadHandler.text);}catch{}
             if(request.result!=UnityWebRequest.Result.Success&&string.IsNullOrEmpty(reply?.code))
                 reply=new MultiplayerReply {code="CONNECTION_LOST",error=request.error};
             if(request.responseCode==401)reply=new MultiplayerReply {code="UNAUTHORIZED"};
-            if(request.responseCode==401||reply?.code=="CHARACTER_BLOCKED")InvalidateSession(reply?.error??"Sua sessão foi encerrada. Entre novamente.");
+            if(token==requestToken)
+            {
+                if(reply?.code=="CHARACTER_BLOCKED")InvalidateSession(reply.error);
+                else if(request.responseCode==401)yield return ConfirmSessionAfterUnauthorized(requestToken);
+            }
             done(reply);
         }
     }
