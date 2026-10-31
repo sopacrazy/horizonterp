@@ -11,3 +11,5 @@ Os dois jogadores devem instalar esta versão para testar juntos o novo moviment
 Instale o APK por cima da versão existente. O jogo verifica a atualização ao iniciar; a instalação requer confirmação do Android. No Windows, extraia o ZIP completo e abra Horizonte/Horizonte.exe.
 
 O Android continua contendo somente Los Santos. O mapa completo permanece preservado no projeto e no pacote Windows. Não houve teste desta versão em Android físico antes da publicação; o desempenho e o áudio por Wi-Fi/4G devem ser avaliados nos aparelhos de teste.
+
+Validações: 59 testes locais da API aprovados; dois clientes Unity autenticados por UDP/DTLS na VPS e conectados ao mesmo canal real do Vivox; entrada Windows com sessão lembrada aprovada; contas temporárias removidas e 14 contas/14 personagens preservados. APK ARM64 de 311.307.212 bytes (296,9 MiB), com a mesma assinatura da versão anterior e alinhamento de 16 KiB verificado.
