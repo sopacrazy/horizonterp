@@ -1,3 +1,4 @@
+import {playerHelp} from './player-command-catalog.mjs';
 // The server is the authority for command names and required administrator levels.
 // Commands without a game system are listed so admins receive a truthful response.
 const entries=[
@@ -18,6 +19,7 @@ const entries=[
  ['a',1,'/a [mensagem]','Enviar mensagem apenas aos admins.'],
  ['alist',1,'/alist','Listar administradores online.'],
  ['ahelp',1,'/ahelp [nível]','Mostrar comandos disponíveis.'],
+ ['helpadmin',1,'/helpadmin','Abrir o guia completo de comandos do jogo.'],
  ['speed',1,'/speed [1|2|4|6|8|10|12]','Ajustar sua velocidade de exploração.'],
  ['ban',2,'/ban [ID/nome] [dias] [motivo]','Banir um jogador por dias.'],
  ['hpall',2,'/hpall [raio]','Curar jogadores próximos.','Cura multiplayer'],
@@ -60,3 +62,37 @@ byName.set('myastats',byName.get('mystats'));
 export const adminCommand=name=>byName.get(String(name||'').toLowerCase())||null;
 export const adminHelp=level=>ADMIN_COMMANDS.filter(entry=>entry.level<=level).map(entry=>
  `N${entry.level} ${entry.usage} — ${entry.description}${entry.missing?' (aguarda '+entry.missing+')':''}`);
+
+const policeEntries=[
+ ['/ide [ID]','Mostrar sua identificação policial ao jogador.'],
+ ['/wanted','Consultar a lista de procurados.'],
+ ['/su [ID] [1-6 estrelas] [motivo]','Adicionar procurado e registrar motivo.'],
+ ['/clear [ID]','Retirar o status de procurado.'],
+ ['/cuff [ID]','Algemar um jogador próximo.'],
+ ['/uncuff [ID]','Retirar as algemas.'],
+ ['/follow [ID]','Conduzir o detido algemado.'],
+ ['/stay','Parar a condução.'],
+ ['/carpolicia','Posicionar a viatura policial.'],
+ ['/put [ID]','Colocar o detido algemado na viatura.'],
+ ['/eject [ID]','Retirar o detido da viatura.'],
+ ['/ticket [ID] [R$] [motivo]','Registrar uma multa pendente.'],
+ ['/proc [ID]','Aceitar a chamada 190 mais recente do jogador.'],
+ ['/m [texto]','Falar pelo megafone perto da viatura.'],
+ ['/f [mensagem]','Enviar mensagem à organização.'],
+ ['/d [mensagem]','Enviar mensagem às organizações.'],
+ ['/gov [mensagem]','Publicar comunicado para todos (admin nível 2).']
+];
+
+export function gameCommandHelp(){
+ const admin=ADMIN_COMMANDS.map(entry=>({usage:entry.usage,description:entry.description,
+  group:'Administração',level:entry.level,permission:`Admin nível ${entry.level}`,
+  available:!entry.missing,note:entry.missing?`Aguarda ${entry.missing}`:''}));
+ admin.push({usage:'/myastats',description:'Atalho para /mystats: consultar suas estatísticas de administrador.',
+  group:'Administração',level:1,permission:'Admin nível 1',available:true,note:''});
+ const police=policeEntries.map(([usage,description])=>({usage,description,
+  group:'Polícia',level:usage.startsWith('/gov ')?2:1,
+  permission:usage.startsWith('/gov ')?'Polícia em serviço · Admin nível 2':'Polícia em serviço',
+  available:true,note:''}));
+ return [...playerHelp(),...admin,...police,{usage:'/190 [mensagem]',description:'Pedir atendimento policial.',
+  group:'Atendimento',level:0,permission:'Todos os jogadores',available:true,note:''}];
+}

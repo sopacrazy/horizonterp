@@ -8,10 +8,12 @@ using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
 
+[Serializable] public class ApiOrganization {public string code,name,rank;}
 [Serializable] public class ApiPlayerState
 {
     public int adminLevel;
     public string accountRole;
+    public ApiOrganization organization;
     public string accountId,uid,characterId,name,firstName,lastName,gender,xp,playSeconds,cashCents,bankCents,hzCoins,model,world,version;
     public float health,energy,hunger,thirst,x,y,z,yaw,cameraYaw,cameraPitch;
     public int level;
@@ -164,7 +166,7 @@ public sealed partial class AccountSession : MonoBehaviour
     }
     public IEnumerator Save()
     {
-        if(!HasCharacter||!ReadyToEnterCity||!player||StartupLoader.IsLoading)yield break;
+        if(!HasCharacter||!ReadyToEnterCity||!player||player.IsTeleporting||StartupLoader.IsLoading)yield break;
         while(busy)yield return null;
         if(pending==null)
         {

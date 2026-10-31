@@ -26,6 +26,9 @@ public sealed class InGameChat : MonoBehaviour
     TouchScreenKeyboard keyboard;
     string spectateUid;
     int spectateGeneration;
+    Transform fixedHead;
+    Quaternion fixedHeadRotation;
+    bool headMotionStopped;
 
 
     public static void Create(GameHud hud)
@@ -121,18 +124,22 @@ public sealed class InGameChat : MonoBehaviour
                 if(reply?.code!="CHAT_RATE_LIMITED"&&reply?.code!="CONNECTION_LOST"&&reply!=null)break;
                 if(attempt<2)yield return new WaitForSecondsRealtime(1.3f);
             }
-            if(string.IsNullOrEmpty(reply?.code)&&reply?.message!=null)Receive(reply.message);
-            else if(string.IsNullOrEmpty(reply?.code)&&reply?.command!=null)
+            if(string.IsNullOrEmpty(reply?.code)&&reply?.command!=null&&
+                !string.IsNullOrEmpty(reply.command.name))
             {
-                item.line.text="[ADMIN] "+reply.command.message;item.line.kind="admin";Render();
+                bool policeCommand=IsPoliceCommand(reply.command.name);
+                item.line.text=(IsPlayerCommand(reply.command.name)?"[JOGADOR] ":reply.command.name=="190"?"[190] ":policeCommand?"[POLÍCIA] ":"[ADMIN] ")+reply.command.message;
+                item.line.kind=IsPlayerCommand(reply.command.name)?"system":"admin";Render();
                 HandleCommand(reply.command);
             }
+            else if(string.IsNullOrEmpty(reply?.code)&&reply?.message!=null&&
+                !string.IsNullOrEmpty(reply.message.messageId))Receive(reply.message);
             else
             {
                 // A sync may already have confirmed a request whose HTTP response was lost.
                 if(item.line.kind!="confirmed")
                 {
-                    string failure=" — não enviado: "+(reply?.error??"falha na conexão. Envie novamente.");
+                    string failure=" — não enviado: "+(reply?.error??"resposta inválida do servidor. Tente novamente.");
                     item.line.text+=failure;if(item.line.body!=null)item.line.body+=failure;
                     item.line.kind="error";Render();
                 }
@@ -146,8 +153,28 @@ public sealed class InGameChat : MonoBehaviour
     void ShowHint(string value){hint.text=value;hint.style.display=string.IsNullOrEmpty(value)?DisplayStyle.None:DisplayStyle.Flex;}
     void HandleCommand(AdminCommandReply command)
     {
-        if(command.lines!=null)foreach(string line in command.lines)AdminLine(line);
+        if(command.status=="open_help"&&GameHud.Instance)
+            AdminHelpPanel.Open(GameHud.Instance,command.help);
+        else if(command.name=="wanted"&&command.status=="ok"&&GameHud.Instance)
+            WantedListPanel.Open(GameHud.Instance,command.wanted);
+        else if(command.lines!=null)foreach(string line in command.lines){if(IsPlayerCommand(command.name))SystemLine(line);else AdminLine(line,IsPoliceCommand(command.name));}
         var player=GameHud.Instance?GameHud.Instance.Player:null;
+        if(command.status=="player_panel"&&GameHud.Instance)
+        {
+            string panel=command.name=="gps"?"map":command.name=="quests"?"missions":command.name=="stats"?"player":command.name=="phone"?"phone":"animations";
+            GameHud.Instance.OpenPanel(panel);
+        }
+        else if(command.status=="headmove"&&player)
+        {
+            if(headMotionStopped){headMotionStopped=false;SystemLine("Movimentos da cabeça ativados.");}
+            else
+            {
+                var animator=player.GetComponentInChildren<Animator>();
+                fixedHead=animator&&animator.isHuman?animator.GetBoneTransform(HumanBodyBones.Head):null;
+                if(fixedHead){fixedHeadRotation=fixedHead.localRotation;headMotionStopped=true;SystemLine("Movimentos da cabeça pausados. Use /headmove para retomar.");}
+                else SystemLine("Este modelo não possui cabeça Humanoid configurada.");
+            }
+        }
         if(command.status=="teleport"&&player)
             player.TeleportTo(new Vector3(command.x,command.y,command.z));
         else if(command.status=="speed"&&player)
@@ -187,16 +214,27 @@ public sealed class InGameChat : MonoBehaviour
         var camera=FindAnyObjectByType<ThirdPersonCamera>();
         if(camera&&player){camera.target=player.transform;camera.ResetView();}
     }
-    void AdminLine(string text)
-    {lines.Add(new ChatLine{text="[ADMIN] "+text,kind="admin"});TrimLines();Render();}
+    static bool IsPlayerCommand(string name)=>name=="s"||name=="w"||name=="me"||name=="do"||name=="try"||name=="j"||name=="stats"||name=="myreports"||name=="report"||name=="gps"||name=="phone"||name=="mask"||name=="healme"||name=="house"||name=="biz"||name=="daily"||name=="quests"||name=="v"||name=="headmove"||name=="anim"||name=="ajuda";
+    void LateUpdate(){if(headMotionStopped&&fixedHead)fixedHead.localRotation=fixedHeadRotation;}
+    static bool IsPoliceCommand(string name)=>name=="ide"||name=="wanted"||name=="su"||name=="clear"||name=="cuff"||name=="uncuff"||name=="follow"||name=="stay"||name=="put"||name=="eject"||name=="carpolicia"||name=="ticket"||name=="proc"||name=="megaphone"||name=="faction"||name=="departments"||name=="government";
+    void AdminLine(string text,bool police=false)
+    {lines.Add(new ChatLine{text=(police?"[POLÍCIA] ":"[ADMIN] ")+text,kind="admin"});TrimLines();Render();}
     public void Receive(ChatMessage message)
     {
-        if(message==null)return;
+        if(message==null||message.id<=0||string.IsNullOrEmpty(message.text))return;
+        if(message.channel=="system"){SystemLine(message.text);return;}
         var existing=string.IsNullOrEmpty(message.messageId)?null:lines.Find(line=>line.id==message.messageId&&line.uid==message.uid);
         if(existing!=null&&existing.kind=="confirmed")return;
         string display=PlayerDisplayName.From(message.firstName,message.name);
-        string body=message.channel=="admin"?"[A] "+message.text:
-            message.channel=="announcement"?"[AVISO] "+message.text:message.text;
+        string body=message.channel=="shout"?"[GRITO] "+message.text:
+            message.channel=="whisper"?"[SUSSURRO] "+message.text:
+            message.channel=="admin"?"[A] "+message.text:
+            message.channel=="announcement"?"[AVISO] "+message.text:
+            message.channel=="police"?"[190/POLÍCIA] "+message.text:
+            message.channel=="faction"?"[ORGANIZAÇÃO] "+message.text:
+            message.channel=="departments"?"[DEPARTAMENTOS] "+message.text:
+            message.channel=="government"?"[GOVERNO] "+message.text:
+            message.channel=="megaphone"?"[MEGAFONE] "+message.text:message.text;
         ReceivedCount++;messageTexts.Add(message.text);if(messageTexts.Count>60)messageTexts.RemoveAt(0);
         if(existing!=null)
         {existing.text=display+": "+body;existing.author=display;existing.body=body;existing.isAdmin=message.isAdmin;existing.kind="confirmed";Render();}

@@ -1,13 +1,15 @@
+import {createPlayerCommands} from './player-commands.mjs';
 import https from 'node:https';
 import fs from 'node:fs';
 import { randomBytes, randomUUID, createHash, scrypt as scryptCb, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
 import { pathToFileURL } from 'node:url';
 import pg from 'pg';
-import {createRoom,RoomError} from './multiplayer.mjs';
+import {createRoom,RoomError,POLICE_COMMANDS,SERVICE_COMMANDS} from './multiplayer.mjs';
 import {createPlayerAdmin,AdminError} from './player-admin.mjs';
 import {getWorldBounds,isPositionWithinWorld} from './world-bounds.mjs';
 import {createArrivalMission,ArrivalError,arrivalConfig} from './arrival-mission.mjs';
+import {createPoliceCommands} from './police-commands.mjs';
 
 const scrypt=promisify(scryptCb);
 const hash=x=>createHash('sha256').update(x).digest();
@@ -32,8 +34,22 @@ export function characterIdentity(body){
 function password(value){if(typeof value!=='string'||value.length<10||value.length>128||!value.trim())fail(400,'A senha precisa ter entre 10 e 128 caracteres.');return value;}
 export function createApiHandler(pool,{log=console.log,errorLog=console.error}={}){
 const room=createRoom({capacity:10});
+let followerReady;
+function loadFollower(){
+ return followerReady??=pool.query(`SELECT f.owner_character_id AS owner_id,c.id AS bot_id,
+  a.uid::text AS uid,c.name,c.first_name,v.model_code
+  FROM hbrp.follow_test_bots f JOIN hbrp.characters c ON c.id=f.bot_character_id AND c.deleted_at IS NULL
+  JOIN hbrp.accounts a ON a.id=c.account_id AND a.status='active'
+  LEFT JOIN hbrp.character_appearance v ON v.character_id=c.id
+  WHERE f.enabled=true LIMIT 1`).then(({rows})=>{
+   if(rows[0])room.setFollowerBot({ownerCharacterId:rows[0].owner_id,characterId:rows[0].bot_id,
+    uid:rows[0].uid,name:rows[0].name,firstName:rows[0].first_name,model:rows[0].model_code});
+  });
+}
 const arrival=createArrivalMission({pool,session,transaction,requireCharacter});
 const administration=createPlayerAdmin({pool,session,transaction,removeSession:id=>room.removeSession(id)});
+const police=createPoliceCommands({pool,transaction,room});
+const playerCommands=createPlayerCommands({pool,transaction,room});
 let cryptoJobs=0;
 async function derive(pass,salt){
  if(cryptoJobs>=2)fail(429,'Aguarde alguns segundos e tente novamente.','BUSY');
@@ -70,19 +86,23 @@ async function state(client,accountId){
  s.character_id AS stats_id,p.character_id AS position_id,v.character_id AS appearance_id,
  s.health::float,s.energy::float,s.hunger::float,s.thirst::float,s.level,s.xp::text,s.play_seconds::text,
  p.x,p.y,p.z,p.yaw,p.camera_yaw,p.camera_pitch,p.version::text,w.code AS world,
- v.model_code,coalesce((SELECT balance FROM hbrp.wallets WHERE character_id=c.id AND currency='cash'),0)::text AS cash_cents,
+ v.model_code,org.code AS organization_code,org.name AS organization_name,org.rank_code AS organization_rank,
+ coalesce((SELECT balance FROM hbrp.wallets WHERE character_id=c.id AND currency='cash'),0)::text AS cash_cents,
  coalesce((SELECT balance FROM hbrp.wallets WHERE character_id=c.id AND currency='bank'),0)::text AS bank_cents,
  coalesce((SELECT balance FROM hbrp.wallets WHERE account_id=a.id AND currency='hz'),0)::text AS hz_coins
  FROM hbrp.accounts a LEFT JOIN hbrp.characters c ON c.account_id=a.id AND c.deleted_at IS NULL
  LEFT JOIN hbrp.character_stats s ON s.character_id=c.id LEFT JOIN hbrp.character_positions p ON p.character_id=c.id
- LEFT JOIN hbrp.worlds w ON w.id=p.world_id LEFT JOIN hbrp.character_appearance v ON v.character_id=c.id WHERE a.id=$1`,[accountId]);
+ LEFT JOIN hbrp.worlds w ON w.id=p.world_id LEFT JOIN hbrp.character_appearance v ON v.character_id=c.id
+ LEFT JOIN LATERAL (SELECT o.code,o.name,m.rank_code FROM hbrp.organization_members m
+  JOIN hbrp.organizations o ON o.id=m.organization_id WHERE m.character_id=c.id LIMIT 1) org ON true
+ WHERE a.id=$1`,[accountId]);
  if(!result.rowCount)fail(401,'Entre novamente na sua conta.','UNAUTHORIZED');
  const r=result.rows[0];
  if(!r.character_id)return null;
  if(r.blocked_at&&(!r.blocked_until||new Date(r.blocked_until).getTime()>Date.now()))
   fail(403,'Este personagem está bloqueado. Motivo: '+(r.blocked_reason||'Procure a administração.'),'CHARACTER_BLOCKED');
  if(!r.stats_id||!r.position_id||!r.appearance_id||!r.world)fail(409,'Dados do personagem incompletos. Procure o suporte.','CHARACTER_INCOMPLETE');
- return {accountId:r.account_id,uid:r.uid,accountRole:r.account_role,adminLevel:r.admin_level,characterId:r.character_id,name:r.name,firstName:r.first_name,lastName:r.last_name,gender:r.gender,health:r.health,energy:r.energy,hunger:r.hunger,thirst:r.thirst,level:r.level,xp:r.xp,playSeconds:r.play_seconds,cashCents:r.cash_cents,bankCents:r.bank_cents,hzCoins:r.hz_coins,model:r.model_code,world:r.world,version:r.version,x:r.x,y:r.y,z:r.z,yaw:r.yaw,cameraYaw:r.camera_yaw,cameraPitch:r.camera_pitch};
+ return {accountId:r.account_id,uid:r.uid,accountRole:r.account_role,adminLevel:r.admin_level,characterId:r.character_id,name:r.name,firstName:r.first_name,lastName:r.last_name,gender:r.gender,organization:r.organization_code?{code:r.organization_code,name:r.organization_name,rank:r.organization_rank}:null,health:r.health,energy:r.energy,hunger:r.hunger,thirst:r.thirst,level:r.level,xp:r.xp,playSeconds:r.play_seconds,cashCents:r.cash_cents,bankCents:r.bank_cents,hzCoins:r.hz_coins,model:r.model_code,world:r.world,version:r.version,x:r.x,y:r.y,z:r.z,yaw:r.yaw,cameraYaw:r.camera_yaw,cameraPitch:r.camera_pitch};
 }
 async function playerReply(client,accountId){const current=await state(client,accountId);const account=(await client.query('SELECT uid::text,account_role AS "accountRole",admin_level AS "adminLevel" FROM hbrp.accounts WHERE id=$1',[accountId])).rows[0];return {state:current,needsCharacter:current===null,account};}
 async function requireCharacter(client,accountId){const current=await state(client,accountId);if(!current)fail(409,'Crie seu personagem antes de entrar na cidade.','CHARACTER_REQUIRED');return current;}
@@ -187,12 +207,36 @@ return async(req,res)=>{
   const token=req.headers.authorization?.startsWith('Bearer ')?req.headers.authorization.substring(7):null;
   if(req.method==='GET'&&path==='/v1/missions/arrival')return send(200,await arrival.read(token));
   if(req.method==='POST'&&path==='/v1/missions/arrival')return send(200,await arrival.update(token,await readBody(req)));
+  if(req.method==='POST'&&path==='/v1/admin/map-teleport')return send(200,await administration.mapTeleport(token,await readBody(req)));
   if(req.method==='GET'&&path==='/v1/admin/players'){
    const query=new URL(req.url,'https://hbrp.local').searchParams;
    return send(200,await administration.list(token,query.get('q')??'',Number(query.get('offset')??0)));
   }
   const adminTarget=path.match(/^\/v1\/admin\/players\/([1-9][0-9]{0,18})$/);
   if(req.method==='POST'&&adminTarget)return send(200,await administration.update(token,adminTarget[1],await readBody(req)));
+  if((req.method==='GET'||req.method==='POST')&&path==='/v1/police/duty'){
+   const auth=await session(pool,token);
+   const identity=await requireCharacter(pool,auth.account_id);
+   const body=req.method==='POST'?await readBody(req):undefined;
+   const result=room.duty(identity,auth.id,body);
+   if(body?.enabled){
+    try{
+     await pool.query(`INSERT INTO hbrp.organization_members(organization_id,character_id,rank_code)
+      SELECT id,$1,'oficial' FROM hbrp.organizations WHERE code='pm'
+      ON CONFLICT(character_id) DO NOTHING`,[identity.characterId]);
+     const membership=await pool.query(`SELECT o.code FROM hbrp.organization_members m
+      JOIN hbrp.organizations o ON o.id=m.organization_id WHERE m.character_id=$1`,[identity.characterId]);
+     if(membership.rows[0]?.code!=='pm')fail(409,'O personagem pertence a outra organização.','ORGANIZATION_CONFLICT');
+    }catch(error){room.duty(identity,auth.id,{enabled:false});throw error;}
+   }
+   return send(200,{...result,organization:body?.enabled
+    ?{code:'pm',name:'Polícia Militar',rank:'oficial'}:identity.organization});
+  }
+  if((req.method==='GET'||req.method==='POST')&&path==='/v1/police/radio'){
+   const auth=await session(pool,token);
+   const identity=await requireCharacter(pool,auth.account_id);
+   return send(200,room.radio(identity,auth.id,req.method==='POST'?await readBody(req):undefined));
+  }
   if(req.method==='POST'&&(path==='/v1/multiplayer/sync'||path==='/v1/multiplayer/leave'||path==='/v1/multiplayer/chat')){
    const auth=await session(pool,token);
    const body=await readBody(req);
@@ -202,8 +246,10 @@ return async(req,res)=>{
     if(!loan.rowCount)fail(403,'O empréstimo do veículo não está ativo.','MISSION_VEHICLE_UNAVAILABLE');
    }
    if(path.endsWith('/chat'))return send(200,await room.chat(identity,auth.id,body,
-    request=>administration.command(token,request,room)));
+    request=>['report','myreports'].includes(request.name)?playerCommands.command(request):POLICE_COMMANDS.includes(request.name)||SERVICE_COMMANDS.includes(request.name)
+     ?police.command(request):administration.command(token,request,room)));
    if(path.endsWith('/leave')){exact(body,['clientId']);return send(200,room.leave(identity.characterId,auth.id,body.clientId));}
+   await loadFollower();
    return send(200,room.sync(identity,auth.id,body));
   }
   if(req.method==='POST'&&path==='/v1/auth/register'){rate(req.socket.remoteAddress,'register',5,3600000);return send(201,await register(await readBody(req)));}

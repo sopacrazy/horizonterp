@@ -2,6 +2,8 @@
 
 Protótipo de jogo em terceira pessoa para Windows e Android, desenvolvido em Unity.
 
+Versão 0.7.0 (Android código 19). Downloads e histórico em [Releases](https://github.com/sopacrazy/horizonterp/releases); detalhes em [notas da 0.7.0](releases/notes-0.7.0.md).
+
 ## Estrutura
 
 - `TestePersonagem/`: projeto Unity, cenas, scripts, animações e recursos visuais.
@@ -29,7 +31,10 @@ No Windows, `AbrirProjeto.bat` abre o projeto na instalação padrão do editor.
 - Cidade oficial na cena `TestePersonagem`, com cenário recuperado, materiais reconstruídos e colisões revisadas. O bairro anterior fica em backup local durante a integração.
 - Cadastro e login, separação entre conta e personagem e salvamento de progresso.
 - Sala experimental com dez vagas, sincronização de movimento e chat. Bots automáticos desativados.
-- Tipos de conta e nível administrativo. Os comandos administrativos são apenas placeholders: suas ações ainda não são executadas.
+- Tipos de conta e nível administrativo, painel de jogadores e guia `/helpadmin`. Alterações administrativas respeitam a hierarquia e são auditadas no servidor.
+- Serviço policial, procurados, identificação, algemas, condução, viatura, multas e canais de comunicação; voz por proximidade e rádio por canais.
+- Comandos públicos no `/ajuda`, grito por proximidade, sussurro privado e relatórios persistidos. Recursos futuros são sinalizados como pendentes.
+- Mapa ampliado com arrasto; administradores podem marcar e confirmar um destino para teleporte com validação do chão.
 - Modo de velocidade para administradores: no painel ADMIN, toque em **Velocidade** e escolha x2, x4, x6, x8, x10 ou x12. A opção x1 volta à velocidade normal; o modo rápido é desativado ao perder o acesso de administrador.
 - Chat com eco local imediato e destaque verde para comandos administrativos.
 - A partir da 0.5.0: versão no HUD/loading e atualização Android pelo GitHub Releases, com confirmação de instalação pelo Android.
@@ -37,14 +42,15 @@ No Windows, `AbrirProjeto.bat` abre o projeto na instalação padrão do editor.
 A rede ainda é um protótipo de sincronização por HTTPS; a suavização não elimina a latência da conexão.
 
 `VerMapaGTA.bat` abre uma prévia independente da cidade no Windows, sem conta ou multiplayer.
-`Jogar.bat` abre a build oficial com a entrada normal e login. A cidade oficial é
-configurada por `GtaOfficialCitySetup.CreateAndBuildWindows`; `GTAMapaTeste` permanece
-uma cena de revisão separada. Os materiais novos ficam em `Assets/GTARecoveredMap/Restored`.
-O pacote de origem tinha referências de materiais ausentes; a reconstrução não reproduz
-integralmente sua aparência. Relatórios e imagens locais ficam em `tools/gta-map-review`.
-Os limites ampliados da API foram implantados e validados por HTTPS para a versão 0.5.7,
-preservando contas, posições e saldos. A cidade carrega 56 setores por proximidade;
-`GameUpdateSetup.Scenes` inclui esses setores na compilação Android e Windows.
+`Jogar.bat` abre `TestePersonagem/Builds/Windows070/Horizonte.exe`, com entrada normal e login.
+A cidade atual é a integração San Andreas em `Assets/Scenes/TestePersonagem.unity`,
+com 563 setores carregados por proximidade. Android seleciona 146 setores de Los Santos
+e usa as cenas em `Assets/Scenes/AndroidLosSantos`, preservando o mapa completo no projeto.
+`GameUpdateSetup.Scenes` escolhe o perfil conforme a plataforma. `Release070Build.Windows`
+e `Release070Build.Android` geram os pacotes; `tools/prepare_android_los_santos_project.py`
+prepara uma cópia Android isolada para reduzir a importação de recursos.
+Áreas rurais e San Fierro ainda têm falhas visuais; NPCs e missões precisam de revisão
+de posição. O tutorial inicial está desativado nos testes do mapa novo.
 
 `VerBairro.bat` é o atalho legado de revisão do bairro anterior, com personagem de teste e
 salvamento apenas em memória. Essa prévia não acessa a API da VPS e não é um modo
@@ -57,14 +63,14 @@ As versões são definidas em `TestePersonagem/Assets/Resources/GameVersion.json
 
 ## Backend e testes
 
-Consulte [a documentação da API](Backend/api/README.md) e [a documentação do banco](Backend/README.md). As migrações estão numeradas de 001 a 005. Credenciais são configuradas exclusivamente no ambiente do servidor e não devem ser adicionadas ao projeto Unity ou ao Git.
+Consulte [a documentação da API](Backend/api/README.md) e [a documentação do banco](Backend/README.md). As migrações estão numeradas de 001 a 011. A API ativa fica na VPS Brasil; a ponte do endereço antigo mantém a compatibilidade dos aplicativos instalados. Veja [o estado da migração](Backend/migration/KVM1_STATUS.md). Credenciais são configuradas exclusivamente no ambiente do servidor e não devem ser adicionadas ao projeto Unity ou ao Git.
 
 Para executar os testes locais da API, com Node.js instalado:
 
 ```sh
 cd Backend/api
 npm ci
-node --test test/characters.test.mjs test/multiplayer.test.mjs
+npm test
 ```
 
 Os testes locais usam PostgreSQL em memória. Verificadores de integração e rotinas de implantação exigem um ambiente próprio configurado; não devem ser executados contra uma VPS sem conferir seus parâmetros.

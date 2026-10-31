@@ -28,6 +28,7 @@
 .hub2-hud .atlas-button:disabled { opacity: .78; }
 .h2-tools { position: absolute; right: 24px; top: 140px; flex-direction: row; align-items: center; }
 .h2-microphone { width: 52px; height: 52px; margin-right: 18px; }
+.h2-microphone-ring { position: absolute; left: 0; top: 0; right: 0; bottom: 0; border-width: 3px; border-radius: 26px; border-color: rgb(63, 255, 149); }
 .h2-camera { width: 52px; height: 52px; }
 .h2-admin { width: 52px; height: 52px; margin-right: 18px; border-radius: 15px; border-width: 1px; border-color: rgb(220, 170, 48); background-color: rgba(61, 43, 9, .25); align-items: center; justify-content: center; }
 .h2-admin:hover { border-color: rgb(255, 225, 126); background-color: rgba(154, 110, 20, .32); }
@@ -102,3 +103,27 @@
 .coordinate-copy { height: 31px; margin-top: 9px; border-radius: 6px; border-width: 1px; border-color: rgba(91, 202, 218, .65); background-color: rgba(18, 63, 76, .86); color: rgb(223, 249, 252); font-size: 10px; -unity-font-style: bold; }
 .coordinate-copy:hover { background-color: rgba(35, 103, 118, .92); }
 .hub2-hud.narrow-hud .coordinate-panel { right: 18px; top: 205px; width: 220px; }
+
+/* City atlas fills the screen when the minimap or /gps is opened. */
+.hub2-hud .drawer.city-map-fullscreen,
+.hub2-hud.narrow-hud .drawer.city-map-fullscreen {
+    left: 12px; right: 12px; top: 12px; bottom: 12px;
+    width: auto; padding: 0; border-radius: 16px;
+    overflow: hidden; background-color: rgb(113, 143, 170);
+}
+.city-map-fullscreen .drawer-content { position: absolute; left: 0; right: 0; top: 0; bottom: 0; overflow: hidden; }
+.city-map-fullscreen .drawer-header { display: none; }
+.city-map-fullscreen .drawer-titles, .city-map-fullscreen #drawer-back { display: none; }
+.city-map-close { position: absolute; right: 16px; top: 16px; width: 40px; height: 40px; margin: 0; border-radius: 20px; align-items: center; justify-content: center; background-color: rgba(5, 12, 18, .9); border-width: 1px; border-color: rgba(255, 255, 255, .7); }
+.city-map-close .icon { width: 18px; height: 18px; }
+.city-map-canvas { position: absolute; left: 0; right: 0; top: 0; bottom: 0; overflow: hidden; background-color: rgb(113, 143, 170); }
+.city-map-player { position: absolute; width: 24px; height: 24px; }
+.city-map-destination { position: absolute; width: 22px; height: 22px; border-radius: 11px; border-width: 3px; border-color: white; background-color: rgb(244, 69, 65); }
+.city-map-destination-label { position: absolute; top: 23px; left: -32px; width: 80px; padding: 3px 5px; border-radius: 4px; background-color: rgba(6, 14, 22, .9); color: white; font-size: 10px; -unity-font-style: bold; -unity-text-align: middle-center; }
+.city-teleport-confirm { position: absolute; right: 20px; bottom: 20px; width: 300px; max-width: 90%; padding: 18px; border-radius: 12px; border-width: 1px; border-color: rgba(255, 216, 66, .7); background-color: rgba(9, 17, 26, .97); }
+.city-teleport-kicker { color: rgb(255, 216, 66); font-size: 10px; letter-spacing: 1px; margin-bottom: 7px; }
+.city-teleport-title { color: white; font-size: 20px; -unity-font-style: bold; margin-bottom: 16px; }
+.city-teleport-actions { flex-direction: row; }
+.city-teleport-cancel { flex-grow: 1; height: 40px; margin: 0 8px 0 0; border-radius: 7px; border-width: 1px; border-color: rgb(85, 102, 117); background-color: rgb(28, 41, 52); color: white; }
+.city-teleport-go { flex-grow: 1; height: 40px; margin: 0; border-radius: 7px; border-width: 0; background-color: rgb(255, 212, 40); color: rgb(15, 22, 28); -unity-font-style: bold; }
+.city-teleport-go:disabled { opacity: .5; }

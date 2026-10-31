@@ -37,7 +37,7 @@ public static class SanAndreasIntegration
     public static void Build()
     {
         var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions { scenes = GameUpdateSetup.Scenes,
-            locationPathName = "Builds/SanAndreasIntegracao/HorizonteIntegracao.exe", target = BuildTarget.StandaloneWindows64 });
+            locationPathName = "Builds/SanAndreasLocal/HorizonteLocal.exe", target = BuildTarget.StandaloneWindows64 });
         if (report.summary.result != BuildResult.Succeeded) throw new Exception("Falha na build de avaliação");
         Debug.Log("SA_INTEGRATION_BUILD_OK");
     }

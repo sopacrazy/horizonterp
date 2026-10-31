@@ -1,3 +1,4 @@
+import {isPositionWithinWorld} from './world-bounds.mjs';
 export class AdminError extends Error {
  constructor(status,code,message){super(message);this.status=status;this.code=code;}
 }
@@ -126,5 +127,18 @@ export function createPlayerAdmin({pool,session,transaction,removeSession}){
   }
   reject(400,'UNKNOWN_COMMAND','Comando desconhecido.');
  }
- return {list,update,command};
+ async function mapTeleport(token,body){
+  return transaction(async client=>{
+   const viewer=await actor(client,token);
+   if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).some(k=>!['x','z'].includes(k))||
+     !isPositionWithinWorld('centro_teste',{x:body.x,y:0,z:body.z}))
+    reject(400,'INVALID_MAP_POINT','Escolha um ponto válido no mapa.');
+   const character=(await client.query('SELECT id FROM hbrp.characters WHERE account_id=$1 AND deleted_at IS NULL',[viewer.id])).rows[0];
+   if(!character)reject(409,'CHARACTER_REQUIRED','Crie seu personagem antes de teleportar.');
+   await client.query("INSERT INTO hbrp.audit_events(actor_account_id,action,entity_type,entity_id,details) VALUES($1,'admin.map_teleport','character',$2,$3::jsonb)",
+    [viewer.id,character.id,JSON.stringify({x:body.x,z:body.z})]);
+   return {authorized:true,x:body.x,z:body.z};
+  });
+ }
+ return {list,update,command,mapTeleport};
 }

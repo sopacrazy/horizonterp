@@ -6,7 +6,7 @@ Por solicitação do responsável pelo projeto, novas versões do APK após a 0.
 
 O cliente a partir da versão 0.5.0 lê `android.json` durante o loading. O arquivo é servido por HTTPS em `raw.githubusercontent.com`; o APK é hospedado no GitHub Releases deste repositório. Nenhuma senha ou token GitHub fica no aplicativo.
 
-O download é automático quando `versionCode` aumenta. Antes de instalar, o cliente valida origem, tamanho, SHA-256, pacote, versão e assinatura igual à instalação atual. O Android pede confirmação e, se necessário, permissão para instalar atualizações por este aplicativo. Instalação silenciosa não está implementada. O jogador pode cancelar e continuar na versão atual.
+O download é automático quando `versionCode` aumenta. Antes de instalar, o cliente valida origem, tamanho, SHA-256, pacote, versão e assinatura igual à instalação atual. O atualizador instalado aceita APKs de até 300 MiB. O Android pede confirmação e, se necessário, permissão para instalar atualizações por este aplicativo. Instalação silenciosa não está implementada. O jogador pode cancelar e continuar na versão atual.
 
 ## Publicar a próxima versão
 
@@ -14,8 +14,8 @@ O download é automático quando `versionCode` aumenta. Antes de instalar, o cli
 2. Compile Windows, execute verificações e gere o APK usando `AndroidSetup.Build`. Preserve a chave de assinatura usada nos APKs anteriores. A configuração atual usa a chave de desenvolvimento local: ela precisa ser mantida para atualizar os aparelhos de teste.
 3. Execute `python tools/verify_android_release.py --version X.Y.Z --version-code N --log nome-do-build.log --chat --updater --stairs --walk --network --hud2 --admin-chat`. Os programas Android ficam fora do Git; configure-os localmente conforme o ambiente. Para preparar o atlas refinado de `personagem/hud novo.png` antes de compilar, use `Hud2Setup.BuildAndroid`.
 4. Envie o código validado ao GitHub antes de criar a release.
-5. Prepare as notas da versão e, com o GitHub CLI autenticado, execute `python tools/publish_android_update.py --apk TestePersonagem/Builds/Android/HorizonteBrasil-X.Y.Z.apk --notes-file caminho/das-notas.txt`.
-6. O publicador cria a release com o APK e somente depois escreve o manifesto. Confira e faça commit/push de `releases/android.json` para oferecer a atualização.
+5. Prepare as notas da versão e, com o GitHub CLI ou o gerenciador de credenciais Git autenticado, execute `python tools/publish_android_update.py --apk TestePersonagem/Builds/Android/HorizonteBrasil-X.Y.Z.apk --notes-file caminho/das-notas.txt`.
+6. O publicador cria a release com o APK (e o ZIP Windows quando informado com `--windows`) e somente depois escreve o manifesto. Verifique o download público, o tamanho e o SHA-256 antes de fazer commit/push de `releases/android.json` para oferecer a atualização.
 
 Nunca publique o manifesto antes de o APK estar disponível, nem substitua o arquivo de uma versão já publicada. Em caso de erro, publique uma versão com código maior. Para interromper a oferta, altere `available` para `false` e envie o manifesto atualizado.
 

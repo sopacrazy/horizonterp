@@ -25,6 +25,7 @@ public class ThirdPersonCamera : MonoBehaviour
 
     void LateUpdate()
     {
+        if(GameHud.Instance && GameHud.Instance.Player && GameHud.Instance.Player.MapTeleportLoading) return;
         if(StartupLoader.IsLoading || AccountSession.InputBlocked || InGameChat.Editing){lastMouse=Input.mousePosition;dragAllowed=false;Place(false);return;}
         Vector3 mouse = Input.mousePosition;
         float yawDelta=0;
@@ -72,6 +73,7 @@ public class ThirdPersonCamera : MonoBehaviour
         yaw=target.eulerAngles.y;pitch=14;distance=4.2f;
         Place(true);
     }
+    public void SnapToTarget() { Place(true); }
 
     public void BeginAim()
     {

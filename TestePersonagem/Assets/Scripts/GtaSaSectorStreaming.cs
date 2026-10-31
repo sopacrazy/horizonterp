@@ -30,6 +30,24 @@ public sealed class GtaSaSectorStreaming : MonoBehaviour
     readonly List<Sector> mobileCandidates = new List<Sector>();
     bool stopping;
     bool suspendedForTeleport;
+    string mapPreviewScene;
+    float mapPreviewUntil;
+
+    static string PointSector(Vector2 point)
+    {
+        int x=Mathf.FloorToInt(point.x/256f),y=Mathf.FloorToInt(-point.y/256f);
+        return "GTASASector_"+(x<0?"m"+(-x):"p"+x)+"_"+(y<0?"m"+(-y):"p"+y);
+    }
+    public bool DestinationSectorLoaded(Vector2 point)=>IsLoaded(PointSector(point));
+    public bool DestinationSectorAvailable(Vector2 point)=>sectors!=null&&Array.Exists(sectors,s=>s!=null&&s.scene==PointSector(point));
+    public void PreviewMapDestination(Vector2 point)
+    {
+        string name=PointSector(point);
+        mapPreviewScene=DestinationSectorAvailable(point)?name:null;
+        mapPreviewUntil=Time.realtimeSinceStartup+60;
+        RefreshNow();
+    }
+    public void ClearMapDestinationPreview(){mapPreviewScene=null;}
 
     IEnumerator Start()
     {
@@ -69,7 +87,7 @@ public sealed class GtaSaSectorStreaming : MonoBehaviour
             foreach (var sector in sectors)
             {
                 if (sector == null || !desired.Contains(sector.scene) || IsLoaded(sector.scene) || pending.Contains(sector.scene)) continue;
-                float distance = sector.bounds.SqrDistance(target.position);
+                float distance = sector.scene==mapPreviewScene ? -1 : sector.bounds.SqrDistance(target.position);
                 if (distance < best) { best = distance; next = sector; }
             }
             if (next != null)
@@ -172,6 +190,21 @@ public sealed class GtaSaSectorStreaming : MonoBehaviour
                 desired.Add(mobileCandidates[i].scene);
         }
         if (desired.Count == 0 && nearest != null) desired.Add(nearest.scene);
+        if(!string.IsNullOrEmpty(mapPreviewScene)&&Time.realtimeSinceStartup<mapPreviewUntil&&
+            !desired.Contains(mapPreviewScene)&&(!limitMobile||maxMobileSectors>1))
+        {
+            // Warm one destination sector, preserving the occupied sector and mobile memory cap.
+            if(limitMobile&&desired.Count>=maxMobileSectors)
+            {
+                string occupied=PointSector(new Vector2(target.position.x,target.position.z));
+                Sector farthest=null;
+                foreach(var sector in sectors)
+                    if(sector!=null&&desired.Contains(sector.scene)&&sector.scene!=occupied&&
+                        (farthest==null||sector.bounds.SqrDistance(target.position)>farthest.bounds.SqrDistance(target.position)))farthest=sector;
+                if(farthest!=null)desired.Remove(farthest.scene);
+            }
+            if(!limitMobile||desired.Count<maxMobileSectors)desired.Add(mapPreviewScene);
+        }
         DesiredCount = desired.Count;
         foreach (string scene in desired) if (!IsLoaded(scene)) Ready = false;
     }

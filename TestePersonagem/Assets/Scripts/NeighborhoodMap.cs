@@ -50,7 +50,10 @@ public sealed class NeighborhoodMap : MonoBehaviour
         if(!controller||!Contains(point))return false;
         float feetOffset=controller.center.y-controller.height*.5f;
         float expectedFloor=point.y+feetOffset;
-        var hits=Physics.RaycastAll(new Vector3(point.x,expectedFloor+3,point.z),Vector3.down,6,1,QueryTriggerInteraction.Ignore);
+        // Imported map spawn coordinates may be far above the actual street.
+        // Search below the saved point before activating the character.
+        var hits=Physics.RaycastAll(new Vector3(point.x,expectedFloor+3,point.z),Vector3.down,
+            GetComponent<GtaSaSectorStreaming>() ? 130f : 6f,1,QueryTriggerInteraction.Ignore);
         System.Array.Sort(hits,(a,b)=>Mathf.Abs(a.point.y-expectedFloor).CompareTo(Mathf.Abs(b.point.y-expectedFloor)));
         foreach(var hit in hits)
         {

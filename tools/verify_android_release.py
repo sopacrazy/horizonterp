@@ -17,6 +17,7 @@ parser.add_argument('--admin-panel',action='store_true')
 parser.add_argument('--remembered-access',action='store_true')
 parser.add_argument('--official-city',action='store_true')
 parser.add_argument('--los-santos',action='store_true')
+parser.add_argument('--current-features',action='store_true')
 args=parser.parse_args()
 assert re.fullmatch(r'\d+\.\d+\.\d+',args.version)
 
@@ -90,7 +91,8 @@ with zipfile.ZipFile(apk) as archive:
     if args.admin_chat:assert b'isAdmin' in metadata and b'chat-author-admin' in metadata and b'action-admin' in metadata
     if args.admin_panel:
         assert b'AdminPlayerPanel' in metadata and b'AdminRequest' in metadata
-        assert b'/v1/admin/players' in metadata and b'/ahelp' in metadata
+        assert b'/v1/admin/players' in metadata
+        assert (b'AdminHelpPanel' in metadata if args.current_features else b'/ahelp' in metadata),'Administrative help must be packaged'
         assert b'PlayerDisplayName' in metadata and b'/v1/admin/players' in metadata
     if args.remembered_access:
         assert b'RestoreRemembered' in metadata and b'remembered-play' in metadata and b'SessionVault' in metadata
@@ -145,8 +147,17 @@ with zipfile.ZipFile(apk) as archive:
     config_meta=(root/'TestePersonagem/Assets/Resources/ApiConfig.json.meta').read_text()
     config_guid=re.search(r'^guid: ([a-f0-9]+)',config_meta,re.MULTILINE).group(1)
     resources=archive.read('assets/bin/Data/'+config_guid)
-    assert b'https://70.38.101.147:8443' in resources
-    assert b'3a0a59cc28b5b2a5aab7acae6546ed91f861b41086e8a1312da8b4550c149c42' in resources
+    expected_api=json.loads((root/'TestePersonagem/Assets/Resources/ApiConfig.json').read_text())
+    assert expected_api['baseUrl'].encode() in resources
+    assert expected_api['certificateSha256'].encode() in resources
+    if args.current_features:
+        for feature in [b'VoiceChat',b'PoliceRadio',b'CuffedAvatarPose',b'PoliceCarWorld',b'WantedListPanel',b'SelectCityMapDestination',b'RequestCityMapTeleport',b'PreviewMapDestination',b'CancelCityMapSelection',b'BeginAdminMapTeleport',b'AdminMapArrival',b'IsPlayerCommand']:
+            assert feature in metadata,'Missing current feature: '+str(feature)
+        assert 'android.permission.RECORD_AUDIO' in badging
+        assert b'city-teleport-confirm' in metadata
+        if 'environment' in globals():
+            atlas=next(obj.read() for obj in environment.objects if obj.type.name=='Texture2D' and obj.read().m_Name=='LosSantos')
+            assert atlas.m_Width==1498 and atlas.m_Height==1050
 
 release=apk.parent/f'HorizonteBrasil-{args.version}.apk'
 if apk.resolve()!=release.resolve():shutil.copy2(apk,release)
@@ -154,7 +165,7 @@ report={'result':'ANDROID_RELEASE_VERIFIED','version':args.version,'versionCode'
     'package':'com.adriano.testepersonagem','label':'Horizonte','architecture':'arm64-v8a',
     'minimum_android':'8.0 (API 26)','internet_permission':True,'signature_verified':True,
     'same_signer_as_previous_apk':True,'zip_and_16k_alignment_valid':True,
-    'multiplayer_and_jump_included':True,'existing_api_and_certificate_pin_included':True,
+    'multiplayer_and_jump_included':True,'existing_api_and_certificate_pin_included':True,'api_base_url':expected_api['baseUrl'],'current_features_verified':args.current_features,
     'chat_included':args.chat,
     'updater_included':args.updater,
     'smooth_stair_collisions_included':args.stairs,

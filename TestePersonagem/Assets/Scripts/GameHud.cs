@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public sealed class GameHud : MonoBehaviour
+public sealed partial class GameHud : MonoBehaviour
 {
     public static GameHud Instance { get; private set; }
-    public bool IsPanelOpen => !string.IsNullOrEmpty(CurrentPanel)||(AdminPlayerPanel.Instance&&AdminPlayerPanel.Instance.IsOpen);
+    public bool IsPanelOpen => !string.IsNullOrEmpty(CurrentPanel)||(AdminPlayerPanel.Instance&&AdminPlayerPanel.Instance.IsOpen)||
+        (AdminHelpPanel.Instance&&AdminHelpPanel.Instance.IsOpen);
     public bool SprintRequested { get; private set; }
     public string CurrentPanel { get; private set; }
     public VisualElement Root => root;
@@ -15,7 +16,7 @@ public sealed class GameHud : MonoBehaviour
     public string PlayerName { get; private set; }
     public float DistanceTravelled { get; private set; }
     public float TopSpeed { get; private set; }
-    public float MinimapYaw => miniCamera?Mathf.Repeat(miniCamera.transform.eulerAngles.y,360):0;
+    public float MinimapYaw => cityMapAtlas?cityMinimapYaw:miniCamera?Mathf.Repeat(miniCamera.transform.eulerAngles.y,360):0;
     public float MinimapArrowYaw => miniMarker==null?float.NaN:miniMarker.resolvedStyle.rotate.angle.value;
 
     static readonly Color Mint=new Color(1f,.79f,.15f);
@@ -29,7 +30,8 @@ public sealed class GameHud : MonoBehaviour
     VisualElement root,drawer,content,toast,speedFill,miniViewport,mapArea,coordinatePanel;
     Label avatarLabel,playerNameLabel,uidLabel,speedLabel,motionLabel,coordinates,clock,heading,drawerTitle,toastLabel,cloudSaveLabel,minimapNorth;
     Label distanceMetric,timeMetric,topSpeedMetric;
-    Button sprint,adminButton;
+    Button sprint,adminButton,microphoneButton;
+    VisualElement microphoneRing;
     HudIcon miniMarker,mapMarker;
     Image sprintArtwork;
     Label levelLabel,cashLabel,dateLabel,healthLabel,energyLabel,waterLabel;
@@ -70,7 +72,7 @@ public sealed class GameHud : MonoBehaviour
         root.AddToClassList("hub2-hud");
         root.styleSheets.Add(Resources.Load<StyleSheet>("HudStyles"));
         root.styleSheets.Add(Resources.Load<StyleSheet>("Hud2Styles"));
-        CreateMapCameras();Build();InGameChat.Create(this);
+        CreateMapCameras();Build();InGameChat.Create(this);PoliceRadio.Create(this);
         var version=Text("v"+Application.version,"",root);version.name="game-version";
         version.style.position=Position.Absolute;version.style.left=14;version.style.bottom=5;
         version.style.fontSize=10;version.style.color=new Color(.8f,.82f,.85f,.8f);
@@ -134,7 +136,8 @@ public sealed class GameHud : MonoBehaviour
         var mini=Element("h2-mini");mini.name="minimap-card";Block(mini);
         var miniButton=new Button(()=>OpenPanel("map")){name="nav-map",tooltip="Mapa da área [M]"};miniButton.AddToClassList("h2-mini-button");mini.Add(miniButton);
         miniViewport=Element("mini-viewport",miniButton);
-        miniImage=new Image{image=miniTexture,pickingMode=PickingMode.Ignore};miniImage.AddToClassList("mini-image");miniViewport.Add(miniImage);
+        if(cityMapAtlas)BuildCityMinimap();
+        else {miniImage=new Image{image=miniTexture,pickingMode=PickingMode.Ignore};miniImage.AddToClassList("mini-image");miniViewport.Add(miniImage);}
         miniMarker=new HudIcon("arrow");miniMarker.AddToClassList("marker");miniMarker.SetInk(Color.white);miniViewport.Add(miniMarker);
         minimapNorth=Text("N","h2-north",miniButton);
 
@@ -149,7 +152,10 @@ public sealed class GameHud : MonoBehaviour
         var inventory=AtlasButton("h2_inventory","h2-top-button","Inventário",()=>OpenPanel("inventory"),top);inventory.name="atlas-inventory";
         var store=AtlasButton("h2_store","h2-top-button","Loja ainda indisponível",()=>{},top);store.SetEnabled(false);
         var tools=Element("h2-tools");Block(tools);
-        var microphone=AtlasButton("h2_microphone","h2-microphone","Chat de voz ainda indisponível",()=>{},tools);microphone.SetEnabled(false);
+        microphoneButton=AtlasButton("h2_microphone","h2-microphone","Ligar/desligar microfone",()=>VoiceChat.Instance?.Toggle(),tools);
+        microphoneRing=new VisualElement {pickingMode=PickingMode.Ignore};
+        microphoneRing.AddToClassList("h2-microphone-ring");
+        microphoneButton.Add(microphoneRing);
         AtlasButton("h2_camera","h2-camera","Centralizar câmera [C]",()=>TriggerAction("camera"),tools).name="action-camera";
 
         var actions=Element("h2-actions");Block(actions);
@@ -183,7 +189,8 @@ public sealed class GameHud : MonoBehaviour
         Text("CENTRAL DO JOGADOR","eyebrow",titleGroup);drawerTitle=Text("Menu","drawer-title",titleGroup);
         IconButton("close","close","Fechar [Esc]",ClosePanel,header).name="close-panel";
         content=Element("drawer-content",drawer);
-        var back=new Button(ClosePanel){text="VOLTAR AO JOGO"};back.AddToClassList("primary");drawer.Add(back);
+        content.RegisterCallback<GeometryChangedEvent>(OnCityMapLayout);
+        var back=new Button(ClosePanel){name="drawer-back",text="VOLTAR AO JOGO"};back.AddToClassList("primary");drawer.Add(back);
         toast=Element("toast");toast.pickingMode=PickingMode.Ignore;toastLabel=Text("","",toast);toast.style.display=DisplayStyle.None;
         root.RegisterCallback<GeometryChangedEvent>(_=>ApplySafeArea());ApplySafeArea();
     }
@@ -194,8 +201,10 @@ public sealed class GameHud : MonoBehaviour
         if(InGameChat.Editing)InGameChat.Instance.Close();
         SetVisible(true);
         if(CurrentPanel==panel){ClosePanel();return;}
+        if(CurrentPanel=="map")CancelCityMapSelection();
         CurrentPanel=panel;drawer.style.display=DisplayStyle.Flex;
         drawer.EnableInClassList("menu-home",panel=="menu");
+        drawer.EnableInClassList("city-map-fullscreen",panel=="map"&&cityMapAtlas);
         root.EnableInClassList("menu-home-open",panel=="menu");
         root.AddToClassList("hud-panel-open");
         root.Q("hud-compass").style.display=DisplayStyle.None;
@@ -206,6 +215,11 @@ public sealed class GameHud : MonoBehaviour
             case "menu":
                 drawerTitle.text="Central Horizonte";
                 BuildHomeMenu();
+                break;
+            case "animations":
+                drawerTitle.text="Animações";
+                Text("GESTOS EM PREPARAÇÃO","panel-description",content);
+                Text("As animações de interação serão adicionadas a este menu. Caminhada, corrida e pulo continuam nos controles normais.","muted",content);
                 break;
             case "inventory":
                 drawerTitle.text="Inventário";
@@ -255,12 +269,18 @@ public sealed class GameHud : MonoBehaviour
                 var nameInput=new TextField{value=PlayerName,maxLength=24};nameInput.name="player-name-input";nameInput.AddToClassList("name-input");content.Add(nameInput);
                 var save=new Button(()=>SaveName(nameInput.value)){text="SALVAR NOME"};save.name="save-name";save.AddToClassList("primary");content.Add(save);
                 Element("divider",content);
-                if(AccountSession.Authenticated){Text("UID "+AccountSession.Instance.State.uid,"muted",content);cloudSaveLabel=Text(AccountSession.Instance.SaveStatus,"muted",content);}
+                if(AccountSession.Authenticated){
+                    Text("UID "+AccountSession.Instance.State.uid,"muted",content);
+                    var organization=AccountSession.Instance.State.organization;
+                    Text("ORGANIZAÇÃO: "+(organization==null?"Nenhuma":organization.name+" · "+organization.rank),"muted",content);
+                    cloudSaveLabel=Text(AccountSession.Instance.SaveStatus,"muted",content);
+                }
                 distanceMetric=Metric("Distância percorrida","0 m");
                 timeMetric=Metric("Tempo na sessão","00:00");
                 topSpeedMetric=Metric("Maior velocidade","0.0 m/s");
                 break;
             case "map":
+                if(cityMapAtlas){BuildCityMapPanel();break;}
                 drawerTitle.text="Mapa · "+MapDisplayName;
                 Text("Explore livremente. O marcador mostra sua posição.","panel-description",content);
                 mapArea=Element("map-area",content);
@@ -382,6 +402,19 @@ public sealed class GameHud : MonoBehaviour
         if(avatarLabel!=null)avatarLabel.text=PlayerName.Substring(0,1).ToUpperInvariant();
         if(uidLabel!=null)uidLabel.text="ID: "+AccountSession.Instance.State.uid;
         RefreshAdminAccess();
+        RefreshMicrophoneIndicator();
+    }
+    void RefreshMicrophoneIndicator()
+    {
+        if(microphoneButton==null)return;
+        bool active=VoiceChat.Instance&&VoiceChat.Instance.Transmitting;
+        microphoneButton.tooltip=active?"Microfone ligado — tocar para desligar":"Ligar microfone";
+        microphoneButton.style.backgroundColor=active?new Color(.02f,.42f,.26f,.75f):Color.clear;
+        if(microphoneRing!=null)
+        {
+            microphoneRing.style.display=active?DisplayStyle.Flex:DisplayStyle.None;
+            microphoneRing.style.opacity=active ? .65f+.35f*Mathf.Sin(Time.unscaledTime*5f) : 0f;
+        }
     }
     void RefreshAdminAccess()
     {
@@ -394,8 +427,10 @@ public sealed class GameHud : MonoBehaviour
     {
         if(AdminPlayerPanel.Instance&&AdminPlayerPanel.Instance.IsOpen&&AdminPlayerPanel.Instance.Busy)return;
         AdminPlayerPanel.Instance?.Close();
+        if(CurrentPanel=="map")CancelCityMapSelection();
         CurrentPanel=null;drawer.style.display=DisplayStyle.None;
         drawer.RemoveFromClassList("menu-home");
+        drawer.RemoveFromClassList("city-map-fullscreen");
         root.RemoveFromClassList("menu-home-open");
         root.RemoveFromClassList("hud-panel-open");
         root.Q("hud-compass").style.display=DisplayStyle.Flex;
@@ -490,6 +525,7 @@ public sealed class GameHud : MonoBehaviour
     {
         if(!player)return;
         RefreshAdminAccess();
+        RefreshMicrophoneIndicator();
         root.style.visibility=StartupLoader.IsLoading||CityEntryLoading.Active||
             (AccountSession.Instance&&AccountSession.Instance.AuthVisible)?Visibility.Hidden:Visibility.Visible;
         root.SetEnabled(!StartupLoader.IsLoading && !AccountSession.InputBlocked);
@@ -532,7 +568,7 @@ public sealed class GameHud : MonoBehaviour
         string direction=yaw<22.5f||yaw>=337.5f?"N":yaw<67.5f?"NE":yaw<112.5f?"L":yaw<157.5f?"SE":yaw<202.5f?"S":yaw<247.5f?"SO":yaw<292.5f?"O":"NO";
         heading.text=direction+"  ·  "+Mathf.RoundToInt(yaw).ToString("D3")+"°";
         miniMarker.style.rotate=new Rotate(new Angle(0,AngleUnit.Degree));
-        if(mapMarker!=null)
+        if(mapMarker!=null&&!cityMapAtlas)
         {
             Vector3 viewport=mapCamera.WorldToViewportPoint(pos);
             float mapWidth=mapArea.resolvedStyle.width;
@@ -552,6 +588,8 @@ public sealed class GameHud : MonoBehaviour
     }
     void CreateMapCameras()
     {
+        cityMapAtlas=Resources.Load<Texture2D>("Maps/LosSantos");
+        if(cityMapAtlas)return;
         miniTexture=new RenderTexture(256,256,24){name="HUD Minimap"};miniTexture.Create();
         mapTexture=new RenderTexture(512,512,24){name="HUD Area Map"};mapTexture.Create();
         miniCamera=MapCamera("Minimapa",miniTexture,14);
@@ -581,6 +619,7 @@ public sealed class GameHud : MonoBehaviour
     }
     public void RefreshMaps()
     {
+        if(cityMapAtlas){RefreshCityMap();return;}
         if(!miniCamera||miniImage==null)return;
         if(!miniTexture.IsCreated())miniTexture.Create();
         var p=player.transform.position;

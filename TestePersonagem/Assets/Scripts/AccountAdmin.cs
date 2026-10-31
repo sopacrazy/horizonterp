@@ -13,11 +13,16 @@ using UnityEngine.Networking;
 [Serializable] public sealed class AdminReply
 {
     public string error,code,viewerUid;
+    public bool policeDuty,authorized;
+    public float x,z;
+    public ApiOrganization organization;
+    public int radioChannel;
     public int total,offset,pageSize,viewerAdminLevel;
     public AdminPlayer[] players;
     public AdminPlayer player;
 }
 [Serializable] public sealed class AdminAction {public string characterId,action,reason;public int adminLevel;}
+[Serializable] public sealed class AdminMapPoint {public float x,z;}
 public sealed partial class AccountSession
 {
     internal static Func<string,string,string,Action<AdminReply>,IEnumerator> AdminVerificationTransport;

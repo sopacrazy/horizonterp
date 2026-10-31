@@ -2,7 +2,7 @@ using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
-public class ThirdPersonPlayer : MonoBehaviour
+public partial class ThirdPersonPlayer : MonoBehaviour
 {
     public Transform cameraTransform;
     public Animator animator;
@@ -36,6 +36,13 @@ public class ThirdPersonPlayer : MonoBehaviour
     bool teleporting;
     public bool IsTeleporting => teleporting;
     public bool IsSpectating {get;private set;}
+    public bool IsCuffed {get;private set;}
+    public bool InPoliceCar {get;private set;}
+    float policeCarOldDistance,policeCarOldPitch;
+    Vector3 custodyPosition;
+    float custodyYaw;
+    bool escorted;
+    CuffedAvatarPose cuffedPose;
     public int AdminSpeedMultiplier => HasAdminAccess ? adminSpeedMultiplier : 1;
     bool HasAdminAccess => AccountSession.HasCharacter &&
         AccountSession.Instance.State.accountRole == "admin" && AccountSession.Instance.State.adminLevel > 0;
@@ -55,6 +62,8 @@ public class ThirdPersonPlayer : MonoBehaviour
         controller = GetComponent<CharacterController>();
         if (!animator) animator = GetComponentInChildren<Animator>();
         animator.applyRootMotion=false;
+        cuffedPose=animator.GetComponent<CuffedAvatarPose>();
+        if(!cuffedPose)cuffedPose=animator.gameObject.AddComponent<CuffedAvatarPose>();
         Application.targetFrameRate = 60;
     }
 
@@ -63,18 +72,34 @@ public class ThirdPersonPlayer : MonoBehaviour
         if(AccountSession.Instance)AccountSession.Instance.AttachPlayer(this);
         GameHud.Bootstrap();
         HousePortal.Create(this);
-        TutorialJourney.Create(this);
+        // Initial tutorial is paused while the new city is being evaluated.
         MobileControls.Create();
         MobilePerformance.Configure();
         MultiplayerWorld.Create(this);
+        VoiceChat.Create(this);
+        gameObject.AddComponent<PoliceDutyLabel>();
     }
 
     void Update()
     {
         if(MissionVehicle.Driver==this){CurrentSpeed=0;jumpRequested=false;return;}
+        if(InPoliceCar){CurrentSpeed=0;jumpRequested=false;return;}
         if (!HasAdminAccess) adminSpeedMultiplier = 1;
-        if(StartupLoader.IsLoading || AccountSession.InputBlocked || teleporting || IsSpectating)
+        if(StartupLoader.IsLoading || IntegratedMapEntry.Loading || AccountSession.InputBlocked || teleporting || IsSpectating)
         {jumpRequested=false;CurrentSpeed=0;animator.SetFloat("Speed",0);return;}
+        if(IsCuffed)
+        {
+            jumpRequested=false;IsJumping=false;animator.SetBool("Jumping",false);
+            Vector3 delta=Vector3.ProjectOnPlane(custodyPosition-transform.position,Vector3.up);
+            float custodySpeed=escorted?1.65f:2.5f;
+            Vector3 horizontal=delta.magnitude>.03f?delta.normalized*Mathf.Min(custodySpeed,delta.magnitude/Mathf.Max(Time.deltaTime,.001f)):Vector3.zero;
+            if(controller.isGrounded&&verticalSpeed<0)verticalSpeed=-2f;
+            verticalSpeed=Mathf.Max(verticalSpeed-Gravity*Time.deltaTime,-30f);
+            controller.Move((horizontal+Vector3.up*verticalSpeed)*Time.deltaTime);
+            transform.rotation=Quaternion.RotateTowards(transform.rotation,Quaternion.Euler(0,custodyYaw,0),turnSpeed*Time.deltaTime);
+            CurrentSpeed=horizontal.magnitude;animator.SetFloat("Speed",CurrentSpeed,.12f,Time.deltaTime);
+            return;
+        }
         bool panelOpen=InGameChat.Editing||(GameHud.Instance && GameHud.Instance.IsPanelOpen);
         if(!DemoMode&&!panelOpen&&Input.GetKeyDown(KeyCode.Space))jumpRequested=true;
         if(CombatLocked)jumpRequested=false;
@@ -133,6 +158,7 @@ public class ThirdPersonPlayer : MonoBehaviour
 
     public void ResetPosition()
     {
+        if(IsCuffed)return;
         if(FindAnyObjectByType<GtaSaSectorStreaming>())
         {TeleportTo(spawnPosition,spawnYaw);return;}
         controller.enabled = false;
@@ -187,9 +213,42 @@ public class ThirdPersonPlayer : MonoBehaviour
 
     public void RequestJump()
     {
-        if(StartupLoader.IsLoading||AccountSession.InputBlocked||InGameChat.Editing||CombatLocked||IsJumping||!IsGrounded||
+        if(IsCuffed||StartupLoader.IsLoading||AccountSession.InputBlocked||InGameChat.Editing||CombatLocked||IsJumping||!IsGrounded||
             (GameHud.Instance&&GameHud.Instance.IsPanelOpen))return;
         jumpRequested=true;
+    }
+
+    public void SetCustody(bool cuffed,string officerUid,Vector3 position,float yaw)
+    {
+        bool changed=IsCuffed!=cuffed;
+        IsCuffed=cuffed;escorted=cuffed&&!string.IsNullOrEmpty(officerUid);
+        custodyPosition=position;custodyYaw=yaw;
+        if(cuffedPose)cuffedPose.Cuffed=cuffed;
+        if(changed&&GameHud.Instance)GameHud.Instance.ShowAccountMessage(cuffed?"Você foi algemado":"Algemas retiradas");
+    }
+
+    public void SetPoliceCarPassenger(bool inCar,Vector3 seatPosition,float seatYaw)
+    {
+        if(InPoliceCar==inCar)
+        {
+            if(inCar)transform.SetPositionAndRotation(seatPosition,Quaternion.Euler(0,seatYaw,0));
+            return;
+        }
+        InPoliceCar=inCar;
+        var orbit=FindAnyObjectByType<ThirdPersonCamera>();
+        if(inCar)
+        {
+            if(orbit){policeCarOldDistance=orbit.distance;policeCarOldPitch=orbit.pitch;orbit.distance=6.5f;orbit.pitch=16f;}
+            controller.enabled=false;transform.SetPositionAndRotation(seatPosition,Quaternion.Euler(0,seatYaw,0));
+            animator.gameObject.SetActive(false);
+            GameHud.Instance?.ShowAccountMessage("Você está no banco traseiro da viatura");
+        }
+        else
+        {
+            transform.SetPositionAndRotation(seatPosition,Quaternion.Euler(0,seatYaw,0));
+            animator.gameObject.SetActive(true);controller.enabled=true;
+            if(orbit){orbit.distance=policeCarOldDistance;orbit.pitch=policeCarOldPitch;orbit.ResetView();}
+        }
     }
 
 }

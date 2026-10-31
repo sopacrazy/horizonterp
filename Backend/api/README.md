@@ -240,3 +240,24 @@ Por solicitação do responsável, `hbrp-bots.service` está parado e desabilita
 Para parar/iniciar: `systemctl stop hbrp-bots` / `systemctl start hbrp-bots`. Para trazer de volta um bot após revogação de sessão e posterior liberação: `systemctl restart hbrp-bots`. Sessões revogadas ou bloqueadas interrompem o cliente, sem login automático para contornar a moderação. As contas são persistentes e não devem ser apagadas na limpeza dos testes temporários. No cliente 0.5.6, os bots já aparecem como jogadores remotos e no painel, sem APK novo. Os comandos ainda não implementados continuam sem efeito; cargo e bloqueio/desbloqueio funcionam normalmente.
 
 Validação de movimento: `python test/bots_test.py`. O teste cobre dez minutos simulados por bot, limites do trajeto, deslocamento por frame e independência dos destinos/pausas, sem corrida ou pulo.
+
+
+## Comandos gerais de jogador em 31 de outubro de 2026
+
+O catálogo `player-command-catalog.mjs` registra 21 comandos. `/ajuda` abre o guia público, também incluído em `/helpadmin`. `/s` entrega o grito aos jogadores presentes em até 50 metros no momento do envio; `/w ID texto` é privado ao alvo e remetente. Ambos respeitam mute e limite de mensagens. `/gps`, `/phone`, `/stats`, `/quests` abrem telas existentes. `/headmove` alterna localmente a rotação animada da cabeça. `/anim` abre o menu reservado para futuros gestos.
+
+`/report` persiste solicitações com intervalo mínimo de 60 segundos por personagem; `/myreports` consulta somente os últimos 20 registros do personagem autenticado. Aplicar `011_player_reports.sql` uma única vez, após backup, com a identidade administrativa das migrações anteriores. O atendimento e a resposta dos relatórios ainda serão implementados; `/ans` continua indicado como pendente.
+
+`/me`, `/do`, `/try`, `/mask`, `/house`, `/biz`, `/daily`, `/j`, `/v` e `/healme` retornam mensagem de preparação, sem simular ações, benefício VIP ou cura grátis. Kit médico exige inventário e consumo transacional. Testes locais: `node --test test/player-commands.test.mjs test/multiplayer.test.mjs test/police-commands.test.mjs`. Validação HTTPS com contas temporárias e limpeza: `python3 /srv/hbrp/api/verify_player_commands.py`. Alterações de interface exigem o cliente Unity atualizado; o APK 0.6.0 não inclui os novos atalhos.
+
+
+## Teleporte administrativo pelo mapa
+
+No cliente Unity local, toque/clique sem arrastar no mapa ampliado solicita `POST /v1/admin/map-teleport` com `{x,z}`. A API confere sessão e nível administrativo atual (mínimo 1), valida coordenadas e registra `admin.map_teleport` no histórico de auditoria. Não há migração adicional. Arrastar continua navegando pelo mapa; jogadores comuns não iniciam teleporte.
+
+O cliente aguarda os setores, procura piso acima da água e espaço livre para a cápsula, e chega com queda de 2,5 metros usando a animação Jump. Falha de carregamento/piso retorna ao ponto anterior. O checkpoint fica suspenso no teleporte e a posição provisória de carregamento não é transmitida. O recurso não pode ser iniciado em veículo, algemado, observando ou em ação de combate. A altura e colisão são resolvidas no cliente deste protótipo.
+
+Validação: `node --test test/admin-map-teleport.test.mjs`; `python3 /srv/hbrp/api/verify_admin_map.py` verifica HTTPS, autorização e auditoria com conta temporária. Em 31/10/2026, 25 testes locais passaram, C# compilou sem erros e 11 verificações HTTPS passaram na KVM1. O efeito visual ainda requer avaliação em Play Mode. Nenhum APK foi produzido.
+
+
+Ajuste local do teleporte: clicar agora marca o destino e abre confirmação. Apenas o botão Ir para destino solicita autorização; cancelar ou fechar invalida a seleção. Um setor é antecipado durante a confirmação, mantendo o setor ocupado e o teto móvel configurado. A chegada aguarda o setor do ponto e valida colisão, permitindo carregar vizinhos em seguida. A mensagem Carregando destino foi removida. A redução de espera ainda precisa ser medida em execução real.

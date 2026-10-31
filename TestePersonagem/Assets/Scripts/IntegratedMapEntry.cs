@@ -31,11 +31,21 @@ public sealed class IntegratedMapEntry : MonoBehaviour
         yield return null;
         var map = NeighborhoodMap.Active;
         var controller = player.GetComponent<CharacterController>();
-        if (map && controller && player.transform.position.y < -45f &&
-            Mathf.Abs(player.transform.position.x) < 15f && Mathf.Abs(player.transform.position.z) < 25f)
+        if (map && controller)
         {
             controller.enabled = false;
-            player.transform.position = map.ResolveSavedPosition(map.SpawnPosition, controller);
+            // AttachPlayer may restore a different sector than the scene spawn.
+            // Load its collision before resolving the actual floor height.
+            streaming.RefreshNow();
+            deadline = Time.realtimeSinceStartup + 120;
+            while (!streaming.Ready && Time.realtimeSinceStartup < deadline)
+            {
+                if (!string.IsNullOrEmpty(streaming.LastError)) break;
+                yield return null;
+            }
+            if (!streaming.Ready) { Debug.LogError("SA_DESTINATION_FAILED " + streaming.LastError); yield break; }
+            Physics.SyncTransforms();
+            player.transform.position = map.ResolveSavedPosition(player.transform.position, controller);
             controller.enabled = true;
         }
         Debug.Log("SA_ENTRY_READY position=" + player.transform.position);

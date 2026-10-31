@@ -18,23 +18,50 @@ using UnityEngine.Networking;
     public int sequence;
     public long updatedAt;
     public float x,y,z,yaw,speed,jumpPhase;
-    public bool jumping,driving;
+    public bool jumping,driving,policeDuty,cuffed,inPoliceCar;
+    public string escortedBy;
+    public string voice;
+    public int voiceSequence;
+    public string radioVoice;
+    public int radioSequence;
+    public int radioChannel;
 }
 [Serializable] public class AdminCommandReply
 {
     public string name,status,message,uid;
     public string[] lines;
+    public AdminHelpEntry[] help;
+    public WantedEntry[] wanted;
     public int value;
     public float x,y,z;
 }
+[Serializable] public class AdminHelpEntry
+{
+    public string usage,description,group,permission,note;
+    public int level;
+    public bool available;
+}
+[Serializable] public class WantedEntry
+{
+    public string uid,name,reason;
+    public int stars;
+}
 [Serializable] public class AdminTeleport {public int id;public float x,y,z;}
+[Serializable] public class PoliceCarState
+{
+    public string id,ownerUid,occupantUid,occupantName;
+    public float x,y,z,yaw;
+}
 [Serializable] public class MultiplayerReply
 {
     public string room,error,code,chatEpoch;
     public int capacity,count,sequence,serverHour;
-    public bool hourOverride;
+    public bool hourOverride,selfCuffed,selfInPoliceCar;
+    public string selfEscortedBy;
+    public float selfX,selfY,selfZ,selfYaw;
     public long serverTime;
     public MultiplayerPeer[] peers;
+    public PoliceCarState[] policeCars;
     public ChatMessage[] messages;
     public ChatMessage message;
     public AdminCommandReply command;

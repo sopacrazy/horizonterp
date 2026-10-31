@@ -8,16 +8,18 @@ public sealed class AdminPlayerPanel : MonoBehaviour
 {
     public static AdminPlayerPanel Instance {get;private set;}
     public bool IsOpen {get;private set;}
-    public bool Busy=>false;
+    public bool Busy=>policeBusy;
+    public static bool PoliceDuty {get;private set;}
 
     VisualElement overlay;
     ScrollView table;
     TextField search;
     Label status,count,page;
-    Button previous,next;
+    Button previous,next,policeButton;
     Button[] speedButtons;
     GameHud hud;
     int offset,total,generation;
+    bool policeBusy;
     IVisualElementScheduledItem debounce;
 
     public static void Open(GameHud owner)
@@ -53,6 +55,10 @@ public sealed class AdminPlayerPanel : MonoBehaviour
             int value=values[index];var option=Button("×"+value,"admin-speed-option",()=>SetSpeed(value),speedRow);
             option.name="admin-speed-"+value;speedButtons[index]=option;
         }
+        var dutyRow=Box("admin-duty-row",modal);
+        Text("SERVIÇO POLICIAL","admin-eyebrow",dutyRow);
+        policeButton=Button("Entrar em serviço como policial","admin-gold",()=>StartCoroutine(ChangePoliceDuty()),dutyRow);
+        policeButton.name="admin-police-duty";
         var toolbar=Box("admin-toolbar",modal);
         search=new TextField{maxLength=64,name="admin-search"};
         search.textEdition.placeholder="Pesquisar por primeiro nome ou ID";search.AddToClassList("admin-search");toolbar.Add(search);
@@ -83,7 +89,7 @@ public sealed class AdminPlayerPanel : MonoBehaviour
         InGameChat.Instance?.Close();hud.ClosePanel();
         IsOpen=true;overlay.style.display=DisplayStyle.Flex;
         hud.Root.AddToClassList("hud-panel-open");
-        offset=0;search.SetValueWithoutNotify("");Load();RefreshSpeed();
+        offset=0;search.SetValueWithoutNotify("");Load();RefreshSpeed();StartCoroutine(LoadPoliceDuty());
     }
     void SetSpeed(int value)
     {
@@ -95,6 +101,40 @@ public sealed class AdminPlayerPanel : MonoBehaviour
         if(speedButtons==null)return;int selected=hud.Player.AdminSpeedMultiplier;
         foreach(var option in speedButtons)option.EnableInClassList("active",option.name=="admin-speed-"+selected);
     }
+    void RefreshPoliceButton()
+    {
+        if(policeButton==null)return;
+        policeButton.text=PoliceDuty?"Sair do serviço policial":"Entrar em serviço como policial";
+        policeButton.SetEnabled(!policeBusy);
+        policeButton.EnableInClassList("on-duty",PoliceDuty);
+    }
+    IEnumerator LoadPoliceDuty()
+    {
+        if(policeBusy)yield break;
+        policeBusy=true;RefreshPoliceButton();AdminReply reply=null;
+        yield return AccountSession.Instance.AdminRequest("GET","/v1/police/duty",null,r=>reply=r);
+        policeBusy=false;
+        if(reply!=null&&string.IsNullOrEmpty(reply.code))PoliceDuty=reply.policeDuty;
+        else if(IsOpen)status.text=reply?.error??"Não foi possível consultar o serviço policial.";
+        RefreshPoliceButton();
+    }
+    IEnumerator ChangePoliceDuty()
+    {
+        if(policeBusy)yield break;
+        policeBusy=true;RefreshPoliceButton();AdminReply reply=null;
+        string body="{\"enabled\":"+(!PoliceDuty?"true":"false")+"}";
+        yield return AccountSession.Instance.AdminRequest("POST","/v1/police/duty",body,r=>reply=r);
+        policeBusy=false;
+        if(reply!=null&&string.IsNullOrEmpty(reply.code))
+        {
+            PoliceDuty=reply.policeDuty;
+            if(reply.organization!=null&&AccountSession.HasCharacter)
+                AccountSession.Instance.State.organization=reply.organization;
+            hud.ShowAccountMessage(PoliceDuty?"Você entrou em serviço policial":"Você saiu do serviço policial");
+        }
+        else status.text=reply?.error??"Não foi possível alterar o serviço policial.";
+        RefreshPoliceButton();
+    }
     public void Close(bool force=false)
     {
         IsOpen=false;generation++;debounce?.Pause();
@@ -105,6 +145,7 @@ public sealed class AdminPlayerPanel : MonoBehaviour
     {
         if(IsOpen&&(!AccountSession.HasCharacter||AccountSession.Instance.State.accountRole!="admin"||
             AccountSession.Instance.State.adminLevel<1))Close(true);
+        if(!AccountSession.HasCharacter)PoliceDuty=false;
     }
     void Load()
     {
@@ -122,7 +163,7 @@ public sealed class AdminPlayerPanel : MonoBehaviour
         {status.text=reply?.error??"Não foi possível carregar a lista.";yield break;}
         total=reply.total;
         foreach(var player in reply.players??Array.Empty<AdminPlayer>())Row(player);
-        status.text=table.childCount==0?"Nenhum jogador encontrado.":"Comandos: use /ahelp no chat.";
+        status.text=table.childCount==0?"Nenhum jogador encontrado.":"Comandos: use /helpadmin no chat.";
         count.text=total+" jogador"+(total==1?"":"es");page.text="Página "+(offset/25+1);
         previous.SetEnabled(offset>0);next.SetEnabled(offset+25<total);
     }

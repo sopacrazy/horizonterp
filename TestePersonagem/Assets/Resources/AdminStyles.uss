@@ -1,17 +1,18 @@
 .admin-backdrop { position: absolute; left: 0; right: 0; top: 0; bottom: 0; background-color: rgba(2, 5, 10, .72); align-items: center; justify-content: center; }
-.admin-modal { width: 90%; max-width: 940px; height: 88%; max-height: 650px; padding: 22px; background-color: rgb(17, 23, 33); border-radius: 18px; border-width: 1px; border-color: rgb(61, 72, 90); }
-.admin-header { flex-direction: row; justify-content: space-between; margin-bottom: 20px; }
+.admin-modal { width: 90%; max-width: 940px; height: 88%; max-height: 650px; padding: 16px 22px; background-color: rgb(17, 23, 33); border-radius: 18px; border-width: 1px; border-color: rgb(61, 72, 90); }
+.admin-header { flex-direction: row; justify-content: space-between; flex-shrink: 0; margin-bottom: 10px; }
+.admin-titles { flex-shrink: 0; }
 .admin-eyebrow { color: rgb(255, 210, 90); font-size: 10px; letter-spacing: 2px; -unity-font-style: bold; }
 .admin-title { font-size: 29px; -unity-font-style: bold; margin-top: 4px; }
 .admin-subtitle { font-size: 12px; color: rgb(158, 172, 193); margin-top: 4px; }
 .admin-close { width: 42px; height: 42px; border-radius: 21px; font-size: 25px; background-color: rgb(30, 39, 53); }
-.admin-toolbar { flex-direction: row; align-items: center; margin-bottom: 16px; }
-.admin-speed-row { flex-direction: row; margin-top: 10px; }
-.admin-speed-option { flex-grow: 1; margin-right: 8px; min-height: 48px; font-size: 16px; }
+.admin-toolbar { flex-direction: row; align-items: center; flex-shrink: 0; margin-bottom: 8px; }
+.admin-speed-row { flex-direction: row; flex-shrink: 0; margin-top: 6px; }
+.admin-speed-option { flex-grow: 1; flex-shrink: 0; margin-right: 8px; height: 36px; font-size: 14px; }
 .admin-speed-option.active { color: rgb(24, 20, 10); background-color: rgb(255, 210, 90); border-color: rgb(255, 226, 148); -unity-font-style: bold; }
 .admin-search { flex-grow: 1; margin-right: 12px; height: 42px; }
 .admin-search .unity-text-field__input, .admin-field .unity-text-field__input, .admin-field .unity-integer-field__input { background-color: rgb(10, 16, 25); border-width: 1px; border-color: rgb(59, 74, 95); border-radius: 8px; color: white; padding: 9px; font-size: 13px; }
-.admin-table-head { flex-direction: row; padding: 8px 10px; background-color: rgb(24, 33, 47); border-radius: 8px; color: rgb(146, 163, 186); font-size: 10px; letter-spacing: 1px; }
+.admin-table-head { flex-direction: row; flex-shrink: 0; padding: 8px 10px; background-color: rgb(24, 33, 47); border-radius: 8px; color: rgb(146, 163, 186); font-size: 10px; letter-spacing: 1px; }
 .admin-table { flex-grow: 1; min-height: 80px; }
 .admin-table-row { min-height: 60px; flex-shrink: 0; flex-direction: row; align-items: center; padding: 9px 10px; border-bottom-width: 1px; border-bottom-color: rgb(39, 50, 67); }
 .admin-col-id { width: 64px; flex-shrink: 0; font-size: 12px; color: rgb(174, 189, 211); }
@@ -33,8 +34,8 @@
 .admin-gold:focus { border-color: rgb(255, 226, 145); }
 .admin-outline:focus { border-color: rgb(153, 182, 222); }
 .admin-outline:disabled, .admin-danger:disabled { opacity: .35; }
-.admin-status { font-size: 12px; color: rgb(175, 190, 214); margin-top: 10px; }
-.admin-footer { flex-direction: row; align-items: center; margin-top: 12px; }
+.admin-status { flex-shrink: 0; font-size: 12px; color: rgb(175, 190, 214); margin-top: 6px; }
+.admin-footer { flex-direction: row; align-items: center; flex-shrink: 0; margin-top: 6px; }
 .admin-count { flex-grow: 1; font-size: 12px; color: rgb(153, 171, 196); }
 .admin-page { font-size: 12px; margin-right: 16px; }
 .admin-page-button { width: 38px; height: 38px; margin-left: 7px; font-size: 22px; }
@@ -59,4 +60,8 @@
 .admin-command-option:focus { border-color: rgb(255, 212, 90); }
 .admin-command-preview { white-space: normal; color: rgb(255, 213, 99); font-size: 15px; padding: 15px 10px; margin: 12px 0; background-color: rgb(11, 17, 26); border-radius: 8px; }
 .admin-gold:disabled { opacity: .4; }
+.admin-duty-row { flex-direction: row; align-items: center; justify-content: space-between; flex-shrink: 0; margin: 8px 0; padding: 5px 12px; min-height: 46px; border-radius: 10px; border-width: 1px; border-color: rgb(56, 73, 94); background-color: rgb(19, 31, 43); }
+.admin-duty-row .admin-eyebrow { margin: 0; color: rgb(143, 202, 236); }
+.admin-duty-row .admin-gold { margin: 0; min-width: 225px; }
+.admin-duty-row .admin-gold.on-duty { background-color: rgb(62, 193, 147); border-color: rgb(62, 193, 147); }
 .admin-confirm-buttons { flex-direction: row; justify-content: flex-end; margin-top: 12px; }

@@ -7,6 +7,7 @@ root=pathlib.Path(__file__).resolve().parents[1]
 parser=argparse.ArgumentParser()
 parser.add_argument('--apk',type=pathlib.Path,required=True)
 parser.add_argument('--notes-file',type=pathlib.Path,required=True)
+parser.add_argument('--windows',type=pathlib.Path,help='Validated Windows ZIP to include in the same release')
 args=parser.parse_args()
 config=json.loads((root/'TestePersonagem/Assets/Resources/GameVersion.json').read_text(encoding='utf-8'))
 apk=args.apk.resolve();version=config['version'];code=config['versionCode']
@@ -16,6 +17,15 @@ digest=hashlib.sha256(apk.read_bytes()).hexdigest()
 assert validation['signature_verified'] and validation['same_signer_as_previous_apk']
 assert validation['updater_included']
 assert validation['versionCode']==code and validation['sha256']==digest
+assert apk.stat().st_size<=300*1024*1024,'Installed updater cannot accept more than 300 MiB'
+windows=args.windows.resolve() if args.windows else None
+if windows:
+    windows_validation=json.loads((root/'tools/release-070/windows-validation.json').read_text(encoding='utf-8'))
+    assert windows.name==f'HorizonteBrasil-Windows-{version}.zip' and windows.is_file()
+    assert windows_validation['smoke']=='SA_REMEMBERED_ENTRY_PASSED'
+    with windows.open('rb') as source:
+        windows_digest=hashlib.file_digest(source,'sha256').hexdigest()
+    assert windows_validation['sha256']==windows_digest and windows_validation['bytes']==windows.stat().st_size
 notes=args.notes_file.resolve()
 assert notes.is_file() and notes.read_text(encoding='utf-8').strip(),'Release notes required'
 repo='sopacrazy/horizonterp';tag='v'+version
@@ -24,7 +34,8 @@ commit=run('git','rev-parse','HEAD').strip()
 if shutil.which('gh'):
     existing=subprocess.run(['gh','release','view',tag,'--repo',repo],capture_output=True)
     if existing.returncode==0:raise SystemExit('Release already exists; never overwrite an APK already offered to clients.')
-    run('gh','release','create',tag,str(apk),'--repo',repo,'--target',commit,'--draft','--title','Horizonte Brasil '+version,
+    assets=[str(apk)]+([str(windows)] if windows else [])
+    run('gh','release','create',tag,*assets,'--repo',repo,'--target',commit,'--draft','--title','Horizonte Brasil '+version,
         '--notes-file',str(notes))
     run('gh','release','edit',tag,'--repo',repo,'--draft=false','--latest')
 else:
@@ -48,8 +59,14 @@ else:
     payload={'tag_name':tag,'target_commitish':commit,'name':'Horizonte Brasil '+version,
         'body':notes.read_text(encoding='utf-8'),'draft':True,'prerelease':False}
     release_draft=api('POST',base,json.dumps(payload).encode())
-    upload=release_draft['upload_url'].split('{',1)[0]+'?'+urllib.parse.urlencode({'name':apk.name})
-    api('POST',upload,apk.read_bytes(),'application/vnd.android.package-archive')
+    for asset,content_type in [(apk,'application/vnd.android.package-archive')]+([(windows,'application/zip')] if windows else []):
+        upload=release_draft['upload_url'].split('{',1)[0]+'?'+urllib.parse.urlencode({'name':asset.name})
+        with asset.open('rb') as source:
+            request=urllib.request.Request(upload,data=source,headers={**headers,'Content-Type':content_type,'Content-Length':str(asset.stat().st_size)},method='POST')
+            with urllib.request.urlopen(request,timeout=1800) as response:
+                uploaded=json.load(response)
+        assert uploaded['size']==asset.stat().st_size
+        print(json.dumps({'uploaded':asset.name,'bytes':uploaded['size']}),flush=True)
     api('PATCH',base+'/'+str(release_draft['id']),json.dumps({'draft':False,'make_latest':'true'}).encode())
 release={'available':True,'version':version,'versionCode':code,'packageId':config['packageId'],
     'apkUrl':f'https://github.com/{repo}/releases/download/{tag}/{apk.name}','bytes':apk.stat().st_size,'sha256':digest}

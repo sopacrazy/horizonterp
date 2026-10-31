@@ -50,6 +50,7 @@ test('account -> character -> persisted state over local HTTP and real SQL',{tim
   await db.exec(await fs.readFile(new URL('../../database/005_account_admin.sql',import.meta.url),'utf8'));
   await db.exec(await fs.readFile(new URL('../../database/006_player_administration.sql',import.meta.url),'utf8'));
   await db.exec(await fs.readFile(new URL('../../database/007_admin_chat.sql',import.meta.url),'utf8'));
+  for(const filename of ['008_follow_test_bot.sql','009_police_organization_wanted.sql','010_police_services.sql','011_player_reports.sql'])await db.exec(await fs.readFile(new URL('../../database/'+filename,import.meta.url),'utf8'));
   const legacyToken='L'.repeat(43);
   await db.query("INSERT INTO hbrp.sessions(account_id,token_hash,expires_at) VALUES($1,sha256(convert_to($2,'UTF8')),now()+interval '1 day')",[legacyAccount,legacyToken]);
   await db.exec('SET ROLE hbrp_app');
@@ -142,7 +143,7 @@ test('account -> character -> persisted state over local HTTP and real SQL',{tim
    const checkpoint=(point,extra={})=>({requestId:randomUUID(),version:current.version,x:0,y:-.1,z:0,yaw:90,cameraYaw:90,cameraPitch:16,...point,...extra});
    let sequence=0;
    const frame=(point,extra={})=>({clientId:'33333333-3333-4333-8333-333333333333',sequence:++sequence,x:0,y:-.1,z:0,yaw:90,speed:0,jumping:false,jumpPhase:0,...point,...extra});
-   for(const point of [{x:45,y:6,z:-45},{x:700,y:30,z:-800},{x:-1000,y:-80,z:-1000},{x:1000,y:100,z:1000}]){
+   for(const point of [{x:45,y:6,z:-45},{x:700,y:30,z:-800},{x:-4200,y:-200,z:-4200},{x:4200,y:1000,z:4200}]){
     const saved=await request('PUT','/v1/player/checkpoint',checkpoint(point),legacyToken);
     assert.equal(saved.status,200);current=saved.state;
     assert.deepEqual([current.x,current.y,current.z],[point.x,point.y,point.z]);
@@ -152,8 +153,8 @@ test('account -> character -> persisted state over local HTTP and real SQL',{tim
    const observer=await request('POST','/v1/multiplayer/sync',{clientId:'44444444-4444-4444-8444-444444444444',sequence:1,x:0,y:-.1,z:0,yaw:90,speed:0,jumping:false,jumpPhase:0},token);
    assert.equal(observer.status,200);
    const remote=observer.peers.find(peer=>peer.characterId===legacyCharacter);
-   assert.deepEqual([remote.x,remote.y,remote.z],[1000,100,1000]);
-   for(const point of [{x:-1000.001},{x:1000.001},{y:-80.001},{y:100.001},{z:-1000.001},{z:1000.001}]){
+   assert.deepEqual([remote.x,remote.y,remote.z],[4200,1000,4200]);
+   for(const point of [{x:-4200.001},{x:4200.001},{y:-200.001},{y:1000.001},{z:-4200.001},{z:4200.001}]){
     assert.equal((await request('PUT','/v1/player/checkpoint',checkpoint(point),legacyToken)).status,400);
     assert.equal((await request('POST','/v1/multiplayer/sync',frame(point),legacyToken)).code,'INVALID_FRAME');
    }
@@ -163,7 +164,7 @@ test('account -> character -> persisted state over local HTTP and real SQL',{tim
    }
    for(const extra of [{yaw:-1},{yaw:360},{cameraYaw:360},{cameraPitch:-11},{cameraPitch:66}])assert.equal((await request('PUT','/v1/player/checkpoint',checkpoint({},extra),legacyToken)).status,400);
    const unchanged=(await request('GET','/v1/player',undefined,legacyToken)).state;
-   assert.deepEqual([unchanged.x,unchanged.y,unchanged.z,unchanged.version,unchanged.health,unchanged.xp],[1000,100,1000,current.version,76,'1234']);
+   assert.deepEqual([unchanged.x,unchanged.y,unchanged.z,unchanged.version,unchanged.health,unchanged.xp],[4200,1000,4200,current.version,76,'1234']);
    assert.deepEqual((await pool.query('SELECT currency,balance::text FROM hbrp.wallets WHERE character_id=$1 OR account_id=$2 ORDER BY currency',[legacyCharacter,legacyAccount])).rows,balances);
    await pool.admin(async client=>{
     const other=(await client.query("INSERT INTO hbrp.worlds(code,scene_name) VALUES('other_world','UnconfiguredScene') RETURNING id")).rows[0].id;

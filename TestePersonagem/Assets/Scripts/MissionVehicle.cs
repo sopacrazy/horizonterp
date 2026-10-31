@@ -109,7 +109,7 @@ public sealed class MissionVehicle : MonoBehaviour
     }
     public bool Enter(ThirdPersonPlayer player)
     {
-        if(driver||Driver||!player||player.IsJumping||Vector3.Distance(player.transform.position,transform.position)>4)return false;
+        if(driver||Driver||!player||player.IsCuffed||player.IsJumping||Vector3.Distance(player.transform.position,transform.position)>4)return false;
         driver=player;Driver=player;oldCombat=player.CombatLocked;player.CombatLocked=true;
         player.GetComponent<CharacterController>().enabled=false;player.animator.gameObject.SetActive(false);
         camera=UnityEngine.Object.FindAnyObjectByType<ThirdPersonCamera>();

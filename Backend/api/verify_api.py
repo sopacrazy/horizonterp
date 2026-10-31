@@ -53,7 +53,7 @@ try:
  status,reply=request('POST','/v1/auth/login',{'email':mail,'password':password})
  check(status==200 and reply['state'] is None and reply['needsCharacter'],'Login de conta sem personagem não falha')
  token=reply['token']
- check(request('GET','/v1/player',token=old_token)[0]==401,'Login novo encerra sessão antiga')
+ check(request('GET','/v1/player',token=old_token)[0]==200,'Login novo preserva sessão anterior para outros aparelhos')
  check(request('GET','/v1/player')[0]==401,'Estado não é público')
  check(request('GET','/v1/player',token=token)[1]['needsCharacter'],'GET player aceita conta pendente')
  check(request('PUT','/v1/player/profile',{'firstName':'Ana','lastName':'Silva'},token)[1]['code']=='CHARACTER_REQUIRED','Conta pendente não pode renomear personagem inexistente')
@@ -91,7 +91,7 @@ try:
   frame=dict(point,clientId=client_id,sequence=sequence,yaw=90,speed=0,jumping=False,jumpPhase=0)
   status,presence=request('POST','/v1/multiplayer/sync',frame,token)
   check(status==200 and presence['room']=='centro_teste','Presença aceita o mesmo interior/borda da cidade '+str(point))
- for point in ({'x':-1000.001},{'x':1000.001},{'y':-80.001},{'y':100.001},{'z':-1000.001},{'z':1000.001}):
+ for point in ({'x':-4200.001},{'x':4200.001},{'y':-200.001},{'y':1000.001},{'z':-4200.001},{'z':4200.001}):
   check(request('PUT','/v1/player/checkpoint',dict(save,requestId=str(uuid.uuid4()),version=version,**point),token)[0]==400,'Checkpoint rejeita fora da borda '+str(point))
   sequence+=1
   frame=dict(x=0,y=-.1,z=0,clientId=client_id,sequence=sequence,yaw=90,speed=0,jumping=False,jumpPhase=0);frame.update(point)
@@ -106,7 +106,7 @@ try:
  check(request('POST','/v1/auth/logout',{},token)[0]==200,'Logout encerra sessão')
  check(request('GET','/v1/player',token=token)[0]==401,'Token encerrado não acessa os dados')
  status,reply=request('POST','/v1/auth/login',{'email':mail,'password':password})
- check(status==200 and not reply['needsCharacter'] and reply['state']['uid']==first['uid'] and reply['state']['characterId']==first['characterId'] and reply['state']['name']==newname and reply['state']['x']==5 and reply['state']['cameraYaw']==140,'Novo login recupera personagem salvo para o lobby')
+ check(status==200 and not reply['needsCharacter'] and reply['state']['uid']==first['uid'] and reply['state']['characterId']==first['characterId'] and reply['state']['name']==newname and reply['state']['x']==5 and reply['state'].get('cameraYaw')==140,'Novo login recupera personagem salvo para o lobby; campos: '+','.join(sorted(reply.get('state',{}).keys())))
  check(reply['state']['cashCents']=='0' and reply['state']['health']==100,'Saldo e vida protegidos foram preservados')
  second_mail=f'api2-{suffix}@example.invalid'
  status,second=request('POST','/v1/auth/register',{'email':second_mail,'password':password})

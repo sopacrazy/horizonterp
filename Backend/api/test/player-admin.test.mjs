@@ -16,7 +16,7 @@ test('admin player management is authenticated, hierarchical, audited and revers
  const db=new PGlite();let server;
  try{
   await db.exec('CREATE ROLE hbrp_owner NOLOGIN; CREATE ROLE hbrp_app LOGIN; GRANT CREATE ON DATABASE postgres TO hbrp_owner; SET ROLE hbrp_owner;');
-  for(const name of ['001_initial.sql','002_transfer_locking.sql','003_api.sql','004_character_creation.sql','005_account_admin.sql','006_player_administration.sql','007_admin_chat.sql'])
+  for(const name of ['001_initial.sql','002_transfer_locking.sql','003_api.sql','004_character_creation.sql','005_account_admin.sql','006_player_administration.sql','007_admin_chat.sql','008_follow_test_bot.sql','009_police_organization_wanted.sql','010_police_services.sql','011_player_reports.sql'])
    await db.exec(await fs.readFile(new URL('../../database/'+name,import.meta.url),'utf8'));
   await db.exec('RESET ROLE');
   const players=[];

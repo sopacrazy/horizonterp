@@ -80,7 +80,7 @@ public sealed class HousePortal : MonoBehaviour
         bool nearby = marker && FlatDistance(player.transform.position, marker.transform.position) < 1.55f &&
             Mathf.Abs(player.transform.position.y - marker.transform.position.y) < 1.8f;
         bool available = nearby && !transitioning && !player.IsTeleporting && !player.IsJumping &&
-            !player.CombatLocked && Time.unscaledTime >= nextInteraction && !StartupLoader.IsLoading &&
+            !player.CombatLocked && !player.IsCuffed && Time.unscaledTime >= nextInteraction && !StartupLoader.IsLoading &&
             !AccountSession.InputBlocked && !InGameChat.Editing &&
             (!GameHud.Instance || !GameHud.Instance.IsPanelOpen);
         if (prompt != null)
@@ -114,7 +114,7 @@ public sealed class HousePortal : MonoBehaviour
 
     void Interact()
     {
-        if (!player || !exterior || transitioning || Time.unscaledTime < nextInteraction) return;
+        if (!player || player.IsCuffed || !exterior || transitioning || Time.unscaledTime < nextInteraction) return;
         StartCoroutine(ChangeRoom());
     }
 

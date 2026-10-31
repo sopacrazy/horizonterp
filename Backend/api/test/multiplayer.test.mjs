@@ -3,6 +3,138 @@ import assert from 'node:assert/strict';
 import {createRoom} from '../multiplayer.mjs';
 const id=n=>({characterId:'character-'+n,uid:String(n),name:'Jogador '+n,model:'bybeyby',world:'centro_teste'});
 const frame=(sequence=1,extra={})=>({clientId:'11111111-1111-4111-8111-111111111111',sequence,x:0,y:0,z:0,yaw:0,speed:0,jumping:false,jumpPhase:0,...extra});
+test('test bot spawns near its owner and remains stationary',()=>{
+ let now=1000;const room=createRoom({clock:()=>now,capacity:3});
+ const owner={...id(18),characterId:'11111111-2222-4333-8444-555555555555'};
+ room.setFollowerBot({ownerCharacterId:owner.characterId,characterId:'66666666-7777-4888-8999-aaaaaaaaaaaa',uid:'99',name:'Bot Parceiro',firstName:'Bot',model:'bybeyby'});
+ room.sync(owner,'owner-session',frame(1,{x:10,z:10}));
+ let bot=room.sync(id(20),'observer-session',frame()).peers.find(p=>p.uid==='99');
+ assert.ok(bot);assert.equal(bot.z,2);assert.equal(bot.name,'Bot Parceiro');
+ now+=200;
+ room.sync(owner,'owner-session',frame(2,{x:10,z:13,speed:2}));
+ bot=room.sync(id(20),'observer-session',frame(2)).peers.find(p=>p.uid==='99');
+ assert.equal(bot.z,2);assert.equal(bot.speed,0);assert.equal(bot.jumping,false);
+ room.leave(owner.characterId,'owner-session',frame().clientId);
+ assert.equal(room.sync(id(20),'observer-session',frame(3)).peers.some(p=>p.uid==='99'),false);
+});
+test('escorted bot publishes increasing peer sequence and follows the officer',()=>{
+ let now=1000;const room=createRoom({clock:()=>now,capacity:3});
+ const officer={...id(18),characterId:'11111111-2222-4333-8444-555555555555',accountRole:'admin',adminLevel:1,organization:{code:'pm'}};
+ room.setFollowerBot({ownerCharacterId:officer.characterId,characterId:'66666666-7777-4888-8999-aaaaaaaaaaaa',uid:'55',name:'Bot Parceiro',firstName:'Bot'});
+ room.sync(officer,'officer',frame(1,{x:10,z:10}));
+ room.duty(officer,'officer',{enabled:true});
+ now+=100;room.sync(officer,'officer',frame(2,{x:10,z:4}));
+ room.custody(officer,'cuff','55');room.custody(officer,'follow','55');
+ const observer=id(20);
+ let bot=room.sync(observer,'observer',frame()).peers.find(p=>p.uid==='55');
+ const initialSequence=bot.sequence;
+ now+=100;room.sync(officer,'officer',frame(3,{x:10,z:8,speed:1.65}));
+ bot=room.sync(observer,'observer',frame(2)).peers.find(p=>p.uid==='55');
+ assert.equal(bot.cuffed,true);assert.equal(bot.escortedBy,'18');
+ assert.equal(bot.z,6.3);assert.ok(Number.isInteger(bot.sequence)&&bot.sequence>initialSequence);
+ assert.equal(bot.speed,1.65);
+});
+test('police car carries one cuffed detainee and visibly reports the occupant',()=>{
+ let now=1000;const room=createRoom({clock:()=>now,capacity:3});
+ const officer={...id(1),accountRole:'admin',adminLevel:1,organization:{code:'pm'}};
+ const civilian=id(2);
+ room.sync(officer,'officer',frame(1,{x:10,z:10}));
+ room.sync(civilian,'civilian',frame(1,{x:11,z:10}));
+ assert.throws(()=>room.patrol(officer,'carpolicia',null),e=>e.code==='POLICE_ONLY');
+ room.duty(officer,'officer',{enabled:true});
+ room.custody(officer,'cuff','2');
+ room.patrol(officer,'carpolicia',null);
+ const placed=room.patrol(officer,'put','2');assert.equal(placed.name,'put');
+ now+=100;
+ const passenger=room.sync(civilian,'civilian',frame(2,{x:15,z:15}));
+ assert.equal(passenger.selfInPoliceCar,true);assert.equal(passenger.selfCuffed,true);
+ assert.equal(passenger.policeCars[0].occupantUid,'2');
+ assert.throws(()=>room.custody(officer,'uncuff','2'),e=>e.code==='DETAINEE_IN_CAR');
+ room.patrol(officer,'eject','2');
+ const exited=room.sync(civilian,'civilian',frame(3,{x:11,z:10}));
+ assert.equal(exited.selfInPoliceCar,false);assert.equal(exited.selfCuffed,true);
+ assert.equal(exited.policeCars[0].occupantUid,'');
+ room.duty(officer,'officer',{enabled:false});
+ assert.equal(room.sync(civilian,'civilian',frame(4,{x:12,z:10})).policeCars.length,0);
+});
+test('organization and megaphone messages stay in their intended audience',()=>{
+ let now=1000;const room=createRoom({clock:()=>now,capacity:4});
+ const officer={...id(1),accountRole:'admin',adminLevel:2,organization:{code:'pm'}};
+ const other={...id(2),organization:{code:'ems'}};
+ const civilian=id(3);
+ room.sync(officer,'a',frame(1,{x:10,z:10}));room.sync(other,'b',frame(1,{x:11,z:10}));room.sync(civilian,'c',frame(1,{x:12,z:10}));
+ room.duty(officer,'a',{enabled:true});
+ const poll=(who,s,n)=>room.sync(who,s,frame(n)).messages;
+ room.broadcast(officer,'faction','Equipe PM');
+ assert.ok(poll(officer,'a',2).some(m=>m.text==='Equipe PM'));
+ assert.ok(!poll(other,'b',2).some(m=>m.text==='Equipe PM'));
+ room.broadcast(officer,'departments','Atenção equipes');
+ assert.ok(poll(other,'b',3).some(m=>m.text==='Atenção equipes'));
+ assert.ok(!poll(civilian,'c',2).some(m=>m.text==='Atenção equipes'));
+ assert.throws(()=>room.broadcast(officer,'megaphone','Parem'),e=>e.code==='POLICE_CAR_MISSING');
+ room.patrol(officer,'carpolicia');room.broadcast(officer,'megaphone','Parem');
+ assert.ok(poll(civilian,'c',3).some(m=>m.text==='Parem'));
+ room.broadcast(civilian,'police','CHAMADA 190');
+ assert.ok(poll(officer,'a',4).some(m=>m.text==='CHAMADA 190'));
+ assert.ok(!poll(other,'b',4).some(m=>m.text==='CHAMADA 190'));
+});
+test('civilian can request police help but cannot send police commands',async()=>{
+ let now=1000;const room=createRoom({clock:()=>now,capacity:2});
+ const civilian=id(8);room.sync(civilian,'civilian',frame());
+ const request=(text,n)=>({clientId:frame().clientId,messageId:`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`,text});
+ const response=await room.chat(civilian,'civilian',request('/190 Preciso de ajuda',1),({name})=>({name,status:'ok',message:'Registrado'}));
+ assert.equal(response.command.name,'190');
+ now+=1300;
+ assert.throws(()=>room.chat(civilian,'civilian',request('/ticket 9 50 Fuga',2),()=>({})),e=>e.code==='POLICE_ONLY');
+});
+test('police commands require duty and organization; identification stays private',async()=>{
+ let now=1000;const room=createRoom({capacity:3,clock:()=>now});
+ const officer={...id(1),accountRole:'admin',adminLevel:1,organization:{code:'pm'}};
+ const civilian=id(2),other=id(3);
+ for(const [person,s] of [[officer,'s1'],[civilian,'s2'],[other,'s3']])room.sync(person,s,frame());
+ const request=(text,n)=>({clientId:frame().clientId,messageId:`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`,text});
+ assert.throws(()=>room.chat(officer,'s1',request('/ide 2',1),()=>({name:'ide',status:'ok'})),e=>e.code==='POLICE_ONLY');
+ now+=1300;
+ room.duty(officer,'s1',{enabled:true});
+ const answer=await room.chat(officer,'s1',request('/ide 2',2),()=>{
+  room.privateMessage(civilian.characterId,'Oficial ID 1');
+  return {name:'ide',status:'ok',message:'Identificação enviada.'};
+ });
+ assert.equal(answer.command.name,'ide');
+ assert.equal(room.sync(civilian,'s2',frame(2)).messages.some(m=>m.text==='Oficial ID 1'),true);
+ assert.equal(room.sync(other,'s3',frame(2)).messages.some(m=>m.text==='Oficial ID 1'),false);
+});
+test('police cuffs freeze movement and escort only while on duty',()=>{
+ let now=1000;const room=createRoom({clock:()=>now,capacity:3});
+ const officer={...id(1),accountRole:'admin',adminLevel:1,organization:{code:'pm'}};
+ const civilian=id(2);
+ room.sync(officer,'police',frame(1,{x:10,z:10}));
+ room.sync(civilian,'civilian',frame(1,{x:11,z:10}));
+ assert.throws(()=>room.custody(officer,'cuff','2'),e=>e.code==='POLICE_ONLY');
+ room.duty(officer,'police',{enabled:true});
+ assert.equal(room.custody(officer,'cuff','2').name,'cuff');
+ now+=100;
+ const restrained=room.sync(civilian,'civilian',frame(2,{x:15,z:15,speed:4.5,jumping:true}));
+ assert.equal(restrained.selfCuffed,true);assert.equal(restrained.selfX,11);
+ assert.equal(restrained.peers[0].cuffed,false);
+ room.custody(officer,'follow','2');
+ now+=100;
+ room.sync(officer,'police',frame(2,{x:13,z:12,yaw:90,speed:1.65}));
+ const escort=room.sync(civilian,'civilian',frame(3,{x:18,z:18}));
+ assert.equal(escort.selfEscortedBy,'1');assert.ok(escort.selfX>11);
+ room.custody(officer,'stay',null);
+ const stopped=room.sync(civilian,'civilian',frame(4,{x:18,z:18}));
+ assert.equal(stopped.selfEscortedBy,'');assert.equal(stopped.selfCuffed,true);
+ room.custody(officer,'uncuff','2');
+ assert.equal(room.sync(civilian,'civilian',frame(5,{x:13,z:12})).selfCuffed,false);
+ assert.throws(()=>room.custody(officer,'cuff','1'),e=>e.code==='INVALID_TARGET');
+ room.sync(civilian,'civilian',frame(6,{x:100,z:100}));
+ assert.throws(()=>room.custody(officer,'cuff','2'),e=>e.code==='TARGET_TOO_FAR');
+ room.sync(civilian,'civilian',frame(7,{x:13,z:12}));
+ room.custody(officer,'cuff','2');
+ room.duty(officer,'police',{enabled:false});
+ assert.equal(room.sync(civilian,'civilian',frame(8,{x:13,z:12})).selfCuffed,false);
+});
 test('ten-slot room accepts five test bots alongside five authenticated humans',()=>{
  const room=createRoom({capacity:10});
  for(let n=1;n<=10;n++)assert.equal(room.sync(id(n),'session'+n,frame()).count,n);
@@ -22,6 +154,55 @@ test('peer timestamps belong to the source update rather than the observing poll
  now=1800;assert.equal(room.sync(id(1),'s1',frame(3)).peers[0].updatedAt,1600);
  assert.throws(()=>room.sync(id(1),'s1',frame(4,{updatedAt:9999})),e=>e.code==='INVALID_FRAME');
 });
+test('voice frames are authenticated, nearby only and reject malformed audio',()=>{
+ let now=1000;const room=createRoom({clock:()=>now});
+ const speech=Buffer.alloc(1600,0).toString('base64');
+ room.sync(id(1),'s1',frame(1,{voice:speech,voiceSequence:1}));
+ const nearby=room.sync(id(2),'s2',frame(1,{x:2}));
+ assert.equal(nearby.peers[0].voice,speech);
+ assert.equal(nearby.peers[0].voiceSequence,1);
+ assert.equal(room.sync(id(2),'s2',frame(2,{x:40})).peers[0].voice,'');
+ assert.throws(()=>room.sync(id(1),'s1',frame(2,{voice:'!!!',voiceSequence:2})),e=>e.code==='INVALID_FRAME');
+ assert.throws(()=>room.sync(id(1),'s1',frame(3,{voice:speech,voiceSequence:0})),e=>e.code==='INVALID_FRAME');
+ now+=501;
+ assert.equal(room.sync(id(2),'s2',frame(3,{x:2})).peers[0].voice,'');
+});
+test('only an authenticated admin in the room can enter police duty',()=>{
+ const room=createRoom();
+ const admin={...id(1),accountRole:'admin',adminLevel:1};
+ const civilian=id(2);
+ room.sync(admin,'admin-session',frame());
+ room.sync(civilian,'civil-session',frame());
+ assert.throws(()=>room.duty(civilian,'civil-session',{enabled:true}),e=>e.code==='ADMIN_REQUIRED');
+ assert.throws(()=>room.duty(admin,'wrong-session',{enabled:true}),e=>e.code==='NOT_IN_ROOM');
+ assert.deepEqual(room.duty(admin,'admin-session',{enabled:true}),{policeDuty:true,radioChannel:0});
+ assert.equal(room.sync(civilian,'civil-session',frame(2)).peers[0].policeDuty,true);
+ assert.equal(room.duty(admin,'admin-session',{enabled:false}).policeDuty,false);
+ room.duty(admin,'admin-session',{enabled:true});
+ room.removeSession('admin-session');
+ assert.throws(()=>room.duty(admin,'admin-session'),e=>e.code==='NOT_IN_ROOM');
+});
+test('police radio sends only to authorized officers on the same channel',()=>{
+ const room=createRoom({capacity:4});
+ const a={...id(1),accountRole:'admin',adminLevel:1};
+ const b={...id(2),accountRole:'admin',adminLevel:1};
+ const c={...id(3),accountRole:'admin',adminLevel:1};
+ const civilian=id(4),speech=Buffer.alloc(1600).toString('base64');
+ for(const [who,s] of [[a,'a'],[b,'b'],[c,'c'],[civilian,'d']])room.sync(who,s,frame());
+ for(const [who,s,channel] of [[a,'a',1],[b,'b',1],[c,'c',2]]){
+  room.duty(who,s,{enabled:true});room.radio(who,s,{channel});
+ }
+ assert.throws(()=>room.radio(civilian,'d',{channel:1}),e=>e.code==='ADMIN_REQUIRED');
+ assert.throws(()=>room.sync(civilian,'d',frame(2,{radioVoice:speech,radioSequence:1,radioChannel:1})),e=>e.code==='RADIO_FORBIDDEN');
+ room.sync(a,'a',frame(2,{radioVoice:speech,radioSequence:1,radioChannel:1}));
+ assert.equal(room.sync(b,'b',frame(2)).peers.find(p=>p.uid==='1').radioVoice,speech);
+ assert.equal(room.sync(c,'c',frame(2)).peers.find(p=>p.uid==='1').radioVoice,'');
+ assert.equal(room.sync(civilian,'d',frame(2)).peers.find(p=>p.uid==='1').radioVoice,'');
+ room.radio(a,'a',{channel:2});
+ assert.throws(()=>room.sync(a,'a',frame(3,{radioVoice:speech,radioSequence:2,radioChannel:1})),e=>e.code==='RADIO_FORBIDDEN');
+ room.duty(a,'a',{enabled:false});
+ assert.throws(()=>room.radio(a,'a',{channel:1}),e=>e.code==='RADIO_FORBIDDEN');
+});
 test('two players share movement and jumping; identities come from authentication',()=>{
  const room=createRoom();
  assert.equal(room.sync(id(1),'session1',frame()).count,1);
@@ -39,7 +220,7 @@ test('two players share movement and jumping; identities come from authenticatio
 });
 test('expiry frees the room and malformed or protected state cannot be broadcast',()=>{
  let now=1000;const room=createRoom({clock:()=>now});
- for(const extra of [{x:NaN},{y:100.001},{x:1000.001},{speed:9},{jumping:1},{jumpPhase:2},{uid:'spoof'},{cashCents:'999'},{clientId:null}])
+ for(const extra of [{x:NaN},{y:1000.001},{x:4200.001},{speed:9},{jumping:1},{jumpPhase:2},{uid:'spoof'},{cashCents:'999'},{clientId:null}])
   assert.throws(()=>room.sync(id(1),'s',frame(1,extra)),e=>e.code==='INVALID_FRAME');
  room.sync(id(1),'s1',frame());room.sync(id(2),'s2',frame());now+=10001;
  assert.equal(room.sync(id(3),'s3',frame()).count,1);
@@ -49,16 +230,16 @@ test('expiry frees the room and malformed or protected state cannot be broadcast
 
 test('official city sync accepts exact edges and uses the authenticated world',()=>{
  const room=createRoom();let sequence=0;
- for(const point of [{x:45,y:6,z:-45},{x:700,y:30,z:-800},{x:-1000,y:-80,z:-1000},{x:1000,y:100,z:1000}])
+ for(const point of [{x:45,y:6,z:-45},{x:700,y:30,z:-800},{x:-1000,y:-80,z:-1000},{x:4200,y:1000,z:4200}])
   assert.equal(room.sync(id(1),'s1',frame(++sequence,point)).room,'centro_teste');
  const seen=room.sync(id(2),'s2',frame());
- assert.deepEqual([seen.peers[0].x,seen.peers[0].y,seen.peers[0].z],[1000,100,1000]);
- for(const point of [{x:-1000.001},{x:1000.001},{y:-80.001},{y:100.001},{z:-1000.001},{z:1000.001}])
+ assert.deepEqual([seen.peers[0].x,seen.peers[0].y,seen.peers[0].z],[4200,1000,4200]);
+ for(const point of [{x:-4200.001},{x:4200.001},{y:-200.001},{y:1000.001},{z:-4200.001},{z:4200.001}])
   assert.throws(()=>room.sync(id(1),'s1',frame(++sequence,point)),e=>e.code==='INVALID_FRAME');
  assert.throws(()=>room.sync({...id(1),world:'other_world'},'s1',frame(++sequence)),e=>e.code==='WORLD_UNAVAILABLE');
  assert.throws(()=>room.sync(id(1),'s1',frame(++sequence,{world:'centro_teste'})),e=>e.code==='INVALID_FRAME');
  const unchanged=room.sync(id(2),'s2',frame(2));
- assert.deepEqual([unchanged.peers[0].x,unchanged.peers[0].y,unchanged.peers[0].z],[1000,100,1000]);
+ assert.deepEqual([unchanged.peers[0].x,unchanged.peers[0].y,unchanged.peers[0].z],[4200,1000,4200]);
 });
 test('room chat is authenticated, Unicode bounded, ordered, deduplicated and rate limited',()=>{
  let now=1000;const room=createRoom({clock:()=>now});
@@ -111,6 +292,13 @@ test('admin commands enforce levels, stay private and report missing systems',as
  reply=await room.chat(admin,'s1',body('/ahelp'));
  assert.ok(reply.command.lines.some(line=>line.includes('/makeadmin')));
  assert.ok(reply.command.lines.some(line=>line.includes('/speed')));
+ now+=1300;
+ reply=await room.chat(admin,'s1',body('/helpadmin'));
+ assert.equal(reply.command.status,'open_help');
+ assert.ok(reply.command.help.some(entry=>entry.usage==='/ticket [ID] [R$] [motivo]'&&entry.available));
+ assert.ok(reply.command.help.some(entry=>entry.usage==='/190 [mensagem]'&&entry.level===0));
+ assert.ok(reply.command.help.some(entry=>entry.usage.startsWith('/jail')&&!entry.available));
+ assert.ok(reply.command.help.some(entry=>entry.usage==='/gov [mensagem]'&&entry.level===2));
  now+=1300;
  assert.throws(()=>room.chat(secondAdmin,'s3',body('/ban 2 1 motivo')),e=>e.code==='ADMIN_LEVEL_REQUIRED');
 });

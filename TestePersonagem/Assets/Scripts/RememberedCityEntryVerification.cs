@@ -49,6 +49,9 @@ public sealed class RememberedCityEntryVerification : MonoBehaviour
         while(StartupLoader.IsLoading&&Time.realtimeSinceStartup<deadline)yield return null;
         yield return new WaitForSecondsRealtime(5);
         var a=AccountSession.Instance;
+        // The tutorial is disabled in normal play; explicitly exercise the mission-only
+        // response that used to replace the authenticated character with an empty state.
+        yield return a.ArrivalRequest(null,_=>{});
         bool pass=missionReads>0&&a&&a.ReadyToEnterCity&&!a.AuthVisible&&AccountSession.HasCharacter&&
             a.Document.rootVisualElement.resolvedStyle.display==DisplayStyle.None;
         string detail="authenticated="+AccountSession.Authenticated+" ready="+a?.ReadyToEnterCity+
