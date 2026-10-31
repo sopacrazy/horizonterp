@@ -20,6 +20,7 @@ public sealed partial class GameHud : MonoBehaviour
     public float MinimapArrowYaw => miniMarker==null?float.NaN:miniMarker.resolvedStyle.rotate.angle.value;
 
     static readonly Color Mint=new Color(1f,.79f,.15f);
+    static readonly Color PlayerMapBlue=new Color(.12f,.56f,1f);
     float MapCameraHeight => NeighborhoodMap.Active?NeighborhoodMap.Active.mapCameraHeight:60f;
     float AreaMapHalfExtent => NeighborhoodMap.Active?NeighborhoodMap.Active.MapHalfExtent:27f;
     string MapDisplayName => NeighborhoodMap.Active?NeighborhoodMap.Active.displayName:"Rua do Centro";
@@ -138,7 +139,7 @@ public sealed partial class GameHud : MonoBehaviour
         miniViewport=Element("mini-viewport",miniButton);
         if(cityMapAtlas)BuildCityMinimap();
         else {miniImage=new Image{image=miniTexture,pickingMode=PickingMode.Ignore};miniImage.AddToClassList("mini-image");miniViewport.Add(miniImage);}
-        miniMarker=new HudIcon("arrow");miniMarker.AddToClassList("marker");miniMarker.SetInk(Color.white);miniViewport.Add(miniMarker);
+        miniMarker=new HudIcon("arrow");miniMarker.AddToClassList("marker");miniMarker.SetInk(PlayerMapBlue);miniViewport.Add(miniMarker);
         minimapNorth=Text("N","h2-north",miniButton);
 
         var nav=Element("h2-nav");Block(nav);
@@ -286,7 +287,7 @@ public sealed partial class GameHud : MonoBehaviour
                 mapArea=Element("map-area",content);
                 mapImage=new Image{image=mapTexture,pickingMode=PickingMode.Ignore};mapImage.AddToClassList("mini-image");mapArea.Add(mapImage);
                 Text("N","north",mapArea);
-                mapMarker=new HudIcon("arrow");mapMarker.SetInk(Mint);mapMarker.AddToClassList("marker");mapArea.Add(mapMarker);
+                mapMarker=new HudIcon("arrow");mapMarker.SetInk(PlayerMapBlue);mapMarker.AddToClassList("marker");mapArea.Add(mapMarker);
                 Text("RUA DO CENTRO  /  EXPLORAÇÃO LIVRE","eyebrow",content);
                 var center=new Button(()=>TriggerAction("reset")){text="VOLTAR AO PONTO INICIAL"};center.AddToClassList("primary");content.Add(center);
                 break;
@@ -613,7 +614,9 @@ public sealed partial class GameHud : MonoBehaviour
     }
     void LateUpdate()
     {
-        if(!visible||Time.unscaledTime<nextMapUpdate)return;
+        if(!visible)return;
+        if(cityMapAtlas){RefreshCityMap();return;}
+        if(Time.unscaledTime<nextMapUpdate)return;
         nextMapUpdate=Time.unscaledTime+.1f;
         RefreshMaps();
     }

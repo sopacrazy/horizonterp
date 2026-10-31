@@ -8,12 +8,14 @@ public sealed class RemoteMotionBuffer
     readonly List<Snapshot> samples=new List<Snapshot>();
     float delay=.18f,playhead,lastRenderTime,lastArrival,jitter,interval=.1f;
     bool initialized,hasRendered;
+    bool realtime;
     Vector3 lastPosition;
     public float Speed {get;private set;}
     public bool Jumping {get;private set;}
     public float JumpPhase {get;private set;}
     public float PlaybackDelay=>delay;
-    public void Reset(){samples.Clear();delay=.18f;interval=.1f;jitter=0;initialized=hasRendered=false;Speed=0;Jumping=false;JumpPhase=0;}
+    public void SetRealtime(bool value){if(realtime==value)return;realtime=value;Reset();}
+    public void Reset(){samples.Clear();delay=realtime ? .1f : .18f;interval=realtime ? .05f : .1f;jitter=0;initialized=hasRendered=false;Speed=0;Jumping=false;JumpPhase=0;}
 
     public void Push(float time,Vector3 position,Quaternion rotation,float speed=0,bool jumping=false,float jumpPhase=0,float receivedAt=float.NaN)
     {
@@ -27,7 +29,7 @@ public sealed class RemoteMotionBuffer
             {
                 interval=Mathf.Lerp(interval,Mathf.Clamp(gap,.05f,.7f),.2f);
                 jitter=Mathf.Lerp(jitter,Mathf.Abs((arrival-lastArrival)-gap),.15f);
-                delay=Mathf.Clamp(interval*1.25f+jitter,.15f,.45f);
+                delay=Mathf.Clamp(interval*(realtime?2:1.25f)+jitter,realtime ? .08f : .15f,realtime ? .3f : .45f);
             }
         }
         lastArrival=arrival;

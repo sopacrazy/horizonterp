@@ -25,7 +25,9 @@ using UnityEngine.Networking;
     public string radioVoice;
     public int radioSequence;
     public int radioChannel;
+    public VoicePacket[] voiceFrames,radioFrames;
 }
+[Serializable] public class VoicePacket {public int sequence;public string data;}
 [Serializable] public class AdminCommandReply
 {
     public string name,status,message,uid;

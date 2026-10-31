@@ -10,6 +10,7 @@ import {createPlayerAdmin,AdminError} from './player-admin.mjs';
 import {getWorldBounds,isPositionWithinWorld} from './world-bounds.mjs';
 import {createArrivalMission,ArrivalError,arrivalConfig} from './arrival-mission.mjs';
 import {createPoliceCommands} from './police-commands.mjs';
+import {createRealtimeAccess,RealtimeError} from './realtime-access.mjs';
 
 const scrypt=promisify(scryptCb);
 const hash=x=>createHash('sha256').update(x).digest();
@@ -32,8 +33,9 @@ export function characterIdentity(body){
  return {firstName,lastName,gender:body.gender,name:firstName+' '+lastName};
 }
 function password(value){if(typeof value!=='string'||value.length<10||value.length>128||!value.trim())fail(400,'A senha precisa ter entre 10 e 128 caracteres.');return value;}
-export function createApiHandler(pool,{log=console.log,errorLog=console.error}={}){
+export function createApiHandler(pool,{log=console.log,errorLog=console.error,servicesEnv=process.env}={}){
 const room=createRoom({capacity:10});
+const realtime=createRealtimeAccess({room,env:servicesEnv});
 let followerReady;
 function loadFollower(){
  return followerReady??=pool.query(`SELECT f.owner_character_id AS owner_id,c.id AS bot_id,
@@ -205,6 +207,11 @@ return async(req,res)=>{
   rate(req.socket.remoteAddress,path==='/v1/multiplayer/sync'?'multiplayer':'all',path==='/v1/multiplayer/sync'?6000:240,60000);
   if(req.method==='GET'&&path==='/health'){await pool.query('SELECT 1');return send(200,{status:'ok',service:'hbrp-api',version:'0.3.0'});}
   const token=req.headers.authorization?.startsWith('Bearer ')?req.headers.authorization.substring(7):null;
+  if((req.method==='GET'&&path==='/v1/services')||(req.method==='POST'&&['/v1/realtime/ticket','/v1/voice/token'].includes(path))){
+   const auth=await session(pool,token);const identity=await requireCharacter(pool,auth.account_id);
+   if(path==='/v1/services')return send(200,realtime.config(identity));
+   return send(200,path==='/v1/realtime/ticket'?realtime.ticket(identity,auth,await readBody(req)):realtime.voiceToken(identity,auth,await readBody(req)));
+  }
   if(req.method==='GET'&&path==='/v1/missions/arrival')return send(200,await arrival.read(token));
   if(req.method==='POST'&&path==='/v1/missions/arrival')return send(200,await arrival.update(token,await readBody(req)));
   if(req.method==='POST'&&path==='/v1/admin/map-teleport')return send(200,await administration.mapTeleport(token,await readBody(req)));
@@ -264,7 +271,7 @@ return async(req,res)=>{
   fail(404,'Rota não encontrada.','NOT_FOUND');
  }catch(error){
   if(error.code==='23505')send(409,{error:'E-mail ou nome de personagem já cadastrado.',code:'ALREADY_EXISTS'});
-  else if(error instanceof ApiError||error instanceof RoomError||error instanceof AdminError||error instanceof ArrivalError)send(error.status,{error:error.message,code:error.code});
+  else if(error instanceof ApiError||error instanceof RoomError||error instanceof AdminError||error instanceof ArrivalError||error instanceof RealtimeError)send(error.status,{error:error.message,code:error.code});
   else{errorLog(JSON.stringify({event:'request_error',requestId,code:error.code||'INTERNAL'}));send(500,{error:'Não foi possível concluir. Tente novamente.',code:'INTERNAL'});}
  }finally{if(path!=='/v1/multiplayer/sync'||status!==200)log(JSON.stringify({requestId,method:req.method,path,status,ms:Date.now()-started}));}
 };

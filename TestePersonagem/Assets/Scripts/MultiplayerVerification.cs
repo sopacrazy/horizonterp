@@ -9,12 +9,12 @@ using UnityEngine.UIElements;
 public sealed class MultiplayerVerification : MonoBehaviour
 {
     [Serializable] sealed class Fixture {public string email,password;public int role;}
-    [Serializable] sealed class Report {public bool passed;public int role,receivedFrames;public bool sawRemoteJump;public float remoteTravel;public List<string> checks,errors;}
+    [Serializable] sealed class Report {public bool passed;public int role,receivedFrames;public bool sawRemoteJump;public float remoteTravel;public bool udp,vivox;public int udpSnapshots,vivoxParticipants;public float udpRttMs;public List<string> checks,errors;}
     readonly List<string> checks=new List<string>(),errors=new List<string>();
     Fixture fixture;
     string previousEmail;
     bool hadEmail,finished;
-    const string Folder=@"C:\SistemaAdr\gta\tools\multiplayer-review";
+    string Folder;
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Bootstrap()
     {
@@ -24,11 +24,12 @@ public sealed class MultiplayerVerification : MonoBehaviour
     void Awake()
     {
         DontDestroyOnLoad(gameObject);Application.runInBackground=true;
+        Folder=Hbrp.Realtime.LocalNetworkLab.Argument("--multiplayer-output")??@"C:\SistemaAdr\gta\tools\multiplayer-review";
         Directory.CreateDirectory(Folder);
         var args=Environment.GetCommandLineArgs();int index=Array.IndexOf(args,"--multiplayer-fixture");
         fixture=JsonUtility.FromJson<Fixture>(File.ReadAllText(args[index+1]));
         if(fixture.role<0||fixture.role>1||!fixture.email.EndsWith("@example.invalid"))throw new Exception("Fixture inválida");
-        hadEmail=PlayerPrefs.HasKey("account.email");previousEmail=PlayerPrefs.GetString("account.email","");
+        if(!Hbrp.Realtime.LocalNetworkLab.IsolateSavedAccess){hadEmail=PlayerPrefs.HasKey("account.email");previousEmail=PlayerPrefs.GetString("account.email","");}
         Application.logMessageReceived+=Log;
     }
     void Log(string value,string trace,LogType type)
@@ -68,7 +69,11 @@ public sealed class MultiplayerVerification : MonoBehaviour
         Press(root.Q<Button>("character-enter"));
         yield return Until(()=>MultiplayerWorld.Instance&&MultiplayerWorld.Instance.Connected&&MultiplayerWorld.Instance.PlayerCount==2,
             60,"Dois clientes Unity conectados à mesma sala");
-        var world=MultiplayerWorld.Instance;var player=FindAnyObjectByType<ThirdPersonPlayer>();
+        var world=MultiplayerWorld.Instance;
+        if(Hbrp.Realtime.LocalNetworkLab.IsolateSavedAccess)yield return Until(()=>world.UsingUdp,20,"Unity Transport UDP/DTLS conectado à sala");
+        var player=FindAnyObjectByType<ThirdPersonPlayer>();
+        if(Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-vivox")>=0)
+            yield return Until(()=>player.GetComponent<Hbrp.Realtime.VivoxVoice>()?.ParticipantCount>=2,45,"Dois participantes conectados ao canal Vivox real");
         player.DemoMode=true;
         var chat=InGameChat.Instance;var hud=GameHud.Instance.Root;
         var chatArea=hud.Q("chat-area");chatArea.Focus();
@@ -76,14 +81,14 @@ public sealed class MultiplayerVerification : MonoBehaviour
         yield return null;
         Check(InGameChat.Editing,"Histórico clicável abre o editor e bloqueia os controles");
         hud.Q<TextField>("chat-input").value="Olá do jogador "+fixture.role+"!";
-        yield return new WaitForEndOfFrame();
-        ScreenCapture.CaptureScreenshot(Path.Combine(Folder,"chat-compose-"+fixture.role+".png"));
+        if(!Application.isBatchMode)yield return new WaitForEndOfFrame();else yield return null;
+        if(!Application.isBatchMode)ScreenCapture.CaptureScreenshot(Path.Combine(Folder,"chat-compose-"+fixture.role+".png"));
         Press(hud.Q<Button>("chat-send"));
         yield return Until(()=>!chat.Sending&&!chat.IsOpen,15,"Mensagem confirmada pelo servidor fecha o editor");
         yield return Until(()=>chat.HasMessage("Olá do jogador 0!")&&chat.HasMessage("Olá do jogador 1!"),20,
             "Cada cliente recebe a própria mensagem e a do outro jogador");
-        yield return new WaitForEndOfFrame();
-        ScreenCapture.CaptureScreenshot(Path.Combine(Folder,"chat-messages-"+fixture.role+".png"));
+        if(!Application.isBatchMode)yield return new WaitForEndOfFrame();else yield return null;
+        if(!Application.isBatchMode)ScreenCapture.CaptureScreenshot(Path.Combine(Folder,"chat-messages-"+fixture.role+".png"));
         float started=Time.realtimeSinceStartup,nextJump=0;
         while(Time.realtimeSinceStartup-started<16)
         {
@@ -98,8 +103,8 @@ public sealed class MultiplayerVerification : MonoBehaviour
         Check(world.ReceivedFrames>20,"Movimento recebido continuamente do servidor");
         Check(world.RemoteTravel>.5f,"Outro personagem se desloca no cenário");
         Check(world.SawRemoteJump,"Animação de pulo recebida do outro jogador");
-        yield return new WaitForEndOfFrame();
-        ScreenCapture.CaptureScreenshot(Path.Combine(Folder,"two-players-"+fixture.role+".png"));
+        if(!Application.isBatchMode)yield return new WaitForEndOfFrame();else yield return null;
+        if(!Application.isBatchMode)ScreenCapture.CaptureScreenshot(Path.Combine(Folder,"two-players-"+fixture.role+".png"));
         yield return new WaitForSecondsRealtime(6);
     }
     IEnumerator Finish()
@@ -107,6 +112,9 @@ public sealed class MultiplayerVerification : MonoBehaviour
         if(finished)yield break;finished=true;
         var world=MultiplayerWorld.Instance;
         var report=new Report {passed=errors.Count==0,role=fixture.role,receivedFrames=world?world.ReceivedFrames:0,
+            vivox=world&&world.GetComponent<Hbrp.Realtime.VivoxVoice>()&&world.GetComponent<Hbrp.Realtime.VivoxVoice>().Connected,
+            vivoxParticipants=world&&world.GetComponent<Hbrp.Realtime.VivoxVoice>()?world.GetComponent<Hbrp.Realtime.VivoxVoice>().ParticipantCount:0,
+            udp=world&&world.UsingUdp,udpSnapshots=world?world.UdpSnapshots:0,udpRttMs=world?world.UdpRoundTrip:0,
             remoteTravel=world?world.RemoteTravel:0,sawRemoteJump=world&&world.SawRemoteJump,checks=checks,errors=errors};
         File.WriteAllText(Path.Combine(Folder,"validation-"+fixture.role+".json"),JsonUtility.ToJson(report,true));
         if(AccountSession.Authenticated)
@@ -114,8 +122,8 @@ public sealed class MultiplayerVerification : MonoBehaviour
             AccountSession.Instance.Logout();float deadline=Time.realtimeSinceStartup+10;
             while(AccountSession.Authenticated&&Time.realtimeSinceStartup<deadline)yield return null;
         }
-        if(hadEmail)PlayerPrefs.SetString("account.email",previousEmail);else PlayerPrefs.DeleteKey("account.email");
-        PlayerPrefs.Save();Application.Quit(errors.Count==0?0:1);
+        if(!Hbrp.Realtime.LocalNetworkLab.IsolateSavedAccess)
+        {if(hadEmail)PlayerPrefs.SetString("account.email",previousEmail);else PlayerPrefs.DeleteKey("account.email");PlayerPrefs.Save();}Application.Quit(errors.Count==0?0:1);
     }
     void OnDestroy(){Application.logMessageReceived-=Log;}
 }

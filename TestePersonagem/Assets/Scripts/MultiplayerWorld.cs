@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using Hbrp.Realtime;
 
 // Two-player HTTPS prototype, sharing the API's authenticated and pinned TLS channel.
 public sealed class MultiplayerWorld : MonoBehaviour
@@ -23,11 +24,22 @@ public sealed class MultiplayerWorld : MonoBehaviour
     readonly string clientId=Guid.NewGuid().ToString();
     ThirdPersonPlayer player;
     PoliceCarWorld policeCarWorld;
+    RealtimeMovement realtime;
+    public string RealtimeClientId=>clientId;
+    public bool UsingUdp=>realtime&&realtime.Active;
+    public int UdpSnapshots=>realtime?.Client?.SnapshotsReceived??0;
+    public float UdpRoundTrip=>realtime?.Client?.RoundTripMs??0;
     Label statusLabel;
     int sequence;
     bool paused;
     int connectionFailures;
     string lastFailure;
+    readonly SyncCadence cadence=new SyncCadence();
+    int lastAppliedSequence,diagnosticFrames;
+    float lastSuccessfulSync,diagnosticAt,maxFrameSeconds;
+    public float RoundTripMilliseconds {get;private set;}
+    public float UpdatesPerSecond {get;private set;}
+    public int PendingRequests=>cadence.Pending;
 
     public static void Create(ThirdPersonPlayer player)
     {
@@ -38,11 +50,26 @@ public sealed class MultiplayerWorld : MonoBehaviour
     IEnumerator Start()
     {
         policeCarWorld=gameObject.AddComponent<PoliceCarWorld>();policeCarWorld.Initialize(player);
+        realtime=gameObject.AddComponent<RealtimeMovement>();realtime.Initialize(this,player);
         while(player&&(!AccountSession.HasCharacter||StartupLoader.IsLoading))yield return null;
+        diagnosticAt=Time.realtimeSinceStartup;
         while(player&&AccountSession.HasCharacter)
         {
-            if(paused||player.MapTeleportLoading){yield return new WaitForSecondsRealtime(.25f);continue;}
-            float started=Time.realtimeSinceStartup;
+            // Legacy PCM produces one block per 100 ms; retain that send rate until Vivox is enabled.
+            bool legacyVoice=VoiceChat.Instance&&VoiceChat.Instance.Transmitting&&!VoiceChat.Instance.UsingVivox;
+            cadence.Interval=UsingUdp&&!legacyVoice ? .2 : .1;
+            if(!paused&&!player.MapTeleportLoading&&cadence.TryBegin(Time.realtimeSinceStartupAsDouble))
+                StartCoroutine(SyncOnce());
+            yield return null;
+        }
+        Connected=false;ClearRemotes();SetStatus("DESCONECTADO");
+    }
+    IEnumerator SyncOnce()
+    {
+        float started=Time.realtimeSinceStartup;
+        string characterId=AccountSession.Instance.State.characterId;
+        try
+        {
             var position=player.transform.position;
             var frame=new MultiplayerFrame {clientId=clientId,sequence=++sequence,
                 x=position.x,y=position.y,z=position.z,yaw=Mathf.Repeat(player.transform.eulerAngles.y,360),
@@ -50,6 +77,8 @@ public sealed class MultiplayerWorld : MonoBehaviour
                 afterChat=LastChatId};
             int voiceSequence=0;
             string voice=VoiceChat.Instance ? VoiceChat.Instance.Capture(out voiceSequence) : null;
+            // Losing the radio connection must never redirect private radio speech to proximity chat.
+            if(VoiceChat.Instance&&VoiceChat.Instance.RadioTransmitting&&(!PoliceRadio.Instance||!PoliceRadio.Instance.Connected))voice=null;
             string json=JsonUtility.ToJson(frame);
             if(!string.IsNullOrEmpty(voice))
             {
@@ -60,19 +89,23 @@ public sealed class MultiplayerWorld : MonoBehaviour
             }
             MultiplayerReply reply=null;
             yield return AccountSession.Instance.MultiplayerRequest("/v1/multiplayer/sync",json,r=>reply=r);
+            if(!player||!AccountSession.HasCharacter||AccountSession.Instance.State.characterId!=characterId||paused)yield break;
+            // Concurrent HTTPS replies can arrive out of order. Never move the room backwards.
+            if(reply?.code=="STALE_FRAME"||frame.sequence<=lastAppliedSequence)yield break;
             if(!string.IsNullOrEmpty(voice)&&(reply?.code=="INVALID_FRAME"||reply?.code=="RADIO_FORBIDDEN"))
             {VoiceChat.Instance?.Stop();GameHud.Instance?.ShowAccountMessage("Voz ainda indisponível no servidor");}
-            if(!AccountSession.HasCharacter)break;
             if(reply!=null&&string.IsNullOrEmpty(reply.code)&&reply.peers!=null)
             {
-                connectionFailures=0;Connected=true;PlayerCount=reply.count;ReceivedFrames++;
+                lastAppliedSequence=frame.sequence;
+                float roundTrip=Time.realtimeSinceStartup-started;
+                RoundTripMilliseconds=RoundTripMilliseconds==0?roundTrip*1000:Mathf.Lerp(RoundTripMilliseconds,roundTrip*1000,.2f);
+                diagnosticFrames++;lastSuccessfulSync=Time.realtimeSinceStartup;
+                connectionFailures=0;lastFailure=null;Connected=true;PlayerCount=reply.count;ReceivedFrames++;
                 SetStatus("ONLINE "+reply.count+"/"+reply.capacity);
-                UpdatePeers(reply.peers,reply.serverTime,Time.realtimeSinceStartup-started);
+                UpdatePeers(reply.peers,reply.serverTime,roundTrip);
                 policeCarWorld.Apply(reply.policeCars);
-                player.SetCustody(reply.selfCuffed,reply.selfEscortedBy,
-                    new Vector3(reply.selfX,reply.selfY,reply.selfZ),reply.selfYaw);
-                player.SetPoliceCarPassenger(reply.selfInPoliceCar,
-                    new Vector3(reply.selfX,reply.selfY,reply.selfZ),reply.selfYaw);
+                player.SetCustody(reply.selfCuffed,reply.selfEscortedBy,new Vector3(reply.selfX,reply.selfY,reply.selfZ),reply.selfYaw);
+                player.SetPoliceCarPassenger(reply.selfInPoliceCar,new Vector3(reply.selfX,reply.selfY,reply.selfZ),reply.selfYaw);
                 ReceiveChat(reply);
                 if(reply.teleport!=null&&reply.teleport.id>lastTeleportId)
                 {
@@ -83,33 +116,36 @@ public sealed class MultiplayerWorld : MonoBehaviour
                 if(hour!=ServerHour)
                 {
                     ServerHour=hour;
-                    if(hour>=0)
-                    {
-                        var dayNight=FindAnyObjectByType<CityDayNight>();
-                        if(dayNight)dayNight.SetNight(hour<6||hour>=18);
-                    }
+                    if(hour>=0){var dayNight=FindAnyObjectByType<CityDayNight>();if(dayNight)dayNight.SetNight(hour<6||hour>=18);}
                 }
-                float remaining=.1f-(Time.realtimeSinceStartup-started);
-                if(remaining>0)yield return new WaitForSecondsRealtime(remaining);
             }
             else
             {
-                Connected=false;
-                string failure=(reply?.code??"NO_REPLY")+": "+(reply?.error??"sem detalhes");
-                if(failure!=lastFailure)
-                {
-                    lastFailure=failure;
-                    Debug.LogWarning("MULTIPLAYER_SYNC_FAILURE "+failure);
-                }
-                // A single dropped request must not destroy and respawn every remote avatar.
-                if(++connectionFailures>=3||reply?.code=="UNAUTHORIZED"||reply?.code=="SESSION_IN_USE")
-                {PlayerCount=0;ClearRemotes();}
                 string code=reply?.code;
-                SetStatus(code=="ROOM_FULL"?"SALA CHEIA":code=="SESSION_IN_USE"?"CONTA EM USO":code=="UNAUTHORIZED"?"SESSÃO ENCERRADA":"RECONECTANDO");
-                yield return new WaitForSecondsRealtime(2);
+                string failure=(code??"NO_REPLY")+": "+(reply?.error??"sem detalhes");
+                if(failure!=lastFailure){lastFailure=failure;Debug.LogWarning("MULTIPLAYER_SYNC_FAILURE "+failure);}
+                bool terminal=code=="UNAUTHORIZED"||code=="SESSION_IN_USE"||code=="ROOM_FULL";
+                if(terminal||Time.realtimeSinceStartup-lastSuccessfulSync>.5f)connectionFailures++;
+                if(terminal||connectionFailures>=3)
+                {
+                    Connected=false;PlayerCount=0;ClearRemotes();
+                    SetStatus(code=="ROOM_FULL"?"SALA CHEIA":code=="SESSION_IN_USE"?"CONTA EM USO":code=="UNAUTHORIZED"?"SESSÃO ENCERRADA":"RECONECTANDO");
+                    cadence.Backoff(Time.realtimeSinceStartupAsDouble+(terminal?2:1));
+                }
             }
         }
-        Connected=false;ClearRemotes();SetStatus("DESCONECTADO");
+        finally{cadence.Complete();}
+    }
+    void Update()
+    {
+        maxFrameSeconds=Mathf.Max(maxFrameSeconds,Time.unscaledDeltaTime);
+        float elapsed=Time.realtimeSinceStartup-diagnosticAt;
+        if(elapsed<10||StartupLoader.IsLoading)return;
+        UpdatesPerSecond=diagnosticFrames/elapsed;
+        int underruns=0;foreach(var remote in remotes.Values)underruns+=remote.VoiceUnderruns;
+        Debug.Log($"NETWORK_LOCAL_STATS transport={(UsingUdp?"UDP":"HTTPS")} udpRttMs={realtime?.Client?.RoundTripMs??0:F0} rttMs={RoundTripMilliseconds:F0} syncHz={UpdatesPerSecond:F1} pending={cadence.Pending} frameMaxMs={maxFrameSeconds*1000:F0} voiceUnderruns={underruns} micDropped={VoiceChat.Instance?.DroppedCaptureFrames??0}");
+        if(statusLabel!=null)statusLabel.tooltip=$"RTT {RoundTripMilliseconds:F0} ms · {UpdatesPerSecond:F1} atualizações/s";
+        diagnosticAt=Time.realtimeSinceStartup;diagnosticFrames=0;maxFrameSeconds=0;
     }
     void SetStatus(string value)
     {
@@ -146,7 +182,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
             live.Add(peer.characterId);
             if(!remotes.TryGetValue(peer.characterId,out var remote))
             {
-                remote=new Remote(player,peer);remotes.Add(peer.characterId,remote);
+                remote=new Remote(this,player,peer);remotes.Add(peer.characterId,remote);
             }
             else RemoteTravel+=Vector3.Distance(remote.TargetPosition,new Vector3(peer.x,peer.y,peer.z));
             SawRemoteJump|=peer.jumping;remote.Apply(peer,serverTime,roundTrip);
@@ -160,7 +196,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
             if(remote.Uid==uid){transform=remote.Transform;return true;}
         transform=null;return false;
     }
-    void LateUpdate(){foreach(var remote in remotes.Values)remote.Tick();}
+    void LateUpdate(){realtime?.SendPlayer();foreach(var remote in remotes.Values)remote.Tick();}
     void OnApplicationPause(bool value)
     {
         paused=value;
@@ -169,6 +205,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
     public IEnumerator Leave()
     {
         paused=true;
+        realtime?.StopConnection();
         if(AccountSession.HasCharacter)
             yield return AccountSession.Instance.MultiplayerRequest("/v1/multiplayer/leave","{\"clientId\":\""+clientId+"\"}",_=>{});
         Connected=false;ClearRemotes();
@@ -178,6 +215,10 @@ public sealed class MultiplayerWorld : MonoBehaviour
 
     sealed class Remote
     {
+        readonly MultiplayerWorld world;
+        readonly string characterId;
+        bool udpMode;
+        int lastUdpSequence=-1;
         readonly GameObject root;
         GameObject avatar,vehicle;
         bool driving;
@@ -189,7 +230,10 @@ public sealed class MultiplayerWorld : MonoBehaviour
         readonly TextMesh statusPlate;
         readonly TextMesh[] statusOutline;
         readonly AudioSource voiceSource,radioSource;
+        readonly VoicePlayback voicePlayback,radioPlayback;
+        public int VoiceUnderruns=>voicePlayback.Underruns+radioPlayback.Underruns;
         int lastVoiceSequence,lastRadioSequence;
+        int listeningRadioChannel;
         readonly RemoteMotionBuffer motion=new RemoteMotionBuffer();
         int lastSequence=-1;
         Vector3 targetPosition;
@@ -198,13 +242,16 @@ public sealed class MultiplayerWorld : MonoBehaviour
         public Vector3 TargetPosition=>targetPosition;
         public string Uid {get;private set;}
         public Transform Transform=>root?root.transform:null;
-        public Remote(ThirdPersonPlayer local,MultiplayerPeer peer)
+        public Remote(MultiplayerWorld world,ThirdPersonPlayer local,MultiplayerPeer peer)
         {
+            this.world=world;characterId=peer.characterId;
             Uid=peer.uid;
             root=new GameObject("Jogador online "+peer.uid);root.layer=2;
             voiceSource=root.AddComponent<AudioSource>();
             voiceSource.playOnAwake=false;voiceSource.spatialBlend=1;voiceSource.minDistance=2;voiceSource.maxDistance=35;
+            voiceSource.dopplerLevel=0;
             radioSource=root.AddComponent<AudioSource>();radioSource.playOnAwake=false;radioSource.spatialBlend=0;
+            voicePlayback=new VoicePlayback(voiceSource);radioPlayback=new VoicePlayback(radioSource);
             root.transform.SetPositionAndRotation(new Vector3(peer.x,peer.y,peer.z),Quaternion.Euler(0,peer.yaw,0));
             // Clone only the visual child: never clone the local controller, camera or save scripts.
             if(local.animator.gameObject==local.gameObject)throw new InvalidOperationException("O visual precisa ser um filho separado do controlador.");
@@ -242,10 +289,27 @@ public sealed class MultiplayerWorld : MonoBehaviour
         }
         public void Apply(MultiplayerPeer peer,long serverTime,float roundTrip)
         {
-            if(peer.voiceSequence>lastVoiceSequence&&!string.IsNullOrEmpty(peer.voice))
-            {lastVoiceSequence=peer.voiceSequence;VoiceChat.Play(voiceSource,peer.voice);}
-            if(peer.radioSequence>lastRadioSequence&&!string.IsNullOrEmpty(peer.radioVoice)&&PoliceRadio.Instance&&PoliceRadio.Instance.Connected)
-            {lastRadioSequence=peer.radioSequence;VoiceChat.Play(radioSource,peer.radioVoice,PoliceRadio.Instance.Volume);PoliceRadio.Instance.Received(peer.firstName);}
+            if(peer.sequence<lastSequence)
+            {voicePlayback.Reset();radioPlayback.Reset();lastVoiceSequence=lastRadioSequence=0;}
+            if(peer.voiceFrames!=null)
+            {
+                foreach(var packet in peer.voiceFrames)if(packet.sequence>lastVoiceSequence)
+                {lastVoiceSequence=packet.sequence;voicePlayback.Push(packet.sequence,packet.data);}
+            }
+            else if(peer.voiceSequence>lastVoiceSequence&&!string.IsNullOrEmpty(peer.voice))
+            {lastVoiceSequence=peer.voiceSequence;voicePlayback.Push(peer.voiceSequence,peer.voice);}
+            if(PoliceRadio.Instance&&PoliceRadio.Instance.Connected)
+            {
+                if(listeningRadioChannel!=PoliceRadio.Instance.Channel){radioPlayback.Reset();listeningRadioChannel=PoliceRadio.Instance.Channel;}
+                if(peer.radioFrames!=null)
+                {
+                    foreach(var packet in peer.radioFrames)if(packet.sequence>lastRadioSequence)
+                    {lastRadioSequence=packet.sequence;radioPlayback.Push(packet.sequence,packet.data,PoliceRadio.Instance.Volume);PoliceRadio.Instance.Received(peer.firstName);}
+                }
+                else if(peer.radioSequence>lastRadioSequence&&!string.IsNullOrEmpty(peer.radioVoice))
+                {lastRadioSequence=peer.radioSequence;radioPlayback.Push(peer.radioSequence,peer.radioVoice,PoliceRadio.Instance.Volume);PoliceRadio.Instance.Received(peer.firstName);}
+            }
+            else {radioPlayback.Reset();listeningRadioChannel=0;}
             driving=peer.driving;avatar.SetActive(!driving&&!peer.inPoliceCar);
             nameplate.gameObject.SetActive(!peer.inPoliceCar);
             statusPlate.gameObject.SetActive(!peer.inPoliceCar&&!string.IsNullOrEmpty(statusPlate.text));
@@ -253,6 +317,9 @@ public sealed class MultiplayerWorld : MonoBehaviour
             if(driving&&!vehicle){vehicle=MissionVehicle.CreateRemoteVisual();vehicle.transform.SetParent(root.transform,false);}
             if(vehicle)vehicle.SetActive(driving);
             Uid=peer.uid;
+            UpdateNameplate(peer);
+            if(world.realtime&&world.realtime.TryGet(characterId,out _))return;
+            if(udpMode){udpMode=false;motion.SetRealtime(false);sourceOrigin=0;lastSequence=-1;}
             if(peer.sequence==lastSequence)return;
             // Sync requests are serialized. A lower sequence means that the other client restarted.
             if(peer.sequence<lastSequence){motion.Reset();sourceOrigin=0;}
@@ -302,6 +369,20 @@ public sealed class MultiplayerWorld : MonoBehaviour
         }
         public void Tick()
         {
+            if(world.realtime&&world.realtime.TryGet(characterId,out var snapshot))
+            {
+                if(!udpMode){udpMode=true;motion.SetRealtime(true);sourceOrigin=0;lastUdpSequence=-1;}
+                if(snapshot.Sequence!=lastUdpSequence)
+                {
+                    if(snapshot.Sequence<lastUdpSequence){motion.Reset();sourceOrigin=0;}
+                    lastUdpSequence=snapshot.Sequence;targetPosition=snapshot.Position;
+                    float arrival=Time.unscaledTime;
+                    if(sourceOrigin==0)
+                    {sourceOrigin=snapshot.UpdatedAt;localOrigin=arrival-(snapshot.ServerTime-snapshot.UpdatedAt)*.001f-world.realtime.Client.RoundTripMs*.0005f;}
+                    float time=localOrigin+(snapshot.UpdatedAt-sourceOrigin)*.001f;
+                    motion.Push(time,snapshot.Position,Quaternion.Euler(0,snapshot.Yaw,0),snapshot.Speed,snapshot.Jumping,snapshot.JumpPhase,arrival);
+                }
+            }
             if(motion.Sample(Time.unscaledTime,out var position,out var rotation))
             {
                 root.transform.SetPositionAndRotation(position,rotation);
@@ -310,6 +391,6 @@ public sealed class MultiplayerWorld : MonoBehaviour
             if(Camera.main){nameplate.transform.rotation=Camera.main.transform.rotation;
                 statusPlate.transform.rotation=Camera.main.transform.rotation;}
         }
-        public void Destroy(){if(root)UnityEngine.Object.Destroy(root);}
+        public void Destroy(){voicePlayback.Dispose();radioPlayback.Dispose();if(root)UnityEngine.Object.Destroy(root);}
     }
 }

@@ -53,7 +53,7 @@ public sealed partial class AccountSession
         var emailGroup=FieldGroup(form);
         email=Field("E-mail","voce@exemplo.com","auth-email",false,emailGroup,254);
         email.keyboardType=TouchScreenKeyboardType.EmailAddress;
-        email.value=PlayerPrefs.GetString("account.email","");
+        email.value=Hbrp.Realtime.LocalNetworkLab.IsolateSavedAccess?"":PlayerPrefs.GetString("account.email","");
         var passwordGroup=FieldGroup(form);
         password=Field("Senha","Sua senha","auth-password",true,passwordGroup,128);
         var passwordRow=password.parent;passwordRow.AddToClassList("auth-password-row");

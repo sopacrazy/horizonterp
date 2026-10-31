@@ -12,6 +12,7 @@ public sealed partial class GameHud
     static readonly Vector2 AtlasMax = new Vector2(2966.77966f, 2775.85057f);
     const float MinimapVisibleMetres = 450;
     float cityMinimapYaw;
+    readonly MinimapHeading cityHeading=new MinimapHeading();
     Vector2 cityMapPan, cityImageOffset, cityImageSize, cityDragStart, cityDragPan;
     int cityDragPointer = -1;
     bool cityMapDragged,cityMapTeleportBusy;
@@ -49,7 +50,7 @@ public sealed partial class GameHud
         mapArea.tooltip = CanUseMapTeleport ? "Clique para marcar um destino · Arraste para explorar" : "Arraste para explorar o mapa";
         mapImage = new Image { image = cityMapAtlas, scaleMode = ScaleMode.StretchToFill, pickingMode = PickingMode.Ignore };
         mapImage.AddToClassList("mini-image"); mapArea.Add(mapImage);
-        mapMarker = new HudIcon("arrow"); mapMarker.SetInk(Mint);
+        mapMarker = new HudIcon("arrow"); mapMarker.SetInk(PlayerMapBlue);
         mapMarker.AddToClassList("city-map-player"); mapArea.Add(mapMarker);
         cityDestinationMarker=Element("city-map-destination",mapArea);
         cityDestinationMarker.pickingMode=PickingMode.Ignore;
@@ -191,7 +192,7 @@ public sealed partial class GameHud
         miniImage.style.width = imageWidth; miniImage.style.height = imageHeight;
         miniImage.style.left = width * .5f - uv.x * imageWidth;
         miniImage.style.top = height * .5f - uv.y * imageHeight;
-        cityMinimapYaw = Mathf.Repeat(player.transform.eulerAngles.y, 360);
+        cityMinimapYaw = cityHeading.Step(player.transform.eulerAngles.y,Time.unscaledDeltaTime);
         cityMapPivot.style.rotate = new Rotate(new Angle(cityMinimapYaw + 180, AngleUnit.Degree));
         miniMarker.style.rotate = new Rotate(new Angle(0, AngleUnit.Degree));
         if(minimapNorth != null)

@@ -18,6 +18,7 @@ parser.add_argument('--remembered-access',action='store_true')
 parser.add_argument('--official-city',action='store_true')
 parser.add_argument('--los-santos',action='store_true')
 parser.add_argument('--current-features',action='store_true')
+parser.add_argument('--realtime',action='store_true')
 args=parser.parse_args()
 assert re.fullmatch(r'\d+\.\d+\.\d+',args.version)
 
@@ -85,6 +86,10 @@ with zipfile.ZipFile(apk) as archive:
     names=archive.namelist()
     assert 'lib/arm64-v8a/libil2cpp.so' in names
     metadata=archive.read('assets/bin/Data/Managed/Metadata/global-metadata.dat')
+    if args.realtime:
+        for feature in [b'RealtimeMovement',b'UtpMovementClient',b'UnreliableSequencedPipelineStage',b'VivoxVoice',b'IVivoxTokenProvider',b'VoicePcmBuffer',b'MinimapHeading']:
+            assert feature in metadata,'Missing realtime integration: '+str(feature)
+        assert any('vivox' in n.lower() and n.startswith('lib/arm64-v8a/') for n in names),'Native Vivox ARM64 library missing'
     assert b'MultiplayerWorld' in metadata and b'MultiplayerPeer' in metadata and b'JumpPhase' in metadata
     if args.chat:assert b'InGameChat' in metadata and b'ChatMessage' in metadata and b'OpenKeyboard' in metadata
     if args.network:assert b'RemoteAvatarAnimation' in metadata and b'RemoteMotionBuffer' in metadata and b'updatedAt' in metadata
@@ -177,6 +182,7 @@ report={'result':'ANDROID_RELEASE_VERIFIED','version':args.version,'versionCode'
     'protected_remembered_access_included':args.remembered_access,
     'official_city_streaming_included':args.official_city,
     'los_santos_only':args.los_santos,
+    'udp_dtls_and_vivox_included':args.realtime,
     'bytes':release.stat().st_size,'sha256':hashlib.sha256(release.read_bytes()).hexdigest(),
     'device_runtime_tested':False,'file':str(release)}
 (root/('tools/android-'+args.version.replace('.','')+'-validation.json')).write_text(json.dumps(report,indent=2),encoding='utf-8')

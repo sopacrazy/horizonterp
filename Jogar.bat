@@ -1,5 +1,5 @@
 @echo off
-set "GAME_EXE=%~dp0TestePersonagem\Builds\Windows070\Horizonte.exe"
+set "GAME_EXE=%~dp0TestePersonagem\Builds\WindowsRelease\Horizonte.exe"
 if not exist "%GAME_EXE%" (
     echo A versao Windows do jogo ainda nao foi gerada nesta pasta.
     echo Abra a pasta TestePersonagem no Unity Hub e gere a build Windows.

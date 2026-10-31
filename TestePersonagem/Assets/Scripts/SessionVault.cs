@@ -14,6 +14,7 @@ internal static class SessionVault
     internal static Action TestClear;
     internal static string Read()
     {
+        if(Hbrp.Realtime.LocalNetworkLab.IsolateSavedAccess)return null;
         if(AccountSession.VerificationTransport!=null)return TestRead?.Invoke();
         try
         {
@@ -55,6 +56,7 @@ internal static class SessionVault
     }
     internal static void Write(string value)
     {
+        if(Hbrp.Realtime.LocalNetworkLab.IsolateSavedAccess)return;
         if(AccountSession.VerificationTransport!=null){TestWrite?.Invoke(value);return;}
         try
         {
@@ -72,6 +74,7 @@ internal static class SessionVault
     }
     internal static void Clear()
     {
+        if(Hbrp.Realtime.LocalNetworkLab.IsolateSavedAccess)return;
         if(AccountSession.VerificationTransport!=null){TestClear?.Invoke();return;}
         try
         {

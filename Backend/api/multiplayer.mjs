@@ -66,6 +66,11 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2}={}){
    policeDuty:isPolice,orgCode:identity.organization?.code||'',
    adminLevel:identity.accountRole==='admin'?identity.adminLevel:0,
    invisible:identity.accountRole==='admin'&&identity.adminLevel>=3&&(previous?.invisible||false),teleport:previous?.teleport||null};
+  // Keep a small recovery window for clients polling at different phases or over mobile jitter.
+  // Legacy voice/radioVoice fields remain unchanged for installed clients.
+  const sameSource=previous?.sessionId===sessionId&&previous?.clientId===body.clientId;
+  member.voiceFrames=voiceWindow(sameSource?previous.voiceFrames:[],body.voice,body.voiceSequence);
+  member.radioFrames=voiceWindow(sameSource&&isPolice&&previous.radioChannel===member.radioChannel?previous.radioFrames:[],body.radioVoice,body.radioSequence);
   members.set(identity.characterId,member);
   if(restraint){
    const officer=members.get(restraint.officerCharacterId);
@@ -98,11 +103,19 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2}={}){
     characterId:m.characterId,uid:m.uid,name:m.name,firstName:m.firstName,model:m.model,x:m.x,y:m.y,z:m.z,
     yaw:m.yaw,speed:m.speed,jumping:m.jumping,jumpPhase:m.jumpPhase,driving:m.driving===true,sequence:m.renderSequence??m.sequence,updatedAt:m.seen,
    voice:m.voice&&m.seen>=clock()-500&&Math.hypot(m.x-member.x,m.y-member.y,m.z-member.z)<=35?m.voice:'',voiceSequence:m.voiceSequence,
+   voiceFrames:Math.hypot(m.x-member.x,m.y-member.y,m.z-member.z)<=35?publicVoice(m.voiceFrames):[],
    radioVoice:member.policeDuty&&member.radioChannel>0&&m.radioChannel===member.radioChannel&&m.seen>=clock()-500?m.radioVoice:'',radioSequence:m.radioSequence,
+   radioFrames:member.policeDuty&&m.policeDuty&&member.radioChannel>0&&m.radioChannel===member.radioChannel?publicVoice(m.radioFrames):[],
     policeDuty:m.policeDuty===true,cuffed:restraints.has(m.characterId),escortedBy:restraints.get(m.characterId)?.following?members.get(restraints.get(m.characterId).officerCharacterId)?.uid||'': '',
     inPoliceCar:[...policeCars.values()].some(car=>car.occupantCharacterId===m.characterId)
    }))};
  }
+ function voiceWindow(previous,data,sequence){
+  const frames=(previous||[]).filter(frame=>clock()-frame.at<=500);
+  if(data&&(!frames.length||sequence>frames.at(-1).sequence))frames.push({sequence,data,at:clock()});
+  return frames.slice(-4);
+ }
+ function publicVoice(frames){return (frames||[]).filter(frame=>clock()-frame.at<=500).map(({sequence,data})=>({sequence,data}));}
  function publicMessage({characterId,clientId,sessionId,targetCharacterId,recipientCharacterIds,...message}){return message;}
  function privateMessage(targetCharacterId,text){
   const targetMember=members.get(targetCharacterId);
@@ -431,6 +444,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2}={}){
    else {policeDuty.delete(identity.characterId);policeChannels.delete(identity.characterId);releaseCustody(identity.characterId);}
   }
   member.policeDuty=policeDuty.get(identity.characterId)===sessionId;
+  if(!member.policeDuty){member.radioFrames=[];member.radioVoice='';}
   member.radioChannel=policeChannels.get(identity.characterId)?.channel||0;
   return {policeDuty:member.policeDuty,radioChannel:member.radioChannel};
  }
@@ -445,6 +459,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2}={}){
    if(body.channel)policeChannels.set(identity.characterId,{sessionId,channel:body.channel});
    else policeChannels.delete(identity.characterId);
    member.radioVoice='';
+   member.radioFrames=[];
   }
   member.radioChannel=policeChannels.get(identity.characterId)?.channel||0;
   return {radioChannel:member.radioChannel,policeDuty:true};

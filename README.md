@@ -39,15 +39,16 @@ No Windows, `AbrirProjeto.bat` abre o projeto na instalação padrão do editor.
 - Chat com eco local imediato e destaque verde para comandos administrativos.
 - A partir da 0.5.0: versão no HUD/loading e atualização Android pelo GitHub Releases, com confirmação de instalação pelo Android.
 
-A rede ainda é um protótipo de sincronização por HTTPS; a suavização não elimina a latência da conexão.
+A rede usa Unity Transport por UDP/DTLS a 20 Hz quando o servidor dedicado está disponível, com alternativa por HTTPS. Contas, permissões, comandos e persistência continuam na API. A posição ainda é simulada pelo cliente; a suavização não elimina a latência da conexão. A integração Vivox usa tokens emitidos pelo backend, sem chave no aplicativo. Consulte [rede e voz](Backend/realtime/README.md).
 
 `VerMapaGTA.bat` abre uma prévia independente da cidade no Windows, sem conta ou multiplayer.
-`Jogar.bat` abre `TestePersonagem/Builds/Windows070/Horizonte.exe`, com entrada normal e login.
+`Jogar.bat` abre `TestePersonagem/Builds/WindowsRelease/Horizonte.exe`, com entrada normal e login.
+`JogarRedeLocal.bat` abre um laboratório de dois jogadores com contas temporárias e banco em memória.
 A cidade atual é a integração San Andreas em `Assets/Scenes/TestePersonagem.unity`,
 com 563 setores carregados por proximidade. Android seleciona 146 setores de Los Santos
 e usa as cenas em `Assets/Scenes/AndroidLosSantos`, preservando o mapa completo no projeto.
-`GameUpdateSetup.Scenes` escolhe o perfil conforme a plataforma. `Release070Build.Windows`
-e `Release070Build.Android` geram os pacotes; `tools/prepare_android_los_santos_project.py`
+`GameUpdateSetup.Scenes` escolhe o perfil conforme a plataforma. `ReleaseBuild.Windows`
+e `ReleaseBuild.Android` geram os pacotes; `tools/prepare_android_los_santos_project.py`
 prepara uma cópia Android isolada para reduzir a importação de recursos.
 Áreas rurais e San Fierro ainda têm falhas visuais; NPCs e missões precisam de revisão
 de posição. O tutorial inicial está desativado nos testes do mapa novo.

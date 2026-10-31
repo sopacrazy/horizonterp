@@ -20,7 +20,7 @@ assert validation['versionCode']==code and validation['sha256']==digest
 assert apk.stat().st_size<=300*1024*1024,'Installed updater cannot accept more than 300 MiB'
 windows=args.windows.resolve() if args.windows else None
 if windows:
-    windows_validation=json.loads((root/'tools/release-070/windows-validation.json').read_text(encoding='utf-8'))
+    windows_validation=json.loads((root/f"tools/release-{version.replace('.','')}/windows-validation.json").read_text(encoding='utf-8'))
     assert windows.name==f'HorizonteBrasil-Windows-{version}.zip' and windows.is_file()
     assert windows_validation['smoke']=='SA_REMEMBERED_ENTRY_PASSED'
     with windows.open('rb') as source:

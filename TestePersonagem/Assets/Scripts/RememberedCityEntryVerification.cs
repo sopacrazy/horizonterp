@@ -52,8 +52,33 @@ public sealed class RememberedCityEntryVerification : MonoBehaviour
         // The tutorial is disabled in normal play; explicitly exercise the mission-only
         // response that used to replace the authenticated character with an empty state.
         yield return a.ArrivalRequest(null,_=>{});
+        bool presentation=true;
+        if(Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-local-network-ui")>=0)
+        {
+            var hud=GameHud.Instance;
+            var marker=hud.Root.Q<HudIcon>(className:"marker");
+            presentation=marker!=null&&marker.Ink.b>.9f&&marker.Ink.r<.3f;
+            hud.OpenPanel("map");yield return null;
+            var fullMarker=hud.Root.Q<HudIcon>(className:"city-map-player");
+            presentation&=fullMarker!=null&&fullMarker.Ink.b>.9f&&fullMarker.Ink.r<.3f;
+            hud.ClosePanel();
+            var original=hud.Player.transform.rotation;
+            float start=hud.MinimapYaw,target=Mathf.Repeat(start+90,360);
+            hud.Player.transform.rotation=Quaternion.Euler(0,target,0);
+            yield return new WaitForEndOfFrame();
+            float first=Mathf.Abs(Mathf.DeltaAngle(start,hud.MinimapYaw));
+            yield return new WaitForSecondsRealtime(.8f);
+            presentation&=first<45&&Mathf.Abs(Mathf.DeltaAngle(target,hud.MinimapYaw))<1;
+            hud.Player.transform.rotation=original;
+            var speaker=new GameObject("Áudio de teste local");var audio=speaker.AddComponent<AudioSource>();
+            var playback=new VoicePlayback(audio);string packet=Convert.ToBase64String(new byte[1600]);
+            playback.Push(1,packet);var stream=audio.clip;playback.Push(2,packet);
+            presentation&=stream&&stream==audio.clip&&audio.loop;
+            playback.Dispose();Destroy(speaker);
+            Debug.Log("LOCAL_NETWORK_PRESENTATION_"+(presentation?"PASSED":"FAILED")+" firstTurn="+first);
+        }
         bool pass=missionReads>0&&a&&a.ReadyToEnterCity&&!a.AuthVisible&&AccountSession.HasCharacter&&
-            a.Document.rootVisualElement.resolvedStyle.display==DisplayStyle.None;
+            a.Document.rootVisualElement.resolvedStyle.display==DisplayStyle.None&&presentation;
         string detail="authenticated="+AccountSession.Authenticated+" ready="+a?.ReadyToEnterCity+
             " authVisible="+a?.AuthVisible+" root="+a?.Document.rootVisualElement.resolvedStyle.display+" missionReads="+missionReads;
         yield return new WaitForEndOfFrame();

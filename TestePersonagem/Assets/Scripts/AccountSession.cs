@@ -61,8 +61,13 @@ public sealed partial class AccountSession : MonoBehaviour
     }
     void Awake()
     {
+        InitializeRealtimeContext();
         Instance=this;DontDestroyOnLoad(gameObject);
         config=JsonUtility.FromJson<ApiPublicConfig>(Resources.Load<TextAsset>("ApiConfig").text);
+        if(Hbrp.Realtime.LocalNetworkLab.Active)
+        {
+            config=Hbrp.Realtime.LocalNetworkLab.Load();SessionVault.TestRead=()=>null;SessionVault.TestWrite=_=>{};SessionVault.TestClear=()=>{};
+        }
         Application.wantsToQuit+=WantsToQuit;
     }
     public IEnumerator RequireLogin(Texture2D artwork)
@@ -86,7 +91,7 @@ public sealed partial class AccountSession : MonoBehaviour
         {SetGeneralMessage(string.IsNullOrEmpty(LastError)?"Não foi possível acessar sua conta. Tente novamente.":LastError,true);yield break;}
         ClearSecrets();
         token=result.token;State=result.state;pending=null;leaving=false;SessionVault.Write(token);
-        PlayerPrefs.SetString("account.email",email.value.Trim());PlayerPrefs.Save();
+        if(!Hbrp.Realtime.LocalNetworkLab.IsolateSavedAccess){PlayerPrefs.SetString("account.email",email.value.Trim());PlayerPrefs.Save();}
         ShowAccountCharacter();
     }
     void ShowAccountCharacter()
