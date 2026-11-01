@@ -4,10 +4,11 @@ export class AdminError extends Error {
 }
 const reject=(status,code,message)=>{throw new AdminError(status,code,message);};
 export function createPlayerAdmin({pool,session,transaction,removeSession}){
- async function actor(client,token){
+ async function actor(client,token,promotionOnly=false){
   const auth=await session(client,token);
   const row=(await client.query('SELECT id,uid::text,account_role,admin_level FROM hbrp.accounts WHERE id=$1 AND NOT EXISTS (SELECT 1 FROM hbrp.characters WHERE account_id=$1 AND deleted_at IS NULL AND blocked_at IS NOT NULL AND (blocked_until IS NULL OR blocked_until>now()))',[auth.account_id])).rows[0];
   if(row?.account_role!=='admin'||row.admin_level<1)reject(403,'ADMIN_REQUIRED','Acesso exclusivo da administração.');
+  if(row.admin_level===4&&!promotionOnly)reject(403,'ADMIN_ROLE_RESTRICTED','O cargo administrativo nível 4 permite somente /adminpromov.');
   return {...row,sessionId:auth.id};
  }
  function view(row,viewer){
@@ -54,7 +55,7 @@ export function createPlayerAdmin({pool,session,transaction,removeSession}){
    if(row.admin_level>=viewer.admin_level)reject(403,'ADMIN_HIERARCHY','Só é permitido alterar jogadores e administradores de nível inferior.');
    const before={adminLevel:row.admin_level,blocked:row.blocked_at!==null};let revoked=[];
    if(body.action==='set_admin'){
-    if(!Number.isSafeInteger(body.adminLevel)||body.adminLevel<0||body.adminLevel>viewer.admin_level)reject(400,'INVALID_ADMIN_LEVEL','Escolha um nível entre 0 e o seu nível administrativo.');
+    if(!Number.isSafeInteger(body.adminLevel)||body.adminLevel<0||body.adminLevel>Math.min(3,viewer.admin_level))reject(400,'INVALID_ADMIN_LEVEL','Escolha um nível entre 0 e 3, limitado ao seu nível administrativo.');
     await client.query('UPDATE hbrp.accounts SET account_role=$1,admin_level=$2 WHERE id=$3',[body.adminLevel>0?'admin':'user',body.adminLevel,target.id]);
    }else if(body.action==='block'){
     await client.query("UPDATE hbrp.characters SET blocked_at=now(),blocked_until=CASE WHEN $3::int IS NULL THEN NULL ELSE now()+($3::int * interval '1 day') END,blocked_by=$1,blocked_reason=$2 WHERE id=$4",[viewer.id,reason,body.banDays??null,body.characterId]);
@@ -68,16 +69,53 @@ export function createPlayerAdmin({pool,session,transaction,removeSession}){
   for(const row of result.revoked)removeSession(row.id);
   return {player:result.player};
  }
- async function resolvePlayer(identifier){
-  const rows=(await pool.query(`SELECT a.id,a.uid::text,c.id AS character_id,c.name,c.first_name,a.admin_level
+ async function resolvePlayer(identifier,client=pool){
+  if(typeof identifier!=='string')reject(400,'INVALID_TARGET','Informe o ID ou nome do jogador.');
+  if(/[\p{Cc}\p{Cf}]/u.test(identifier))reject(400,'INVALID_TARGET','Informe um ID ou nome válido.');
+  identifier=identifier.normalize('NFC').trim().replace(/\s+/gu,' ');
+  if(!identifier||Array.from(identifier).length>64||/[\p{Cc}\p{Cf}]/u.test(identifier))reject(400,'INVALID_TARGET','Informe um ID ou nome válido de até 64 caracteres.');
+  const isUid=/^[1-9][0-9]{0,18}$/u.test(identifier);
+  const rows=(await client.query(`SELECT a.id,a.uid::text,c.id AS character_id,c.name,c.first_name,a.admin_level
    FROM hbrp.accounts a JOIN hbrp.characters c ON c.account_id=a.id
-   WHERE c.deleted_at IS NULL AND (a.uid::text=$1 OR lower(c.name)=lower($1) OR lower(c.first_name)=lower($1))
-   LIMIT 2`,[identifier])).rows;
+   WHERE c.deleted_at IS NULL AND (CASE WHEN $2::boolean THEN a.uid::text=$1
+    ELSE lower(normalize(c.name,NFC))=lower($1) OR lower(normalize(c.first_name,NFC))=lower($1) END)
+   LIMIT 2`,[identifier,isUid])).rows;
   if(!rows.length)reject(404,'PLAYER_NOT_FOUND','Jogador não encontrado.');
   if(rows.length>1)reject(409,'AMBIGUOUS_PLAYER','Nome repetido. Use o ID do jogador.');
   return rows[0];
  }
+ async function promote(token,args){
+  const viewer=await actor(pool,token,true);
+  if(viewer.admin_level!==4)reject(403,'ADMIN_LEVEL_REQUIRED','/adminpromov é exclusivo do cargo administrativo nível 4.');
+  const match=(typeof args==='string'?args:'').trim().match(/^(.+?)\s+([12])$/u);
+  if(!match)reject(400,'COMMAND_USAGE','Uso: /adminpromov [ID/nick] [1 ou 2]');
+  const level=Number(match[2]);
+  return transaction(async client=>{
+   const initial=await actor(client,token,true);
+   if(initial.admin_level!==4)reject(403,'ADMIN_LEVEL_REQUIRED','/adminpromov é exclusivo do cargo administrativo nível 4.');
+   const target=await resolvePlayer(match[1],client);
+   if(initial.id===target.id)reject(409,'SELF_MODIFICATION','Você não pode alterar a própria conta.');
+   // Only permission columns change. NO KEY UPDATE still serializes role edits
+   // while permitting profile audit foreign-key checks on the target account.
+   await client.query('SELECT id FROM hbrp.accounts WHERE id IN ($1,$2) ORDER BY id FOR NO KEY UPDATE',[initial.id,target.id]);
+   const fresh=await actor(client,token,true);
+   if(fresh.admin_level!==4)reject(403,'ADMIN_LEVEL_REQUIRED','Seu cargo administrativo foi alterado. A promoção não foi aplicada.');
+   // Match the established administration order before locking the character.
+   await client.query('SELECT id FROM hbrp.sessions WHERE account_id=$1 ORDER BY id FOR UPDATE',[target.id]);
+   const row=(await client.query('SELECT '+columns+' FROM hbrp.accounts a JOIN hbrp.characters c ON c.account_id=a.id WHERE a.id=$1 AND c.id=$2 AND c.deleted_at IS NULL FOR UPDATE OF c',[target.id,target.character_id])).rows[0];
+   if(!row)reject(404,'PLAYER_NOT_FOUND','Personagem não encontrado.');
+   if(row.admin_level>=3)reject(403,'ADMIN_HIERARCHY','/adminpromov só pode promover jogadores e administradores dos níveis 1 e 2.');
+   if(row.admin_level>level)reject(409,'ADMIN_PROMOTION_ONLY','/adminpromov permite promover; não permite rebaixar um administrador.');
+   const before=row.admin_level;
+   if(before!==level)await client.query("UPDATE hbrp.accounts SET account_role='admin',admin_level=$1 WHERE id=$2",[level,target.id]);
+   await client.query("INSERT INTO hbrp.audit_events(actor_account_id,action,entity_type,entity_id,details) VALUES($1,'admin.adminpromov','character',$2,$3::jsonb)",
+    [fresh.id,target.character_id,JSON.stringify({uid:row.uid,before:{adminLevel:before},adminLevel:level,unchanged:before===level})]);
+   return {name:'adminpromov',status:'ok',uid:row.uid,value:level,
+    message:before===level?`${row.first_name} já é admin nível ${level}.`:`${row.first_name} agora é admin nível ${level}.`};
+  });
+ }
  async function command(token,{name,args},room){
+  if(name==='adminpromov')return promote(token,args);
   const viewer=await actor(pool,token);
   if(name==='makeadmin'){
    if(viewer.admin_level<3)reject(403,'ADMIN_LEVEL_REQUIRED','/makeadmin exige nível 3.');

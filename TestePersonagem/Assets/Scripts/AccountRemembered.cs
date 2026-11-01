@@ -50,10 +50,10 @@ public sealed partial class AccountSession
         busy=false;
         if(reply!=null&&(reply.needsCharacter||!string.IsNullOrEmpty(reply.state?.characterId)))
         {
-            State=reply.state;pending=null;leaving=false;
+            State=reply.state;pending=null;leaving=false;RememberAccountUid(reply);
             if(HasCharacter)ShowRemembered();else {HideRemembered();ShowAccountCharacter();}
         }
-        else if(LastErrorCode=="CHARACTER_BLOCKED"||LastErrorCode=="UNAUTHORIZED")
+        else if(IsAccessRevokedCode(LastErrorCode))
         {
             SessionVault.Clear();token=null;State=null;HideRemembered();ShowLogin(LastError);
         }

@@ -215,7 +215,12 @@ public sealed class InGameChat : MonoBehaviour
         if(camera&&player){camera.target=player.transform;camera.ResetView();}
     }
     static bool IsPlayerCommand(string name)=>name=="s"||name=="w"||name=="me"||name=="do"||name=="try"||name=="j"||name=="stats"||name=="myreports"||name=="report"||name=="gps"||name=="phone"||name=="mask"||name=="healme"||name=="house"||name=="biz"||name=="daily"||name=="quests"||name=="v"||name=="headmove"||name=="anim"||name=="ajuda";
-    void LateUpdate(){if(headMotionStopped&&fixedHead)fixedHead.localRotation=fixedHeadRotation;}
+    void LateUpdate()
+    {
+        if(!headMotionStopped||!fixedHead)return;
+        var combat=fixedHead.GetComponentInParent<CombatAvatarAnimation>();
+        if(!combat||!combat.Busy)fixedHead.localRotation=fixedHeadRotation;
+    }
     static bool IsPoliceCommand(string name)=>name=="ide"||name=="wanted"||name=="su"||name=="clear"||name=="cuff"||name=="uncuff"||name=="follow"||name=="stay"||name=="put"||name=="eject"||name=="carpolicia"||name=="ticket"||name=="proc"||name=="megaphone"||name=="faction"||name=="departments"||name=="government";
     void AdminLine(string text,bool police=false)
     {lines.Add(new ChatLine{text=(police?"[POLÍCIA] ":"[ADMIN] ")+text,kind="admin"});TrimLines();Render();}

@@ -11,6 +11,7 @@ import {getWorldBounds,isPositionWithinWorld} from './world-bounds.mjs';
 import {createArrivalMission,ArrivalError,arrivalConfig} from './arrival-mission.mjs';
 import {createPoliceCommands} from './police-commands.mjs';
 import {createRealtimeAccess,RealtimeError} from './realtime-access.mjs';
+import {createBetaAccess,BetaAccessError} from './beta-access.mjs';
 
 const scrypt=promisify(scryptCb);
 const hash=x=>createHash('sha256').update(x).digest();
@@ -33,25 +34,37 @@ export function characterIdentity(body){
  return {firstName,lastName,gender:body.gender,name:firstName+' '+lastName};
 }
 function password(value){if(typeof value!=='string'||value.length<10||value.length>128||!value.trim())fail(400,'A senha precisa ter entre 10 e 128 caracteres.');return value;}
-export function createApiHandler(pool,{log=console.log,errorLog=console.error,servicesEnv=process.env}={}){
-const room=createRoom({capacity:10});
+export function createApiHandler(pool,{log=console.log,errorLog=console.error,servicesEnv=process.env,authMode='beta'}={}){
+if(!['beta','legacy'].includes(authMode))throw new Error('Invalid authentication mode');
+// Production invokes this factory without an override. Legacy mode exists only
+// as an explicit code-level fixture option, never an HTTP or environment switch.
+const betaRequired=authMode==='beta';
+const room=createRoom({capacity:10,persistDamage:async({characterId,damage})=>{
+ // Combat owns health. Checkpoints only store position and cannot undo a hit.
+ const result=await pool.query(`UPDATE hbrp.character_stats SET health=GREATEST(0,health-$2),
+  version=version+1,updated_at=now() WHERE character_id=$1 RETURNING health::float`,[characterId,damage]);
+ if(!result.rowCount)fail(409,'Dados do personagem incompletos.','CHARACTER_INCOMPLETE');
+ return result.rows[0].health;
+}});
 const realtime=createRealtimeAccess({room,env:servicesEnv});
 let followerReady;
 function loadFollower(){
  return followerReady??=pool.query(`SELECT f.owner_character_id AS owner_id,c.id AS bot_id,
-  a.uid::text AS uid,c.name,c.first_name,v.model_code
+  a.uid::text AS uid,c.name,c.first_name,v.model_code,s.health::float
   FROM hbrp.follow_test_bots f JOIN hbrp.characters c ON c.id=f.bot_character_id AND c.deleted_at IS NULL
   JOIN hbrp.accounts a ON a.id=c.account_id AND a.status='active'
   LEFT JOIN hbrp.character_appearance v ON v.character_id=c.id
+  JOIN hbrp.character_stats s ON s.character_id=c.id
   WHERE f.enabled=true LIMIT 1`).then(({rows})=>{
    if(rows[0])room.setFollowerBot({ownerCharacterId:rows[0].owner_id,characterId:rows[0].bot_id,
-    uid:rows[0].uid,name:rows[0].name,firstName:rows[0].first_name,model:rows[0].model_code});
+    uid:rows[0].uid,name:rows[0].name,firstName:rows[0].first_name,model:rows[0].model_code,health:rows[0].health});
   });
 }
 const arrival=createArrivalMission({pool,session,transaction,requireCharacter});
 const administration=createPlayerAdmin({pool,session,transaction,removeSession:id=>room.removeSession(id)});
 const police=createPoliceCommands({pool,transaction,room});
 const playerCommands=createPlayerCommands({pool,transaction,room});
+const betaAccess=createBetaAccess({pool,session,transaction,makePassword,removeSession:id=>room.removeSession(id)});
 let cryptoJobs=0;
 async function derive(pass,salt){
  if(cryptoJobs>=2)fail(429,'Aguarde alguns segundos e tente novamente.','BUSY');
@@ -74,17 +87,25 @@ setInterval(()=>{for(const [key,value] of limits)if(value.until<Date.now())limit
 async function transaction(fn){const client=await pool.connect();try{await client.query('BEGIN');const result=await fn(client);await client.query('COMMIT');return result;}catch(e){await client.query('ROLLBACK');throw e;}finally{client.release();}}
 async function session(client,token,lock=false){
  if(typeof token!=='string'||! /^[A-Za-z0-9_-]{43}$/.test(token))fail(401,'Entre novamente na sua conta.','UNAUTHORIZED');
- const result=await client.query(`SELECT s.id,s.account_id,s.last_checkpoint_at FROM hbrp.sessions s JOIN hbrp.accounts a ON a.id=s.account_id WHERE s.token_hash=$1 AND s.revoked_at IS NULL AND s.expires_at>now() AND a.status='active' ${lock?'FOR UPDATE OF s':''}`,[hash(token)]);
+ const result=await client.query(`SELECT s.id,s.account_id,s.last_checkpoint_at${betaRequired?',s.beta_access_version::text,b.credential_version::text AS permitted_beta_version,b.revoked_at AS beta_revoked_at':''}
+  FROM hbrp.sessions s JOIN hbrp.accounts a ON a.id=s.account_id
+  ${betaRequired?'LEFT JOIN hbrp.beta_access b ON b.account_id=a.id':''}
+  WHERE s.token_hash=$1 AND s.revoked_at IS NULL AND s.expires_at>now() AND a.status='active' ${lock?'FOR UPDATE OF s':''}`,[hash(token)]);
  if(!result.rowCount)fail(401,'Sua sessão expirou ou foi encerrada. Entre novamente.','UNAUTHORIZED');
+ if(betaRequired&&(!result.rows[0].permitted_beta_version||result.rows[0].beta_revoked_at||result.rows[0].beta_access_version!==result.rows[0].permitted_beta_version))
+  fail(401,'Este acesso não está autorizado para a equipe beta. Solicite um UID e senha emitidos pelo painel.','BETA_ACCESS_REQUIRED');
  return result.rows[0];
 }
-async function issueSession(client,accountId){
+async function issueSession(client,accountId,betaVersion=null){
  const token=randomBytes(32).toString('base64url');
- await client.query("INSERT INTO hbrp.sessions(account_id,token_hash,expires_at) VALUES($1,$2,now()+interval '30 days')",[accountId,hash(token)]);
+ if(betaRequired){
+  if(!betaVersion)fail(401,'Acesso beta não autorizado.','BETA_ACCESS_REQUIRED');
+  await client.query("INSERT INTO hbrp.sessions(account_id,token_hash,expires_at,beta_access_version) VALUES($1,$2,now()+interval '30 days',$3)",[accountId,hash(token),betaVersion]);
+ }else await client.query("INSERT INTO hbrp.sessions(account_id,token_hash,expires_at) VALUES($1,$2,now()+interval '30 days')",[accountId,hash(token)]);
  await client.query('UPDATE hbrp.accounts SET last_login_at=now() WHERE id=$1',[accountId]);return token;
 }
 async function state(client,accountId){
- const result=await client.query(`SELECT a.id AS account_id,a.uid::text,a.account_role,a.admin_level,c.id AS character_id,c.name,c.first_name,c.last_name,c.gender,c.blocked_at,c.blocked_until,c.blocked_reason,
+ const result=await client.query(`SELECT a.id AS account_id,a.uid::text,a.account_role,a.admin_level,${betaRequired?"coalesce(ba.can_manage,false) AND ba.revoked_at IS NULL AND a.account_role='admin' AND a.admin_level>0 AND a.admin_level<>4":"false"} AS can_manage_beta,c.id AS character_id,c.name,c.first_name,c.last_name,c.gender,c.blocked_at,c.blocked_until,c.blocked_reason,
  s.character_id AS stats_id,p.character_id AS position_id,v.character_id AS appearance_id,
  s.health::float,s.energy::float,s.hunger::float,s.thirst::float,s.level,s.xp::text,s.play_seconds::text,
  p.x,p.y,p.z,p.yaw,p.camera_yaw,p.camera_pitch,p.version::text,w.code AS world,
@@ -93,6 +114,7 @@ async function state(client,accountId){
  coalesce((SELECT balance FROM hbrp.wallets WHERE character_id=c.id AND currency='bank'),0)::text AS bank_cents,
  coalesce((SELECT balance FROM hbrp.wallets WHERE account_id=a.id AND currency='hz'),0)::text AS hz_coins
  FROM hbrp.accounts a LEFT JOIN hbrp.characters c ON c.account_id=a.id AND c.deleted_at IS NULL
+ ${betaRequired?'LEFT JOIN hbrp.beta_access ba ON ba.account_id=a.id':''}
  LEFT JOIN hbrp.character_stats s ON s.character_id=c.id LEFT JOIN hbrp.character_positions p ON p.character_id=c.id
  LEFT JOIN hbrp.worlds w ON w.id=p.world_id LEFT JOIN hbrp.character_appearance v ON v.character_id=c.id
  LEFT JOIN LATERAL (SELECT o.code,o.name,m.rank_code FROM hbrp.organization_members m
@@ -104,11 +126,12 @@ async function state(client,accountId){
  if(r.blocked_at&&(!r.blocked_until||new Date(r.blocked_until).getTime()>Date.now()))
   fail(403,'Este personagem está bloqueado. Motivo: '+(r.blocked_reason||'Procure a administração.'),'CHARACTER_BLOCKED');
  if(!r.stats_id||!r.position_id||!r.appearance_id||!r.world)fail(409,'Dados do personagem incompletos. Procure o suporte.','CHARACTER_INCOMPLETE');
- return {accountId:r.account_id,uid:r.uid,accountRole:r.account_role,adminLevel:r.admin_level,characterId:r.character_id,name:r.name,firstName:r.first_name,lastName:r.last_name,gender:r.gender,organization:r.organization_code?{code:r.organization_code,name:r.organization_name,rank:r.organization_rank}:null,health:r.health,energy:r.energy,hunger:r.hunger,thirst:r.thirst,level:r.level,xp:r.xp,playSeconds:r.play_seconds,cashCents:r.cash_cents,bankCents:r.bank_cents,hzCoins:r.hz_coins,model:r.model_code,world:r.world,version:r.version,x:r.x,y:r.y,z:r.z,yaw:r.yaw,cameraYaw:r.camera_yaw,cameraPitch:r.camera_pitch};
+ return {accountId:r.account_id,uid:r.uid,accountRole:r.account_role,adminLevel:r.admin_level,canManageBeta:r.can_manage_beta,characterId:r.character_id,name:r.name,firstName:r.first_name,lastName:r.last_name,gender:r.gender,organization:r.organization_code?{code:r.organization_code,name:r.organization_name,rank:r.organization_rank}:null,health:r.health,energy:r.energy,hunger:r.hunger,thirst:r.thirst,level:r.level,xp:r.xp,playSeconds:r.play_seconds,cashCents:r.cash_cents,bankCents:r.bank_cents,hzCoins:r.hz_coins,model:r.model_code,world:r.world,version:r.version,x:r.x,y:r.y,z:r.z,yaw:r.yaw,cameraYaw:r.camera_yaw,cameraPitch:r.camera_pitch};
 }
-async function playerReply(client,accountId){const current=await state(client,accountId);const account=(await client.query('SELECT uid::text,account_role AS "accountRole",admin_level AS "adminLevel" FROM hbrp.accounts WHERE id=$1',[accountId])).rows[0];return {state:current,needsCharacter:current===null,account};}
+async function playerReply(client,accountId){const current=await state(client,accountId);const account=(await client.query(`SELECT a.uid::text,a.account_role AS "accountRole",a.admin_level AS "adminLevel",${betaRequired?"coalesce(b.can_manage,false) AND b.revoked_at IS NULL AND a.account_role='admin' AND a.admin_level>0 AND a.admin_level<>4":"false"} AS "canManageBeta" FROM hbrp.accounts a ${betaRequired?'LEFT JOIN hbrp.beta_access b ON b.account_id=a.id':''} WHERE a.id=$1`,[accountId])).rows[0];return {state:current,needsCharacter:current===null,account};}
 async function requireCharacter(client,accountId){const current=await state(client,accountId);if(!current)fail(409,'Crie seu personagem antes de entrar na cidade.','CHARACTER_REQUIRED');return current;}
 async function register(body){
+ if(betaRequired)fail(403,'O cadastro público está fechado. Use o UID e a senha emitidos pelo painel da equipe beta.','REGISTRATION_CLOSED');
  exact(body,['email','password']);const mail=email(body.email),pass=password(body.password);
  const encoded=await makePassword(pass);
  return transaction(async client=>{
@@ -120,6 +143,7 @@ async function register(body){
  });
 }
 async function login(body){
+ if(betaRequired)return betaLogin(body);
  exact(body,['email','password']);const mail=email(body.email),pass=password(body.password);
  const result=await pool.query('SELECT a.id,a.status,p.password_hash FROM hbrp.accounts a JOIN hbrp.password_credentials p ON p.account_id=a.id WHERE lower(a.email)=$1',[mail]);
  const account=result.rows[0];const valid=await checkPassword(pass,account?.password_hash);
@@ -128,6 +152,24 @@ async function login(body){
   const active=await client.query("SELECT id FROM hbrp.accounts WHERE id=$1 AND status='active' FOR UPDATE",[account.id]);
   if(!active.rowCount)fail(401,'E-mail ou senha inválidos.','INVALID_CREDENTIALS');
   const token=await issueSession(client,account.id);return {token,...await playerReply(client,account.id)};
+ });
+}
+async function betaLogin(body){
+ exact(body,['uid','password']);
+ if(typeof body.uid!=='string'||!/^[1-9][0-9]{0,18}$/.test(body.uid.trim()))fail(400,'Informe o UID fornecido pela equipe.','INVALID_UID');
+ const uid=body.uid.trim(),pass=password(body.password);
+ const result=await pool.query(`SELECT a.id,a.status,b.password_hash,b.credential_version::text,b.revoked_at
+  FROM hbrp.accounts a LEFT JOIN hbrp.beta_access b ON b.account_id=a.id WHERE a.uid::text=$1`,[uid]);
+ const account=result.rows[0];const valid=await checkPassword(pass,account?.password_hash);
+ if(!valid||account.status!=='active'||account.revoked_at||!account.credential_version)
+  fail(401,'UID ou senha inválidos, ou acesso beta não autorizado.','INVALID_CREDENTIALS');
+ return transaction(async client=>{
+  const active=await client.query("SELECT id FROM hbrp.accounts WHERE id=$1 AND status='active' FOR UPDATE",[account.id]);
+  if(!active.rowCount)fail(401,'UID ou senha inválidos, ou acesso beta não autorizado.','INVALID_CREDENTIALS');
+  const grant=(await client.query('SELECT password_hash,credential_version::text,revoked_at FROM hbrp.beta_access WHERE account_id=$1 FOR UPDATE',[account.id])).rows[0];
+  if(!grant||grant.revoked_at||grant.password_hash!==account.password_hash||grant.credential_version!==account.credential_version)
+   fail(401,'As credenciais foram alteradas. Use o UID e senha atuais.','INVALID_CREDENTIALS');
+  const token=await issueSession(client,account.id,grant.credential_version);return {token,...await playerReply(client,account.id)};
  });
 }
 async function createCharacter(body,token){
@@ -206,7 +248,17 @@ return async(req,res)=>{
   if(limits.size>10000)fail(503,'Serviço ocupado. Tente novamente.');
   rate(req.socket.remoteAddress,path==='/v1/multiplayer/sync'?'multiplayer':'all',path==='/v1/multiplayer/sync'?6000:240,60000);
   if(req.method==='GET'&&path==='/health'){await pool.query('SELECT 1');return send(200,{status:'ok',service:'hbrp-api',version:'0.3.0'});}
+  if(req.method==='GET'&&path==='/v1/auth/config')return send(200,{authMode:betaRequired?'beta':'legacy',registrationOpen:!betaRequired});
   const token=req.headers.authorization?.startsWith('Bearer ')?req.headers.authorization.substring(7):null;
+  if(path==='/v1/admin/beta-access'){
+   if(req.method==='GET'){
+    const query=new URL(req.url,'https://hbrp.local').searchParams;
+    return send(200,await betaAccess.list(token,query.get('q')??'',Number(query.get('offset')??0)));
+   }
+   if(req.method==='POST')return send(201,await betaAccess.create(token,await readBody(req)));
+  }
+  const betaTarget=path.match(/^\/v1\/admin\/beta-access\/([1-9][0-9]{0,18})\/(approve|reset|revoke)$/);
+  if(req.method==='POST'&&betaTarget)return send(200,await betaAccess.change(token,betaTarget[1],betaTarget[2],await readBody(req)));
   if((req.method==='GET'&&path==='/v1/services')||(req.method==='POST'&&['/v1/realtime/ticket','/v1/voice/token'].includes(path))){
    const auth=await session(pool,token);const identity=await requireCharacter(pool,auth.account_id);
    if(path==='/v1/services')return send(200,realtime.config(identity));
@@ -244,11 +296,21 @@ return async(req,res)=>{
    const identity=await requireCharacter(pool,auth.account_id);
    return send(200,room.radio(identity,auth.id,req.method==='POST'?await readBody(req):undefined));
   }
+  if(req.method==='POST'&&path==='/v1/police/car'){
+   const auth=await session(pool,token);
+   const identity=await requireCharacter(pool,auth.account_id);
+   return send(200,room.vehicle(identity,auth.id,await readBody(req)));
+  }
+  if(req.method==='POST'&&path==='/v1/multiplayer/attack'){
+   const auth=await session(pool,token);
+   const identity=await requireCharacter(pool,auth.account_id);
+   return send(200,await room.attack(identity,auth.id,await readBody(req)));
+  }
   if(req.method==='POST'&&(path==='/v1/multiplayer/sync'||path==='/v1/multiplayer/leave'||path==='/v1/multiplayer/chat')){
    const auth=await session(pool,token);
    const body=await readBody(req);
    const identity=await requireCharacter(pool,auth.account_id);
-   if(path.endsWith('/sync')&&body.driving===true){
+   if(path.endsWith('/sync')&&body.driving===true&&!body.policeCarId){
     const loan=await pool.query("SELECT 1 FROM hbrp.character_progress WHERE character_id=$1 AND category='mission' AND code=$2 AND state->>'phase' IN ('borrowed','rg_pending','rg_processing','rg_issued','driving_school') AND (state->>'loanExpiresAt')::timestamptz>now()",[identity.characterId,arrivalConfig.code]);
     if(!loan.rowCount)fail(403,'O empréstimo do veículo não está ativo.','MISSION_VEHICLE_UNAVAILABLE');
    }
@@ -271,7 +333,7 @@ return async(req,res)=>{
   fail(404,'Rota não encontrada.','NOT_FOUND');
  }catch(error){
   if(error.code==='23505')send(409,{error:'E-mail ou nome de personagem já cadastrado.',code:'ALREADY_EXISTS'});
-  else if(error instanceof ApiError||error instanceof RoomError||error instanceof AdminError||error instanceof ArrivalError||error instanceof RealtimeError)send(error.status,{error:error.message,code:error.code});
+  else if(error instanceof ApiError||error instanceof RoomError||error instanceof AdminError||error instanceof ArrivalError||error instanceof RealtimeError||error instanceof BetaAccessError)send(error.status,{error:error.message,code:error.code,...(error instanceof BetaAccessError?error.details:{})});
   else{errorLog(JSON.stringify({event:'request_error',requestId,code:error.code||'INTERNAL'}));send(500,{error:'Não foi possível concluir. Tente novamente.',code:'INTERNAL'});}
  }finally{if(path!=='/v1/multiplayer/sync'||status!==200)log(JSON.stringify({requestId,method:req.method,path,status,ms:Date.now()-started}));}
 };

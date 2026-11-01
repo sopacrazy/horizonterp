@@ -30,7 +30,12 @@ public partial class ThirdPersonPlayer : MonoBehaviour
     CharacterController controller;
     float verticalSpeed;
     public float CurrentSpeed { get; private set; }
-    public bool CombatLocked { get; set; }
+    bool combatLocked;
+    public bool CombatLocked
+    {
+        get=>combatLocked||(animator&&animator.TryGetComponent<CombatAvatarAnimation>(out var combat)&&combat.Busy);
+        set=>combatLocked=value;
+    }
     int adminSpeedMultiplier = 1;
     Coroutine teleportRoutine;
     bool teleporting;
@@ -39,13 +44,13 @@ public partial class ThirdPersonPlayer : MonoBehaviour
     public bool IsCuffed {get;private set;}
     public bool InPoliceCar {get;private set;}
     float policeCarOldDistance,policeCarOldPitch;
+    Coroutine policeCarExitRoutine;
     Vector3 custodyPosition;
     float custodyYaw;
     bool escorted;
     CuffedAvatarPose cuffedPose;
     public int AdminSpeedMultiplier => HasAdminAccess ? adminSpeedMultiplier : 1;
-    bool HasAdminAccess => AccountSession.HasCharacter &&
-        AccountSession.Instance.State.accountRole == "admin" && AccountSession.Instance.State.adminLevel > 0;
+    bool HasAdminAccess => AdminPermissions.CurrentCanUseTools;
     public bool SetAdminSpeedMultiplier(int multiplier)
     {
         if (!HasAdminAccess || (multiplier != 1 && multiplier != 2 && multiplier != 4 &&
@@ -82,11 +87,24 @@ public partial class ThirdPersonPlayer : MonoBehaviour
 
     void Update()
     {
+        if(PoliceVehicleController.BlocksPlayer(this)||policeCarExitRoutine!=null){CurrentSpeed=0;jumpRequested=false;return;}
         if(MissionVehicle.Driver==this){CurrentSpeed=0;jumpRequested=false;return;}
         if(InPoliceCar){CurrentSpeed=0;jumpRequested=false;return;}
         if (!HasAdminAccess) adminSpeedMultiplier = 1;
         if(StartupLoader.IsLoading || IntegratedMapEntry.Loading || AccountSession.InputBlocked || teleporting || IsSpectating)
         {jumpRequested=false;CurrentSpeed=0;animator.SetFloat("Speed",0);return;}
+        if(Health<=0||(animator.TryGetComponent<CombatAvatarAnimation>(out var combat)&&combat.Busy))
+        {
+            jumpRequested=false;IsJumping=false;jumpLaunched=false;
+            CurrentSpeed=0;animator.SetBool("Jumping",false);animator.SetFloat("Speed",0);
+            if(controller.enabled)
+            {
+                if(controller.isGrounded&&verticalSpeed<0)verticalSpeed=-2;
+                verticalSpeed=Mathf.Max(verticalSpeed-Gravity*Time.deltaTime,-30);
+                controller.Move(Vector3.up*verticalSpeed*Time.deltaTime);
+            }
+            return;
+        }
         if(IsCuffed)
         {
             jumpRequested=false;IsJumping=false;animator.SetBool("Jumping",false);
@@ -238,17 +256,29 @@ public partial class ThirdPersonPlayer : MonoBehaviour
         var orbit=FindAnyObjectByType<ThirdPersonCamera>();
         if(inCar)
         {
-            if(orbit){policeCarOldDistance=orbit.distance;policeCarOldPitch=orbit.pitch;orbit.distance=6.5f;orbit.pitch=16f;}
+            if(policeCarExitRoutine!=null){StopCoroutine(policeCarExitRoutine);policeCarExitRoutine=null;}
             controller.enabled=false;transform.SetPositionAndRotation(seatPosition,Quaternion.Euler(0,seatYaw,0));
+            if(orbit)orbit.RetargetPreservingView(transform,false);
             animator.gameObject.SetActive(false);
             GameHud.Instance?.ShowAccountMessage("Você está no banco traseiro da viatura");
         }
         else
         {
             transform.SetPositionAndRotation(seatPosition,Quaternion.Euler(0,seatYaw,0));
-            animator.gameObject.SetActive(true);controller.enabled=true;
-            if(orbit){orbit.distance=policeCarOldDistance;orbit.pitch=policeCarOldPitch;orbit.ResetView();}
+            if(orbit)orbit.RetargetPreservingView(transform,false);
+            policeCarExitRoutine=StartCoroutine(FinishPolicePassengerExit(orbit));
         }
+    }
+
+    IEnumerator FinishPolicePassengerExit(ThirdPersonCamera orbit)
+    {
+        yield return null;
+        float deadline=Time.unscaledTime+3;
+        string uid=AccountSession.Instance?.State?.uid;
+        while(PoliceCarWorld.Instance&&PoliceCarWorld.Instance.PassengerExiting(uid)&&Time.unscaledTime<deadline)yield return null;
+        animator.gameObject.SetActive(true);controller.enabled=true;
+        if(orbit)orbit.RetargetPreservingView(transform,false);
+        policeCarExitRoutine=null;
     }
 
 }

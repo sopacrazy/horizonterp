@@ -6,7 +6,7 @@ using UnityEngine.UIElements;
 public sealed partial class GameHud : MonoBehaviour
 {
     public static GameHud Instance { get; private set; }
-    public bool IsPanelOpen => !string.IsNullOrEmpty(CurrentPanel)||(AdminPlayerPanel.Instance&&AdminPlayerPanel.Instance.IsOpen)||
+    public bool IsPanelOpen => VehicleHud.MenuOpen|| !string.IsNullOrEmpty(CurrentPanel)||(AdminPlayerPanel.Instance&&AdminPlayerPanel.Instance.IsOpen)||
         (AdminHelpPanel.Instance&&AdminHelpPanel.Instance.IsOpen);
     public bool SprintRequested { get; private set; }
     public string CurrentPanel { get; private set; }
@@ -33,6 +33,8 @@ public sealed partial class GameHud : MonoBehaviour
     Label distanceMetric,timeMetric,topSpeedMetric;
     Button sprint,adminButton,microphoneButton;
     VisualElement microphoneRing;
+    HudIcon idMicrophone;
+    Label latencyLabel;
     HudIcon miniMarker,mapMarker;
     Image sprintArtwork;
     Label levelLabel,cashLabel,dateLabel,healthLabel,energyLabel,waterLabel;
@@ -170,7 +172,13 @@ public sealed partial class GameHud : MonoBehaviour
         var room=Element("h2-chip h2-room",footer);room.tooltip="Sala de testes";
         Text(AccountSession.Authenticated?"CONECTANDO":"LOCAL","",room).name="multiplayer-status";
         var id=Element("h2-chip h2-id",footer);uidLabel=Text(AccountSession.Authenticated?"ID: "+AccountSession.Instance.State.uid:"TESTE","",id);
+        id.style.flexDirection=FlexDirection.Row;id.style.alignItems=Align.Center;
+        idMicrophone=new HudIcon("microphone"){name="id-microphone"};
+        idMicrophone.style.width=16;idMicrophone.style.height=18;idMicrophone.style.marginLeft=5;
+        idMicrophone.SetInk(new Color(.18f,1f,.5f));idMicrophone.style.display=DisplayStyle.None;id.Add(idMicrophone);
         var time=Element("h2-chip h2-time",footer);clock=Text(DateTime.Now.ToString("HH:mm"),"",time);
+        var latency=Element("h2-chip h2-latency",footer);
+        latencyLabel=Text("PING —","",latency);latencyLabel.name="network-latency";
         // These existing hooks remain available to menus without occupying the HUD.
         var compass=Element("compass");compass.name="hud-compass";heading=Text("","",compass);
         var motion=Element("locomotion");motion.name="hud-motion";motion.style.display=DisplayStyle.None;
@@ -409,6 +417,11 @@ public sealed partial class GameHud : MonoBehaviour
     {
         if(microphoneButton==null)return;
         bool active=VoiceChat.Instance&&VoiceChat.Instance.Transmitting;
+        if(idMicrophone!=null)
+        {
+            idMicrophone.style.display=active?DisplayStyle.Flex:DisplayStyle.None;
+            idMicrophone.style.opacity=.5f+.5f*Mathf.Abs(Mathf.Sin(Time.unscaledTime*5));
+        }
         microphoneButton.tooltip=active?"Microfone ligado — tocar para desligar":"Ligar microfone";
         microphoneButton.style.backgroundColor=active?new Color(.02f,.42f,.26f,.75f):Color.clear;
         if(microphoneRing!=null)
@@ -420,7 +433,7 @@ public sealed partial class GameHud : MonoBehaviour
     void RefreshAdminAccess()
     {
         if(adminButton==null)return;
-        bool admin=AccountSession.HasCharacter&&AccountSession.Instance.State.accountRole=="admin"&&AccountSession.Instance.State.adminLevel>0;
+        bool admin=AdminPermissions.CurrentCanUseTools;
         adminButton.style.display=admin?DisplayStyle.Flex:DisplayStyle.None;
     }
     public void ShowAccountMessage(string message)=>ShowToast(message);
@@ -527,6 +540,7 @@ public sealed partial class GameHud : MonoBehaviour
         if(!player)return;
         RefreshAdminAccess();
         RefreshMicrophoneIndicator();
+        RefreshLatencyIndicator();
         root.style.visibility=StartupLoader.IsLoading||CityEntryLoading.Active||
             (AccountSession.Instance&&AccountSession.Instance.AuthVisible)?Visibility.Hidden:Visibility.Visible;
         root.SetEnabled(!StartupLoader.IsLoading && !AccountSession.InputBlocked);

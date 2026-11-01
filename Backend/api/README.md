@@ -261,3 +261,63 @@ Validação: `node --test test/admin-map-teleport.test.mjs`; `python3 /srv/hbrp/
 
 
 Ajuste local do teleporte: clicar agora marca o destino e abre confirmação. Apenas o botão Ir para destino solicita autorização; cancelar ou fechar invalida a seleção. Um setor é antecipado durante a confirmação, mantendo o setor ocupado e o teto móvel configurado. A chegada aguarda o setor do ponto e valida colisão, permitindo carregar vizinhos em seguida. A mensagem Carregando destino foi removida. A redução de espera ainda precisa ser medida em execução real.
+
+## Combate corpo a corpo em teste local
+
+`POST /v1/multiplayer/attack` exige Bearer token e exatamente `{clientId,attackId}`, ambos UUIDs. O ator vem da sessão e precisa estar na sala com o mesmo cliente. O servidor escolhe somente um alvo vivo à frente (cone de 120 graus), a até 2,2 metros no plano e 1,5 metro de diferença vertical, usando as posições autenticadas mais recentes (até 1,5 segundo). O combo completo dura 2,2 segundos e causa 20 pontos de dano uma única vez; repetir o mesmo `attackId`, inclusive em concorrência, devolve o resultado original sem novo dano. Algema, salto, veículo, reação a dano e morte impedem atacar. Ocupantes de veículo não recebem socos através do veículo.
+
+A vida é reduzida atomicamente em `hbrp.character_stats` antes de publicar a reação. Nenhuma migração é necessária. `health`, alvo, dano e horário fornecidos pelo cliente são rejeitados. Um alvo reage por 1,6 segundo, com movimento bloqueado nesse intervalo; ao chegar a zero permanece morto e imóvel. A vida persiste ao reconectar e no bot oficial de teste. Não foi adicionado renascimento automático; `/healme`, `/inf` e a cura administrativa continuam pendentes dos sistemas correspondentes.
+
+O sync acrescenta `combatAvailable:true`, `selfCombat`, `peers[].combat` e `peers[].combatClient`. A resposta do ataque traz `serverTime`, `selfCombat`, `combatPeers:[{uid,combat}]`, `targetUid` e `damage`. Cada estado de combate contém `epoch`, `revision`, `attackSequence`, `attackId`, `attackAt`, `hitSequence`, `hitAttackId`, `hitAt`, `deathSequence`, `deathAt`, `health` e `dead`. Horários são milissegundos Unix do servidor; a revisão crescente e o epoch permitem ignorar respostas atrasadas e não repetir animações ao consultar novamente. O cliente prevê a animação do próprio soco imediatamente e reconcilia os eventos confirmados, sem enviar vida ou dano. `hitAttackId` identifica o ataque que realmente causou a reação; uma previsão visual local pode ser confirmada sem reiniciar a animação, sem antecipar vida ou morte. Um erro ou golpe sem alvo não cria `hitAttackId`. `peers[].combatClient` informa se o outro cliente negociou combate ou é o bot oficial, evitando antecipar reação em um APK antigo.
+
+Compatibilidade: após receber `combatAvailable:true`, o cliente atualizado envia `combatClient:true` nos próximos frames de sync. Esse campo é opcional e aceita somente booleanos. Clientes antigos continuam entrando e se movimentando; não podem iniciar ataques nem são selecionados como alvos enquanto não anunciarem suporte às animações e ao estado de combate. O bot oficial de teste pode receber dano. Essa negociação evita congelar ou matar jogadores com APK antigo sem a interface correspondente.
+
+O movimento continua sendo simulado pelo cliente neste protótipo; distância e orientação são conferidas sobre as posições da sala. Não há geometria do mapa no backend para validar paredes entre os dois atores. Para combate competitivo será necessário validar colisão e deslocamento no servidor dedicado.
+
+Testes: `node --test test/melee-combat.test.mjs test/melee-combat-api.test.mjs test/multiplayer.test.mjs test/police-vehicle.test.mjs`. O teste HTTP usa PostgreSQL em memória e contas descartáveis; não acessa a VPS. Esta alteração de protocolo requer publicar a API antes do teste online com clientes atualizados. Nenhum serviço, certificado, credencial ou APK é alterado por esse procedimento local.
+
+## Cargo administrativo nivel 4
+
+O nivel 4 e um cargo especializado: seu unico comando administrativo e `/adminpromov [ID/nick] [1|2]`. Nao herda painel, teleporte, velocidade, invisibilidade ou atalho policial. Comandos normais de jogador continuam disponiveis. Os niveis 1, 2 e 3 preservam suas permissoes anteriores.
+
+O alvo pode ser pesquisado pelo ID ou pelo nome/primeiro nome exato, sem diferenciar maiusculas e com Unicode NFC. Nome repetido exige ID. O comando permite promover jogador normal para 1 ou 2 e nivel 1 para 2; nao rebaixa, nao altera a propria conta e nao altera niveis 3 ou superiores. Transacao revalida o cargo apos obter os bloqueios e registra `admin.adminpromov` na auditoria. Reenvio da mesma mensagem conserva a idempotencia do chat.
+
+O endpoint administrativo comum continua limitado a conceder ate o nivel 3. A atribuicao inicial do cargo especializado 4 e uma operacao administrativa separada, nunca feita por cadastro ou dados enviados pelo cliente. Nenhuma migracao nova e necessaria: `accounts.admin_level` ja admite esse valor. Nesta implementacao nenhuma conta existente recebeu o cargo 4.
+
+O sync devolve `selfAccountRole` e `selfAdminLevel` para atualizar a interface do personagem autenticado sem novo login. Clientes antigos ignoram esses campos; a nova interface Unity oculta as ferramentas indevidas do cargo 4, e a API verifica a restricao independentemente da interface.
+
+Validacao: `node --test test/admin-rank4.test.mjs test/admin-promote.test.mjs test/player-admin.test.mjs test/admin-map-teleport.test.mjs`. Os testes HTTP usam banco descartavel. Verificacao Unity sem Play/build: `AdminRankPermissionVerification.Run`. A verificacao HTTPS da VPS usa somente contas temporarias e as remove ao final, comparando a contagem e o hash dos cargos existentes.
+
+## Acesso fechado da equipe beta por UID
+
+A API de produção exige um UID e uma senha emitidos pela administração. `POST /v1/auth/login` recebe exatamente `{uid:"123",password:"..."}`. Não aceita e-mail nem cria conta automaticamente. `POST /v1/auth/register` retorna `403 REGISTRATION_CLOSED`. `GET /v1/auth/config` informa `{authMode:"beta",registrationOpen:false}`. As instruções antigas de cadastro público e provisionamento de bots acima ficam como histórico e não habilitam acesso nesta fase.
+
+A migração aditiva `012_beta_access.sql` cria concessões explícitas em `beta_access`, a versão da credencial em cada sessão e os metadados de idempotência. Não autoriza contas existentes, não apaga dados e não contém UID privilegiado fixo. Uma sessão só é aceita se sua versão corresponder à concessão ativa da conta. Sessões anteriores sem concessão retornam `401 BETA_ACCESS_REQUIRED`; redefinição ou revogação invalida as sessões anteriores. O login revalida senha, versão e revogação sob os bloqueios da conta e da concessão, impedindo usar uma senha anterior durante uma troca concorrente.
+
+O cadastro de personagem continua separado: uma conta nova recebe `state:null`, `needsCharacter:true` e `account:{uid,accountRole,adminLevel,canManageBeta}` depois do login. O estado de personagem também expõe `canManageBeta`; o painel usa esse indicador, sempre conferido novamente na API. O personagem é criado pelos endpoints existentes. As novas contas beta não precisam de e-mail, identidade fictícia ou dados de personagem antecipados. Senhas geradas têm 24 caracteres aleatórios e são armazenadas somente como hash scrypt; redefinir senha não altera personagem, dinheiro ou progresso.
+
+Somente administradores com a capacidade explícita `beta_access.can_manage`, nível positivo e cargo diferente de 4 podem emitir acessos. O provisionamento autoriza essa capacidade na conta gestora indicada e preserva seu nível atual; nenhum administrador a recebe automaticamente pelo cargo. A API bloqueia alterações na própria conta e em cargos iguais ou superiores. As rotas usam Bearer token e a autorização atual do banco:
+
+| Rota | Dados | Resultado |
+| --- | --- | --- |
+| `GET /v1/admin/beta-access?q=&offset=0` | Pesquisa opcional de rótulo ou UID | `accesses`, `total`, `offset`, `pageSize:25` |
+| `POST /v1/admin/beta-access` | `{requestId,label}` | Nova conta normal e `{access,password,credentialAvailable:true}` |
+| `POST /v1/admin/beta-access/:uid/reset` | `{requestId}` | Nova senha exibida uma única vez; encerra as sessões antigas |
+| `POST /v1/admin/beta-access/:uid/revoke` | `{requestId,reason?}` | `{uid,revoked:true}`; preserva os dados da conta |
+| `POST /v1/admin/beta-access/:uid/approve` | `{requestId,label?}` | Autoriza explicitamente uma conta existente com nova senha beta |
+
+Cada item da lista contém `uid,label,active,createdAt,lastLoginAt,hasCharacter,accountRole,adminLevel,isSelf,canManage`. A listagem não revela e-mail, hash, senha ou token. O `requestId` é um UUID criado pelo painel por operação. Uma resposta perdida de emissão ou redefinição pode ser repetida com o mesmo UUID: retorna `409 CREDENTIAL_ALREADY_ISSUED` com `uid/uids`, sem criar outra conta e sem revelar novamente a senha. Nesse caso, consulte o UID e redefina sua senha com um novo pedido. Mesmo UUID com dados diferentes retorna `409 BETA_REQUEST_CONFLICT`. Senhas não são guardadas no registro de idempotência, auditoria ou logs. As respostas HTTP usam `Cache-Control: no-store`.
+
+### Preparação inicial, antes de ativar a API atualizada
+
+Faça o backup habitual e aplique a migração 012 com a identidade administrativa existente e `ON_ERROR_STOP=1`. Mantenha a API anterior até terminar o provisionamento. Execute o utilitário administrativo com `DATABASE_URL` já carregada do ambiente privado do serviço; não passe a URL na linha de comando e não imprima esse ambiente:
+
+```text
+node provision_beta_access.mjs --manager-uid <UID do responsável> --count 5 --batch-id <UUID fixo desta operação> --output /diretorio/privado/acessos-beta.json
+```
+
+O diretório deve existir e ser privado. O utilitário cria um arquivo exclusivo com permissão `0600`, sem sobrescrever arquivos. Sua saída padrão contém somente contagem, UIDs e caminho. As cinco senhas estão apenas no arquivo privado para entrega individual à equipe, nunca no Git ou no APK. Guarde o UUID do lote: repetir a operação conserva os UIDs existentes e recusa gerar contas duplicadas.
+
+Na mesma transação, o utilitário autoriza somente a conta gestora indicada, copiando o hash da senha atual e associando suas sessões não revogadas à concessão inicial. Esse aproveitamento de sessões acontece apenas quando a conta ainda não tinha concessão; novas execuções não recuperam sessões invalidadas depois por redefinição ou revogação. A conta gestora precisa ser um administrador de nível positivo já existente e diferente do cargo 4; sua função e nível não são alterados. Nenhuma outra conta antiga recebe autorização implícita. As cinco contas novas começam como jogador normal, nível administrativo zero e sem personagem. Só depois desse provisionamento conclua a troca do código e reinicie exclusivamente `hbrp-api`.
+
+Validação local: `node --test test/beta-access.test.mjs`. A suíte usa PostgreSQL descartável e cobre acesso somente por UID, bloqueio do cadastro público, tokens antigos sem concessão, preservação explícita da gestão, cinco contas sem personagem, criação posterior de personagem, nível 4 sem acesso ao painel, idempotência, sigilo das senhas, redefinição, revogação, concorrência de credenciais e rollback quando a auditoria falha. O modo legado existe somente como opção explícita do construtor nos testes históricos; a inicialização de produção não lê modo legado de variável de ambiente nem de dados enviados pelo cliente.

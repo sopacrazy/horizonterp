@@ -14,6 +14,8 @@ public sealed class VoiceChat : MonoBehaviour
     public bool Transmitting=>vivox&&vivox.Configured?vivox.Transmitting:legacyTransmitting;
     bool legacyRadio;
     public bool RadioTransmitting=>vivox&&vivox.Configured?vivox.RadioTransmitting:legacyRadio;
+    public bool RadioRequested=>legacyRadio||vivox&&vivox.RadioRequested;
+    public bool IsPlayerSpeaking(string uid)=>vivox&&vivox.IsPlayerSpeaking(uid);
     const int Rate=8000;
     const int MaxSamples=800;
     AudioClip recording;
@@ -117,6 +119,7 @@ public sealed class VoiceChat : MonoBehaviour
         if(!legacyTransmitting)return;
         Microphone.End(null);legacyTransmitting=false;legacyRadio=false;recording=null;captured.Clear();
     }
+    public void StopRadio(){if(RadioRequested||RadioTransmitting)Stop();}
     void OnApplicationPause(bool paused){if(paused)Stop();}
     void OnDestroy(){Stop();if(Instance==this)Instance=null;}
 }

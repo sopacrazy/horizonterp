@@ -57,7 +57,26 @@ public static class AndroidMapOptimization
         Directory.CreateDirectory("../tools/android-map-optimization");
         File.WriteAllText("../tools/android-map-optimization/result.txt","Android texture overrides: ASTC 8x8, max 512\nTextures changed="+textures+"\nVisual meshes changed="+models+"\nCollider import settings preserved\nBackup="+Path.GetFullPath(backup));
         Debug.Log("ANDROID_MAP_OPTIMIZED textures="+textures+" models="+models);
+        OptimizeCharacterTextures();
         Build();
+    }
+    static void OptimizeCharacterTextures()
+    {
+        const string folder="Assets/Resources/GangsterMusculo/textures";
+        if(!Directory.Exists(folder))return;
+        int changed=0;
+        foreach(string file in Directory.GetFiles(folder,"*.png"))
+        {
+            string path=file.Replace('\\','/');
+            var importer=AssetImporter.GetAtPath(path) as TextureImporter;
+            if(!importer)continue;
+            var settings=importer.GetPlatformTextureSettings("Android");
+            if(settings.overridden&&settings.maxTextureSize==1024&&settings.format==TextureImporterFormat.ASTC_8x8)continue;
+            settings.name="Android";settings.overridden=true;settings.maxTextureSize=1024;
+            settings.format=TextureImporterFormat.ASTC_8x8;settings.compressionQuality=50;
+            importer.SetPlatformTextureSettings(settings);importer.SaveAndReimport();changed++;
+        }
+        Debug.Log("ANDROID_CHARACTER_TEXTURES_OPTIMIZED changed="+changed);
     }
     static void Backup(string asset,string folder)
     {

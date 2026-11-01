@@ -52,7 +52,8 @@ const entries=[
  ['inviz',3,'/inviz','Alternar invisibilidade administrativa.'],
  ['removeinviz',3,'/removeinviz [ID]','Desativar invisibilidade de admin.'],
  ['returninviz',3,'/returninviz [ID]','Ativar invisibilidade de admin.'],
- ['t',3,'/t [0-23]','Alterar a hora da sala.']
+ ['t',3,'/t [0-23]','Alterar a hora da sala.'],
+ ['adminpromov',4,'/adminpromov [ID/nick] [1|2]','Promover um jogador a administrador nível 1 ou 2.']
 ];
 
 export const ADMIN_COMMANDS=Object.freeze(entries.map(([name,level,usage,description,missing])=>
@@ -60,7 +61,14 @@ export const ADMIN_COMMANDS=Object.freeze(entries.map(([name,level,usage,descrip
 const byName=new Map(ADMIN_COMMANDS.map(entry=>[entry.name,entry]));
 byName.set('myastats',byName.get('mystats'));
 export const adminCommand=name=>byName.get(String(name||'').toLowerCase())||null;
-export const adminHelp=level=>ADMIN_COMMANDS.filter(entry=>entry.level<=level).map(entry=>
+// Level 4 is a specialized appointment role, not an inherited super-admin.
+export function adminCommandAllowed(level,name){
+ const entry=adminCommand(name);
+ if(!entry||!Number.isInteger(level)||level<1)return false;
+ if(level===4||entry.name==='adminpromov')return level===4&&entry.name==='adminpromov';
+ return level>=entry.level;
+}
+export const adminHelp=level=>ADMIN_COMMANDS.filter(entry=>adminCommandAllowed(level,entry.name)).map(entry=>
  `N${entry.level} ${entry.usage} — ${entry.description}${entry.missing?' (aguarda '+entry.missing+')':''}`);
 
 const policeEntries=[
@@ -85,7 +93,7 @@ const policeEntries=[
 
 export function gameCommandHelp(){
  const admin=ADMIN_COMMANDS.map(entry=>({usage:entry.usage,description:entry.description,
-  group:'Administração',level:entry.level,permission:`Admin nível ${entry.level}`,
+  group:'Administração',level:entry.level,permission:entry.name==='adminpromov'?'Exclusivo do admin nível 4':`Admin nível ${entry.level}`,
   available:!entry.missing,note:entry.missing?`Aguarda ${entry.missing}`:''}));
  admin.push({usage:'/myastats',description:'Atalho para /mystats: consultar suas estatísticas de administrador.',
   group:'Administração',level:1,permission:'Admin nível 1',available:true,note:''});

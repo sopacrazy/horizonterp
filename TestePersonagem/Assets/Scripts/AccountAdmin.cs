@@ -13,8 +13,8 @@ using UnityEngine.Networking;
 [Serializable] public sealed class AdminReply
 {
     public string error,code,viewerUid;
-    public bool policeDuty,authorized;
-    public float x,z;
+    public bool policeDuty,authorized,driving;
+    public float x,y,z,yaw;
     public ApiOrganization organization;
     public int radioChannel;
     public int total,offset,pageSize,viewerAdminLevel;

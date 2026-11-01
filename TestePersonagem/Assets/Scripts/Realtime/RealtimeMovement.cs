@@ -47,8 +47,9 @@ namespace Hbrp.Realtime
         {
             if(!Active||player.MapTeleportLoading||Time.realtimeSinceStartup<nextSend)return;
             Status="UDP / DTLS · 20 Hz";float now=Time.realtimeSinceStartup;nextSend=Mathf.Max(nextSend+.05f,now+.025f);
-            Client.Send(new UdpPose{Sequence=++sequence,Position=player.transform.position,Yaw=Mathf.Repeat(player.transform.eulerAngles.y,360),
-                Speed=Mathf.Clamp(MissionVehicle.Driver==player?MissionVehicle.DriverSpeed:player.CurrentSpeed,0,8),Driving=MissionVehicle.Driver==player,
+            var police=PoliceVehicleController.Driving?PoliceVehicleController.Active:null;
+            Client.Send(new UdpPose{Sequence=++sequence,Position=police?police.transform.position:player.transform.position,Yaw=Mathf.Repeat(police?police.transform.eulerAngles.y:player.transform.eulerAngles.y,360),
+                Speed=Mathf.Clamp(police?Mathf.Abs(police.Speed):MissionVehicle.Driver==player?MissionVehicle.DriverSpeed:player.CurrentSpeed,0,8),Driving=police||MissionVehicle.Driver==player,
                 Jumping=player.IsJumping,JumpPhase=player.JumpPhase});
         }
         public bool TryGet(string character,out UdpPose pose){pose=default;return Active&&Client.TryGet(character,out pose);}

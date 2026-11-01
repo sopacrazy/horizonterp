@@ -12,16 +12,19 @@ using UnityEngine.UIElements;
 [Serializable] public class ApiPlayerState
 {
     public int adminLevel;
+    public bool canManageBeta;
     public string accountRole;
     public ApiOrganization organization;
     public string accountId,uid,characterId,name,firstName,lastName,gender,xp,playSeconds,cashCents,bankCents,hzCoins,model,world,version;
     public float health,energy,hunger,thirst,x,y,z,yaw,cameraYaw,cameraPitch;
     public int level;
 }
-[Serializable] public class ApiReply {public string token,error,code;public ApiPlayerState state;public ArrivalState mission;public bool needsCharacter;}
+[Serializable] public class ApiAccount {public string uid,accountRole;public int adminLevel;public bool canManageBeta;}
+[Serializable] public class ApiReply {public string token,error,code;public ApiPlayerState state;public ApiAccount account;public ArrivalState mission;public bool needsCharacter;}
 [Serializable] public class ApiPublicConfig {public string baseUrl,certificateSha256;}
 [Serializable] public class AuthBody {public string email,password;}
 [Serializable] public class LoginBody {public string email,password;}
+[Serializable] public class BetaLoginBody {public string uid,password;}
 [Serializable] public class CharacterBody {public string firstName,lastName,gender;}
 [Serializable] public class ProfileBody {public string firstName,lastName;}
 [Serializable] public class CheckpointBody {public string requestId,version;public float x,y,z,yaw,cameraYaw,cameraPitch;}
@@ -82,16 +85,17 @@ public sealed partial class AccountSession : MonoBehaviour
     {
         if(busy)yield break;
         if(!ValidateForm())yield break;
-        string path=register?"/v1/auth/register":"/v1/auth/login";
-        string body=register?JsonUtility.ToJson(new AuthBody{email=email.value,password=password.value}):JsonUtility.ToJson(new LoginBody{email=email.value,password=password.value});
-        busy=true;SetFormBusy(true);SetGeneralMessage(register?"Criando sua conta...":"Acessando sua conta...",false);
+        register=false;
+        const string path="/v1/auth/login";
+        string body=JsonUtility.ToJson(new BetaLoginBody{uid=email.value,password=password.value});
+        busy=true;SetFormBusy(true);SetGeneralMessage("Verificando seu acesso beta...",false);
         ApiReply result=null;yield return Request("POST",path,body,false,r=>result=r);
         busy=false;SetFormBusy(false);
         if(string.IsNullOrEmpty(result?.token)||(!result.needsCharacter&&(result.state==null||string.IsNullOrEmpty(result.state.characterId))))
         {SetGeneralMessage(string.IsNullOrEmpty(LastError)?"Não foi possível acessar sua conta. Tente novamente.":LastError,true);yield break;}
         ClearSecrets();
         token=result.token;State=result.state;pending=null;leaving=false;SessionVault.Write(token);
-        if(!Hbrp.Realtime.LocalNetworkLab.IsolateSavedAccess){PlayerPrefs.SetString("account.email",email.value.Trim());PlayerPrefs.Save();}
+        RememberAccountUid(result,email.value.Trim());
         ShowAccountCharacter();
     }
     void ShowAccountCharacter()
@@ -243,11 +247,12 @@ public sealed partial class AccountSession : MonoBehaviour
                 Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-official-city")<0&&
                 Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-arrival")<0&&
                 Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-sa-session")<0&&
-                Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-landing")<0)
+                Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-landing")<0&&
+                Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-beta-login")<0)
             {LastError="Modo de verificação local não autorizado.";done(null);yield break;}
             yield return VerificationTransport(method,path,body,authenticated,(reply,error)=>
             {LastError=error??"";LastErrorCode=reply?.code??"";
-                if(invalidateUnauthorized&&authenticated&&!string.IsNullOrEmpty(error)&&(reply?.code=="UNAUTHORIZED"||reply?.code=="CHARACTER_BLOCKED"))InvalidateSession(LastError);
+                if(invalidateUnauthorized&&authenticated&&!string.IsNullOrEmpty(error)&&IsAccessRevokedCode(reply?.code))InvalidateSession(LastError);
                 done(string.IsNullOrEmpty(error)?reply:null);});
             yield break;
         }
@@ -266,7 +271,7 @@ public sealed partial class AccountSession : MonoBehaviour
             LastErrorCode=reply?.code??"";
             if(invalidateUnauthorized&&authenticated&&!leaving&&token==requestToken)
             {
-                if(reply?.code=="CHARACTER_BLOCKED")InvalidateSession(LastError);
+                if(reply?.code=="CHARACTER_BLOCKED"||IsBetaAccessDeniedCode(reply?.code))InvalidateSession(LastError);
                 else if(request.responseCode==401)yield return ConfirmSessionAfterUnauthorized(requestToken);
             }
             done(null);
@@ -284,7 +289,7 @@ public sealed partial class AccountSession : MonoBehaviour
         if(leaving||token!=requestToken)yield break;
         if(validated!=null)
         {lastValidAuthorization=Time.realtimeSinceStartup;Debug.Log("ACCOUNT_SESSION_REVALIDATED");yield break;}
-        if(LastErrorCode=="UNAUTHORIZED"||LastErrorCode=="CHARACTER_BLOCKED")
+        if(IsAccessRevokedCode(LastErrorCode))
             InvalidateSession(string.IsNullOrEmpty(LastError)?"Sua sessão expirou. Entre novamente.":LastError);
         else Debug.LogWarning("ACCOUNT_SESSION_REVALIDATION_DEFERRED code="+LastErrorCode);
     }
@@ -295,6 +300,8 @@ public sealed partial class AccountSession : MonoBehaviour
         if(leaving){Debug.LogWarning("ACCOUNT_SESSION_INVALIDATION_IGNORED_WHILE_LEAVING error="+message);return;}
         Debug.LogWarning("ACCOUNT_SESSION_INVALIDATED_EXTERNAL error="+message);SessionVault.Clear();token=null;State=null;pending=null;ReadyToEnterCity=false;if(document)ShowLogin(message);
     }
+    internal static bool IsBetaAccessDeniedCode(string code)=>code=="BETA_ACCESS_REQUIRED"||code=="BETA_ACCESS_REVOKED";
+    internal static bool IsAccessRevokedCode(string code)=>code=="UNAUTHORIZED"||code=="CHARACTER_BLOCKED"||IsBetaAccessDeniedCode(code);
     sealed class PinnedCertificate:CertificateHandler
     {
         readonly string expected;

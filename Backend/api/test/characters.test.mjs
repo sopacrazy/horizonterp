@@ -55,7 +55,7 @@ test('account -> character -> persisted state over local HTTP and real SQL',{tim
   await db.query("INSERT INTO hbrp.sessions(account_id,token_hash,expires_at) VALUES($1,sha256(convert_to($2,'UTF8')),now()+interval '1 day')",[legacyAccount,legacyToken]);
   await db.exec('SET ROLE hbrp_app');
   const pool=new LocalPool(db),errors=[];
-  server=http.createServer(createApiHandler(pool,{log(){},errorLog(value){errors.push(value);}}));
+  server=http.createServer(createApiHandler(pool,{authMode:'legacy',log(){},errorLog(value){errors.push(value);}}));
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const base='http://127.0.0.1:'+server.address().port;
   const request=async(method,path,body,token)=>{

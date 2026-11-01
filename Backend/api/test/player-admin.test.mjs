@@ -34,7 +34,7 @@ test('admin player management is authenticated, hierarchical, audited and revers
   const digest=scryptSync(loginPassword,salt,64,{N:131072,r:8,p:1,maxmem:192*1024*1024}).toString('hex');
   await db.query('INSERT INTO hbrp.password_credentials(account_id,password_hash) VALUES($1,$2)',[players[5].id,'scrypt$131072$8$1$'+salt+'$'+digest]);
   await db.exec('SET ROLE hbrp_app');const pool=new Pool(db),errors=[];
-  server=http.createServer(createApiHandler(pool,{log(){},errorLog:value=>errors.push(value)}));
+  server=http.createServer(createApiHandler(pool,{authMode:'legacy',log(){},errorLog:value=>errors.push(value)}));
   await new Promise(done=>server.listen(0,'127.0.0.1',done));const base='http://127.0.0.1:'+server.address().port;
   async function request(method,path,body,token){const response=await fetch(base+path,{method,headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},...(body?{body:JSON.stringify(body)}:{})});return {status:response.status,...await response.json()};}
   const actor=players[0],normal=players[1],peer=players[2],higher=players[3],lower=players[4],target=players[5];

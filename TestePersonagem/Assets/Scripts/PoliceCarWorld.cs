@@ -1,99 +1,173 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
-// Server-owned parked police cars. The seat marker is visible even if the source model's windows are dark.
+// Server-owned police cars with visible animated driver/passenger seats.
 public sealed class PoliceCarWorld : MonoBehaviour
 {
+    public static PoliceCarWorld Instance {get;private set;}
     sealed class CarVisual
     {
-        public GameObject root,occupant;
+        public GameObject root;
+        public PoliceCarRig rig;
+        public PoliceSeatAvatar driver,passenger;
+        public PoliceVehicleController controls;
+        public string ownerUid,lastPassengerUid,lastDriverUid;
+        public Vector3 target;
+        public float yaw;
         public TextMesh label;
     }
     readonly Dictionary<string,CarVisual> visuals=new Dictionary<string,CarVisual>();
     ThirdPersonPlayer player;
-
-    public void Initialize(ThirdPersonPlayer owner){player=owner;}
-
-    public void Apply(PoliceCarState[] cars)
+    Button interaction;
+    PoliceVehicleController nearest;
+    public void Initialize(ThirdPersonPlayer owner){player=owner;Instance=this;}
+    public void Apply(PoliceCarState[] cars,string selfCarId=null,Vector3? selfPosition=null,int revision=-1)
     {
+        if(revision>=0&&revision!=PoliceVehicleController.StateRevision)return;
         var current=new HashSet<string>();
         if(cars!=null)foreach(var car in cars)
         {
             if(string.IsNullOrEmpty(car.id))continue;
             current.Add(car.id);
             if(!visuals.TryGetValue(car.id,out var visual))
-            {visual=Build(car.id);visuals.Add(car.id,visual);}
-            Vector3 position=new Vector3(car.x,car.y,car.z);
-            if(Physics.Raycast(position+Vector3.up*2,Vector3.down,out var hit,5,Physics.DefaultRaycastLayers,QueryTriggerInteraction.Ignore))
-                position.y=hit.point.y;
-            visual.root.transform.SetPositionAndRotation(position,Quaternion.Euler(0,car.yaw,0));
+            {visual=Build(car.id,new Vector3(car.x,car.y,car.z),car.yaw);visuals.Add(car.id,visual);}
+            visual.ownerUid=car.ownerUid;
+            visual.target=Ground(new Vector3(car.x,car.y,car.z));visual.yaw=car.yaw;
+            visual.controls.ApplyState(car,player,selfCarId,selfPosition);
+            bool driverExiting=string.IsNullOrEmpty(car.driverUid);
+            string driverUid=driverExiting?visual.lastDriverUid:car.driverUid;
+            Vector3 driverStart=PlayerPosition(driverUid,driverExiting
+                ?Ground(visual.root.transform.position-visual.root.transform.right*2.1f)
+                :visual.root.transform.TransformPoint(visual.rig.DriverDoor));
+            if(!string.IsNullOrEmpty(car.driverUid))visual.lastDriverUid=car.driverUid;
+            float driverYaw=driverExiting?car.yaw+(Vector3.Dot(driverStart-visual.root.transform.position,visual.root.transform.right)>0?90:-90):PlayerYaw(driverUid,car.yaw);
+            if(!visual.controls.Occupied)visual.driver.SetOccupant(car.driverUid,driverStart,startYaw:driverYaw);
+            bool passengerExiting=string.IsNullOrEmpty(car.occupantUid);
+            string passengerUid=passengerExiting?visual.lastPassengerUid:car.occupantUid;
+            // The reliable peer pose has already moved to the car's center. Start
+            // boarding where the actor is still visibly standing instead.
+            Vector3 passengerPoint=passengerExiting
+                ?PlayerPosition(passengerUid,Ground(visual.root.transform.position+visual.root.transform.right*2.1f),selfPosition)
+                :VisiblePlayerPosition(passengerUid,visual.root.transform.TransformPoint(visual.rig.RearDoor));
+            float passengerYaw=passengerExiting?float.NaN:VisiblePlayerYaw(passengerUid,car.yaw);
+            if(!passengerExiting)visual.lastPassengerUid=car.occupantUid;
+            visual.passenger.SetOccupant(car.occupantUid,passengerPoint,startYaw:passengerYaw);
             bool occupied=!string.IsNullOrEmpty(car.occupantUid);
             visual.label.gameObject.SetActive(occupied);
             visual.label.text=occupied?"DETIDO  ID "+car.occupantUid+"  ·  "+car.occupantName:"";
-            if(visual.occupant)visual.occupant.SetActive(occupied);
         }
-        var removed=new List<string>();
-        foreach(var id in visuals.Keys)if(!current.Contains(id))removed.Add(id);
+        var removed=new List<string>();foreach(var id in visuals.Keys)if(!current.Contains(id))removed.Add(id);
         foreach(var id in removed){Destroy(visuals[id].root);visuals.Remove(id);}
     }
-
-    CarVisual Build(string id)
+    Vector3 PlayerPosition(string uid,Vector3 fallback,Vector3? selfPosition=null)
+    {
+        if(string.IsNullOrEmpty(uid))return fallback;
+        if(AccountSession.HasCharacter&&AccountSession.Instance.State.uid==uid)return selfPosition??player.transform.position;
+        if(MultiplayerWorld.Instance&&MultiplayerWorld.Instance.TryGetRemotePoseByUid(uid,out var position,out _))return position;
+        return fallback;
+    }
+    Vector3 VisiblePlayerPosition(string uid,Vector3 fallback)
+    {
+        if(string.IsNullOrEmpty(uid))return fallback;
+        if(AccountSession.HasCharacter&&AccountSession.Instance.State.uid==uid)return player.transform.position;
+        if(MultiplayerWorld.Instance&&MultiplayerWorld.Instance.TryGetRemoteByUid(uid,out var actor)&&actor)return actor.position;
+        return fallback;
+    }
+    float VisiblePlayerYaw(string uid,float fallback)
+    {
+        if(string.IsNullOrEmpty(uid))return fallback;
+        if(AccountSession.HasCharacter&&AccountSession.Instance.State.uid==uid)return player.transform.eulerAngles.y;
+        if(MultiplayerWorld.Instance&&MultiplayerWorld.Instance.TryGetRemoteByUid(uid,out var actor)&&actor)return actor.eulerAngles.y;
+        return fallback;
+    }
+    float PlayerYaw(string uid,float fallback)
+    {
+        if(string.IsNullOrEmpty(uid))return fallback;
+        if(AccountSession.HasCharacter&&AccountSession.Instance.State.uid==uid)return player.transform.eulerAngles.y;
+        if(MultiplayerWorld.Instance&&MultiplayerWorld.Instance.TryGetRemotePoseByUid(uid,out _,out var yaw))return yaw;
+        return fallback;
+    }
+    static Vector3 Ground(Vector3 position)
+    {
+        if(Physics.Raycast(position+Vector3.up*3,Vector3.down,out var hit,8,1,QueryTriggerInteraction.Ignore))position.y=hit.point.y;
+        return position;
+    }
+    CarVisual Build(string id,Vector3 position,float yaw)
     {
         var root=new GameObject("Viatura policial "+id);root.layer=2;
-        var source=Resources.Load<GameObject>("Vehicles/Police/PoliceCar");
-        if(source)
-        {
-            var model=Instantiate(source,root.transform);model.name="carro_policia";
-            var renderers=model.GetComponentsInChildren<Renderer>();
-            if(renderers.Length>0)
-            {
-                Bounds bounds=renderers[0].bounds;
-                foreach(var renderer in renderers)bounds.Encapsulate(renderer.bounds);
-                if(bounds.size.x>bounds.size.z)model.transform.localRotation=Quaternion.Euler(0,90,0);
-                float length=Mathf.Max(bounds.size.x,bounds.size.z);
-                if(length>.01f)model.transform.localScale*=4.55f/length;
-                renderers=model.GetComponentsInChildren<Renderer>();bounds=renderers[0].bounds;
-                foreach(var renderer in renderers)bounds.Encapsulate(renderer.bounds);
-                model.transform.position+=Vector3.up*(root.transform.position.y+.03f-bounds.min.y);
-            }
-        }
-        else
-        {
-            var body=GameObject.CreatePrimitive(PrimitiveType.Cube);body.name="Viatura provisória";
-            body.transform.SetParent(root.transform,false);body.transform.localPosition=new Vector3(0,.75f,0);
-            body.transform.localScale=new Vector3(2,1.25f,4.55f);
-            body.GetComponent<Renderer>().material.color=new Color(.12f,.19f,.26f);
-            Destroy(body.GetComponent<Collider>());
-        }
+        root.transform.SetPositionAndRotation(Ground(position),Quaternion.Euler(0,yaw,0));
+        var rig=PoliceCarRig.Create(root.transform,Resources.Load<GameObject>("Vehicles/Police/PoliceCar"));
         var collider=root.AddComponent<BoxCollider>();collider.center=new Vector3(0,.82f,0);collider.size=new Vector3(2.05f,1.65f,4.5f);
+        var driver=new GameObject("Banco do motorista").AddComponent<PoliceSeatAvatar>();driver.transform.SetParent(root.transform,false);driver.Initialize(rig,player.animator,true);
+        var passenger=new GameObject("Banco traseiro").AddComponent<PoliceSeatAvatar>();passenger.transform.SetParent(root.transform,false);passenger.Initialize(rig,player.animator,false);
+        var controls=root.AddComponent<PoliceVehicleController>();controls.Initialize(id,rig,driver);
         var badge=new GameObject("Ocupante",typeof(TextMesh));badge.layer=2;badge.transform.SetParent(root.transform,false);
         badge.transform.localPosition=new Vector3(0,2.15f,0);
         var text=badge.GetComponent<TextMesh>();text.anchor=TextAnchor.MiddleCenter;text.alignment=TextAlignment.Center;
-        text.fontSize=36;text.characterSize=.025f;text.color=new Color(1f,.78f,.28f);
-        text.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        badge.GetComponent<MeshRenderer>().sharedMaterial=text.font.material;
-        GameObject occupant=null;
-        if(player&&player.animator)
-        {
-            occupant=Instantiate(player.animator.gameObject,root.transform,false);
-            occupant.name="Detido no banco traseiro";
-            occupant.transform.localPosition=new Vector3(.43f,.55f,-.38f);
-            occupant.transform.localRotation=Quaternion.identity;
-            occupant.transform.localScale=Vector3.one*.62f;
-            foreach(var c in occupant.GetComponentsInChildren<Collider>())c.enabled=false;
-            foreach(var b in occupant.GetComponentsInChildren<MonoBehaviour>())b.enabled=false;
-            var animator=occupant.GetComponent<Animator>();
-            if(animator){animator.Rebind();animator.SetFloat("Speed",0);animator.SetBool("Jumping",false);}
-        }
-        badge.SetActive(false);if(occupant)occupant.SetActive(false);
-        return new CarVisual{root=root,occupant=occupant,label=text};
+        text.fontSize=36;text.characterSize=.025f;text.color=new Color(1f,.78f,.28f);text.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        badge.GetComponent<MeshRenderer>().sharedMaterial=text.font.material;badge.SetActive(false);
+        return new CarVisual{root=root,rig=rig,driver=driver,passenger=passenger,controls=controls,label=text,target=root.transform.position,yaw=yaw};
     }
-
-    void LateUpdate()
+    public bool PassengerExiting(string uid)
+    {foreach(var v in visuals.Values)if(v.lastPassengerUid==uid&&v.passenger.Exiting)return true;return false;}
+    public bool HasSeatedVisual(string uid)
     {
-        if(!Camera.main)return;
-        foreach(var visual in visuals.Values)visual.label.transform.rotation=Camera.main.transform.rotation;
+        foreach(var v in visuals.Values)
+            if(v.driver.Uid==uid||v.passenger.Uid==uid||v.lastDriverUid==uid&&v.driver.Exiting||v.lastPassengerUid==uid&&v.passenger.Exiting)return true;
+        return false;
     }
+    public PoliceVehicleController CreatePreview(Vector3 position)
+    {
+        var visual=Build("previa-viatura",position,0);visual.controls.LocalPreview=true;
+        visuals.Add("previa-viatura",visual);return visual.controls;
+    }
+    void Update()
+    {
+        if(!player)return;
+        foreach(var v in visuals.Values)
+        {
+            if(v.controls.Occupied)
+            {
+                if(v.controls.LocalPreview){v.target=v.root.transform.position;v.yaw=v.root.transform.eulerAngles.y;}
+                continue;
+            }
+            var before=v.root.transform.position;
+            v.root.transform.position=Vector3.Lerp(before,v.target,1-Mathf.Exp(-12*Time.deltaTime));
+            v.root.transform.rotation=Quaternion.Slerp(v.root.transform.rotation,Quaternion.Euler(0,v.yaw,0),1-Mathf.Exp(-12*Time.deltaTime));
+            float distance=Vector3.ProjectOnPlane(v.root.transform.position-before,Vector3.up).magnitude;
+            v.rig.RotateWheels(distance,0);
+        }
+        var hud=GameHud.Instance;if(!hud)return;
+        if(interaction==null)
+        {
+            interaction=new Button(()=>Interact()){name="police-car-interact"};
+            interaction.style.position=Position.Absolute;interaction.style.right=240;interaction.style.bottom=126;
+            interaction.style.width=70;interaction.style.height=70;interaction.style.borderTopLeftRadius=35;interaction.style.borderTopRightRadius=35;interaction.style.borderBottomLeftRadius=35;interaction.style.borderBottomRightRadius=35;
+            interaction.style.backgroundColor=new Color(.025f,.07f,.12f,.95f);interaction.style.borderTopWidth=2;interaction.style.borderBottomWidth=2;interaction.style.borderLeftWidth=2;interaction.style.borderRightWidth=2;
+            interaction.style.borderTopColor=interaction.style.borderBottomColor=interaction.style.borderLeftColor=interaction.style.borderRightColor=new Color(.3f,.72f,1f);
+            interaction.style.alignItems=Align.Center;interaction.style.justifyContent=Justify.Center;
+            var icon=new HudIcon("door");icon.style.width=35;icon.style.height=35;interaction.Add(icon);
+            hud.Root.Add(interaction);hud.RegisterPointerBlocker(interaction);
+        }
+        nearest=null;float best=.85f;
+        foreach(var v in visuals.Values)
+        {
+            // Keep the interaction visible while waiting for server capability sync.
+            bool allowed=v.controls.LocalPreview||AccountSession.HasCharacter&&AdminPlayerPanel.PoliceDuty&&v.ownerUid==AccountSession.Instance.State.uid;
+            float distance=v.controls.EntryDistance(player);
+            if(allowed&&distance<best){best=distance;nearest=v.controls;}
+        }
+        bool active=PoliceVehicleController.Active;
+        bool show=(active||nearest)&&!hud.IsPanelOpen&&!InGameChat.Editing&&!StartupLoader.IsLoading;
+        interaction.style.display=show?DisplayStyle.Flex:DisplayStyle.None;
+        interaction.SetEnabled(active?!PoliceVehicleController.Active.Busy:!nearest||!nearest.Busy);
+        interaction.tooltip=active?"Sair da viatura [F]":nearest&&!nearest.LocalPreview&&(!MultiplayerWorld.Instance||!MultiplayerWorld.Instance.PoliceVehicleAvailable)
+            ?"Aguardando sincronização da viatura com o servidor":"Entrar na viatura [E]";
+        if(show&&!active&&Input.GetKeyDown(KeyCode.E))Interact();
+    }
+    void Interact(){if(PoliceVehicleController.Active)PoliceVehicleController.Active.RequestExit();else nearest?.RequestEnter(player);}
+    void LateUpdate(){if(Camera.main)foreach(var v in visuals.Values)v.label.transform.rotation=Camera.main.transform.rotation;}
     public void Clear(){Apply(System.Array.Empty<PoliceCarState>());}
-    void OnDestroy(){Clear();}
+    void OnDestroy(){Clear();if(interaction!=null)interaction.RemoveFromHierarchy();if(Instance==this)Instance=null;}
 }

@@ -29,6 +29,22 @@ public sealed class MultiplayerWorld : MonoBehaviour
     public bool UsingUdp=>realtime&&realtime.Active;
     public int UdpSnapshots=>realtime?.Client?.SnapshotsReceived??0;
     public float UdpRoundTrip=>realtime?.Client?.RoundTripMs??0;
+    public bool HasLatencySample=>UsingUdp?realtime.Client.PingsReceived>0:ReceivedFrames>0;
+    public float LatencyMilliseconds=>UsingUdp?UdpRoundTrip:RoundTripMilliseconds;
+    public float LatencyAge=>UsingUdp?realtime.Client.PongAge:Time.realtimeSinceStartup-lastSuccessfulSync;
+    public bool VoiceStateAvailable {get;private set;}
+    public bool PoliceVehicleAvailable {get;private set;}
+    public bool CombatAvailable {get;private set;}
+    public bool CombatReady {get;private set;}
+    public void GetRadarPlayers(List<RadarPlayer> result)
+    {
+        result.Clear();if(!Connected)return;
+        foreach(var pair in remotes)
+        {
+            var remote=pair.Value;
+            if(remote.Transform)result.Add(new RadarPlayer {characterId=pair.Key,uid=remote.Uid,name=remote.DisplayName,position=remote.Transform.position});
+        }
+    }
     Label statusLabel;
     int sequence;
     bool paused;
@@ -57,7 +73,9 @@ public sealed class MultiplayerWorld : MonoBehaviour
         {
             // Legacy PCM produces one block per 100 ms; retain that send rate until Vivox is enabled.
             bool legacyVoice=VoiceChat.Instance&&VoiceChat.Instance.Transmitting&&!VoiceChat.Instance.UsingVivox;
-            cadence.Interval=UsingUdp&&!legacyVoice ? .2 : .1;
+            // Combat events use independent reliable sequence numbers. Poll at 10 Hz
+            // while this server supports combat, even when poses use the UDP relay.
+            cadence.Interval=UsingUdp&&!legacyVoice&&!CombatAvailable ? .2 : .1;
             if(!paused&&!player.MapTeleportLoading&&cadence.TryBegin(Time.realtimeSinceStartupAsDouble))
                 StartCoroutine(SyncOnce());
             yield return null;
@@ -70,16 +88,29 @@ public sealed class MultiplayerWorld : MonoBehaviour
         string characterId=AccountSession.Instance.State.characterId;
         try
         {
-            var position=player.transform.position;
+            int vehicleRevision=PoliceVehicleController.StateRevision;
+            var police=PoliceVehicleController.Driving?PoliceVehicleController.Active:null;
+            var position=police?police.transform.position:player.transform.position;
             var frame=new MultiplayerFrame {clientId=clientId,sequence=++sequence,
-                x=position.x,y=position.y,z=position.z,yaw=Mathf.Repeat(player.transform.eulerAngles.y,360),
-                speed=Mathf.Clamp(MissionVehicle.Driver==player?MissionVehicle.DriverSpeed:player.CurrentSpeed,0,8),driving=MissionVehicle.Driver==player,jumping=player.IsJumping,jumpPhase=player.JumpPhase,
+                x=position.x,y=position.y,z=position.z,yaw=Mathf.Repeat(police?police.transform.eulerAngles.y:player.transform.eulerAngles.y,360),
+                speed=Mathf.Clamp(police?Mathf.Abs(police.Speed):MissionVehicle.Driver==player?MissionVehicle.DriverSpeed:player.CurrentSpeed,0,8),driving=police||MissionVehicle.Driver==player,jumping=player.IsJumping,jumpPhase=player.JumpPhase,
                 afterChat=LastChatId};
             int voiceSequence=0;
             string voice=VoiceChat.Instance ? VoiceChat.Instance.Capture(out voiceSequence) : null;
             // Losing the radio connection must never redirect private radio speech to proximity chat.
             if(VoiceChat.Instance&&VoiceChat.Instance.RadioTransmitting&&(!PoliceRadio.Instance||!PoliceRadio.Instance.Connected))voice=null;
+            bool combatClient=CombatAvailable;
             string json=JsonUtility.ToJson(frame);
+            if(combatClient)json=json.Substring(0,json.Length-1)+",\"combatClient\":true}";
+            if(police&&PoliceVehicleAvailable)json=json.Substring(0,json.Length-1)+",\"policeCarId\":\""+police.Id+"\"}";
+            // Old installed servers strictly validate fields; negotiate before sending the new state.
+            if(VoiceStateAvailable)
+            {
+                bool transmitting=VoiceChat.Instance&&VoiceChat.Instance.Transmitting;
+                bool radio=transmitting&&VoiceChat.Instance.RadioTransmitting;
+                json=json.Substring(0,json.Length-1)+",\"voiceActive\":"+(transmitting&&!radio?"true":"false")+
+                    ",\"radioActive\":"+(radio?"true":"false")+"}";
+            }
             if(!string.IsNullOrEmpty(voice))
             {
                 if(VoiceChat.Instance.RadioTransmitting&&PoliceRadio.Instance&&PoliceRadio.Instance.Connected)
@@ -92,6 +123,13 @@ public sealed class MultiplayerWorld : MonoBehaviour
             if(!player||!AccountSession.HasCharacter||AccountSession.Instance.State.characterId!=characterId||paused)yield break;
             // Concurrent HTTPS replies can arrive out of order. Never move the room backwards.
             if(reply?.code=="STALE_FRAME"||frame.sequence<=lastAppliedSequence)yield break;
+            if(reply?.code=="POLICE_CAR_FORBIDDEN"&&police)
+            {
+                // An exit may have released the seat while this driving frame was in flight.
+                // A current denial releases controls; an older one cannot undo a newer action.
+                if(vehicleRevision==PoliceVehicleController.StateRevision)police.Abort();
+                yield break;
+            }
             if(!string.IsNullOrEmpty(voice)&&(reply?.code=="INVALID_FRAME"||reply?.code=="RADIO_FORBIDDEN"))
             {VoiceChat.Instance?.Stop();GameHud.Instance?.ShowAccountMessage("Voz ainda indisponível no servidor");}
             if(reply!=null&&string.IsNullOrEmpty(reply.code)&&reply.peers!=null)
@@ -101,9 +139,26 @@ public sealed class MultiplayerWorld : MonoBehaviour
                 RoundTripMilliseconds=RoundTripMilliseconds==0?roundTrip*1000:Mathf.Lerp(RoundTripMilliseconds,roundTrip*1000,.2f);
                 diagnosticFrames++;lastSuccessfulSync=Time.realtimeSinceStartup;
                 connectionFailures=0;lastFailure=null;Connected=true;PlayerCount=reply.count;ReceivedFrames++;
+                VoiceStateAvailable=reply.voiceStateAvailable;
+                PoliceVehicleAvailable=reply.policeVehicleAvailable;
+                CombatAvailable=reply.combatAvailable;
+                CombatReady=reply.combatAvailable&&combatClient;
+                // Refresh permission changes for this authenticated character without
+                // requiring logout. Older servers omit these fields and are ignored.
+                if((reply.selfAccountRole=="user"&&reply.selfAdminLevel==0)||
+                    (reply.selfAccountRole=="admin"&&reply.selfAdminLevel>0))
+                {
+                    var state=AccountSession.Instance.State;
+                    if(state.accountRole!=reply.selfAccountRole||state.adminLevel!=reply.selfAdminLevel)
+                    {
+                        state.accountRole=reply.selfAccountRole;state.adminLevel=reply.selfAdminLevel;
+                        GameHud.Instance?.ApplyAccountIdentity();
+                    }
+                }
+                player.GetComponent<FighterCombo>()?.ApplyState(reply.selfCombat,reply.serverTime,roundTrip);
                 SetStatus("ONLINE "+reply.count+"/"+reply.capacity);
                 UpdatePeers(reply.peers,reply.serverTime,roundTrip);
-                policeCarWorld.Apply(reply.policeCars);
+                policeCarWorld.Apply(reply.policeCars,reply.selfPoliceCarId,new Vector3(reply.selfX,reply.selfY,reply.selfZ),vehicleRevision);
                 player.SetCustody(reply.selfCuffed,reply.selfEscortedBy,new Vector3(reply.selfX,reply.selfY,reply.selfZ),reply.selfYaw);
                 player.SetPoliceCarPassenger(reply.selfInPoliceCar,new Vector3(reply.selfX,reply.selfY,reply.selfZ),reply.selfYaw);
                 ReceiveChat(reply);
@@ -173,6 +228,52 @@ public sealed class MultiplayerWorld : MonoBehaviour
         // The next sync delivers all messages in order, including our own confirmed message.
         done(reply);
     }
+    public void Attack(string attackId)
+    {
+        if(!Connected||!CombatReady||paused)return;
+        Remote closest=null;float distance=float.MaxValue;
+        foreach(var remote in remotes.Values)
+        {
+            if(!remote.CanPredictHit)continue;
+            Vector3 delta=remote.Transform.position-player.transform.position;
+            float flat=new Vector2(delta.x,delta.z).magnitude;
+            if(flat>2.2f||Mathf.Abs(delta.y)>1.5f||flat>=distance)continue;
+            Vector3 direction=Vector3.ProjectOnPlane(delta,Vector3.up);
+            if(flat>=.15f&&Vector3.Dot(player.transform.forward,direction/flat)<.5f)continue;
+            closest=remote;distance=flat;
+        }
+        closest?.PredictHit(attackId);
+        StartCoroutine(SendAttack(attackId));
+    }
+    IEnumerator SendAttack(string attackId)
+    {
+        string character=AccountSession.Instance.State.characterId;
+        string json=JsonUtility.ToJson(new CombatAttackBody {clientId=clientId,attackId=attackId});
+        MultiplayerReply reply=null;float started=Time.realtimeSinceStartup;
+        for(int attempt=0;attempt<2;attempt++)
+        {
+            if(!AccountSession.HasCharacter||AccountSession.Instance.State.characterId!=character||paused)yield break;
+            started=Time.realtimeSinceStartup;
+            yield return AccountSession.Instance.MultiplayerRequest("/v1/multiplayer/attack",json,r=>reply=r);
+            if(reply?.code!="CONNECTION_LOST")break;
+            // A retry keeps the id: an accepted request with a lost reply cannot hit twice.
+        }
+        if(!player||!AccountSession.HasCharacter||AccountSession.Instance.State.characterId!=character||paused)yield break;
+        if(reply!=null&&string.IsNullOrEmpty(reply.code)&&reply.combatAvailable)
+        {
+            float trip=Time.realtimeSinceStartup-started;
+            player.GetComponent<FighterCombo>()?.ApplyState(reply.selfCombat,reply.serverTime,trip);
+            if(reply.combatPeers!=null)foreach(var peer in reply.combatPeers)
+                foreach(var remote in remotes.Values)if(remote.Uid==peer.uid)remote.ApplyCombat(peer.combat,reply.serverTime,trip);
+            foreach(var remote in remotes.Values)
+                if(remote.Uid!=reply.targetUid)remote.CancelPredictedHit(attackId);
+        }
+        else
+        {
+            foreach(var remote in remotes.Values)remote.CancelPredictedHit(attackId);
+            GameHud.Instance?.ShowAccountMessage(reply?.code=="ATTACK_COOLDOWN"?"Aguarde o combo terminar.":reply?.error??"O golpe não foi confirmado. Verifique a conexão.");
+        }
+    }
     void UpdatePeers(MultiplayerPeer[] peers,long serverTime,float roundTrip)
     {
         var live=new HashSet<string>();
@@ -195,6 +296,12 @@ public sealed class MultiplayerWorld : MonoBehaviour
         foreach(var remote in remotes.Values)
             if(remote.Uid==uid){transform=remote.Transform;return true;}
         transform=null;return false;
+    }
+    public bool TryGetRemotePoseByUid(string uid,out Vector3 position,out float yaw)
+    {
+        foreach(var remote in remotes.Values)
+            if(remote.Uid==uid){position=remote.TargetPosition;yaw=remote.TargetYaw;return true;}
+        position=default;yaw=0;return false;
     }
     void LateUpdate(){realtime?.SendPlayer();foreach(var remote in remotes.Values)remote.Tick();}
     void OnApplicationPause(bool value)
@@ -221,11 +328,16 @@ public sealed class MultiplayerWorld : MonoBehaviour
         int lastUdpSequence=-1;
         readonly GameObject root;
         GameObject avatar,vehicle;
-        bool driving;
+        bool driving,inPoliceCar,combatClient;
+        float lastCombatSync;
         readonly Animator animator;
         readonly RemoteAvatarAnimation animation;
+        readonly CombatAvatarAnimation combat;
         readonly CuffedAvatarPose cuffedPose;
         readonly TextMesh nameplate;
+        readonly WorldMicrophoneIndicator microphone;
+        bool voiceActive;
+        float legacyVoiceUntil;
         readonly TextMesh[] nameOutline;
         readonly TextMesh statusPlate;
         readonly TextMesh[] statusOutline;
@@ -237,11 +349,19 @@ public sealed class MultiplayerWorld : MonoBehaviour
         readonly RemoteMotionBuffer motion=new RemoteMotionBuffer();
         int lastSequence=-1;
         Vector3 targetPosition;
+        float targetYaw;
         long sourceOrigin;
         float localOrigin;
         public Vector3 TargetPosition=>targetPosition;
+        public float TargetYaw=>targetYaw;
         public string Uid {get;private set;}
+        public string DisplayName {get;private set;}
         public Transform Transform=>root?root.transform:null;
+        public bool CanPredictHit=>root&&avatar.activeInHierarchy&&combatClient&&combat&&combat.Ready&&!combat.Dead&&
+            !driving&&!inPoliceCar&&Time.unscaledTime-lastCombatSync<1.5f&&
+            !(world.policeCarWorld&&world.policeCarWorld.HasSeatedVisual(Uid));
+        public void PredictHit(string attackId){combat?.PredictHit(attackId);}
+        public void CancelPredictedHit(string attackId){combat?.CancelPredictedHit(attackId);}
         public Remote(MultiplayerWorld world,ThirdPersonPlayer local,MultiplayerPeer peer)
         {
             this.world=world;characterId=peer.characterId;
@@ -262,6 +382,9 @@ public sealed class MultiplayerWorld : MonoBehaviour
             foreach(var collider in visual.GetComponentsInChildren<Collider>())collider.enabled=false;
             foreach(var listener in visual.GetComponentsInChildren<AudioListener>())listener.enabled=false;
             foreach(var behaviour in visual.GetComponentsInChildren<MonoBehaviour>())behaviour.enabled=false;
+            combat=visual.GetComponent<CombatAvatarAnimation>();
+            if(!combat)combat=visual.AddComponent<CombatAvatarAnimation>();
+            combat.enabled=true;combat.Initialize(animator);
             cuffedPose=visual.GetComponent<CuffedAvatarPose>();
             if(!cuffedPose)cuffedPose=visual.AddComponent<CuffedAvatarPose>();
             cuffedPose.enabled=true;
@@ -274,6 +397,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
             label.GetComponent<MeshRenderer>().sharedMaterial=nameplate.font.material;
             label.GetComponent<MeshRenderer>().sortingOrder=1;
             nameOutline=MakeOutline(nameplate);
+            microphone=WorldMicrophoneIndicator.Create(nameplate);
             var status=new GameObject("Estado do jogador",typeof(TextMesh));status.layer=2;
             status.transform.SetParent(root.transform,false);
             status.transform.localPosition=new Vector3(0,2.11f,0);
@@ -285,10 +409,14 @@ public sealed class MultiplayerWorld : MonoBehaviour
             status.GetComponent<MeshRenderer>().sortingOrder=1;
             statusOutline=MakeOutline(statusPlate);
             UpdateNameplate(peer);
-            targetPosition=root.transform.position;
+            targetPosition=root.transform.position;targetYaw=peer.yaw;
         }
         public void Apply(MultiplayerPeer peer,long serverTime,float roundTrip)
         {
+            combatClient=peer.combatClient;lastCombatSync=Time.unscaledTime;
+            ApplyCombat(peer.combat,serverTime,roundTrip);
+            voiceActive=peer.voiceActive||peer.radioActive;
+            if(!string.IsNullOrEmpty(peer.voice)||!string.IsNullOrEmpty(peer.radioVoice))legacyVoiceUntil=Time.unscaledTime+.5f;
             if(peer.sequence<lastSequence)
             {voicePlayback.Reset();radioPlayback.Reset();lastVoiceSequence=lastRadioSequence=0;}
             if(peer.voiceFrames!=null)
@@ -310,14 +438,18 @@ public sealed class MultiplayerWorld : MonoBehaviour
                 {lastRadioSequence=peer.radioSequence;radioPlayback.Push(peer.radioSequence,peer.radioVoice,PoliceRadio.Instance.Volume);PoliceRadio.Instance.Received(peer.firstName);}
             }
             else {radioPlayback.Reset();listeningRadioChannel=0;}
-            driving=peer.driving;avatar.SetActive(!driving&&!peer.inPoliceCar);
+            driving=peer.driving;inPoliceCar=peer.inPoliceCar;avatar.SetActive(!driving&&!peer.inPoliceCar);
             nameplate.gameObject.SetActive(!peer.inPoliceCar);
             statusPlate.gameObject.SetActive(!peer.inPoliceCar&&!string.IsNullOrEmpty(statusPlate.text));
             if(cuffedPose)cuffedPose.Cuffed=peer.cuffed;
-            if(driving&&!vehicle){vehicle=MissionVehicle.CreateRemoteVisual();vehicle.transform.SetParent(root.transform,false);}
-            if(vehicle)vehicle.SetActive(driving);
+            bool loanDriving=driving&&string.IsNullOrEmpty(peer.policeCarId);
+            if(loanDriving&&!vehicle){vehicle=MissionVehicle.CreateRemoteVisual();vehicle.transform.SetParent(root.transform,false);}
+            if(vehicle)vehicle.SetActive(loanDriving);
             Uid=peer.uid;
             UpdateNameplate(peer);
+            // The reliable room state carries entry/exit endpoints even while UDP
+            // interpolation still renders an older pose inside the car.
+            targetPosition=new Vector3(peer.x,peer.y,peer.z);targetYaw=peer.yaw;
             if(world.realtime&&world.realtime.TryGet(characterId,out _))return;
             if(udpMode){udpMode=false;motion.SetRealtime(false);sourceOrigin=0;lastSequence=-1;}
             if(peer.sequence==lastSequence)return;
@@ -337,9 +469,12 @@ public sealed class MultiplayerWorld : MonoBehaviour
             motion.Push(sampleTime,targetPosition,Quaternion.Euler(0,peer.yaw,0),peer.speed,peer.jumping,peer.jumpPhase,arrival);
             UpdateNameplate(peer);
         }
+        public void ApplyCombat(CombatState state,long serverTime,float roundTrip)
+        {if(combat)combat.Apply(state,serverTime,roundTrip);}
         void UpdateNameplate(MultiplayerPeer peer)
         {
-            nameplate.text=PlayerDisplayName.From(peer.firstName,peer.name)+" ("+peer.uid+")";
+            DisplayName=PlayerDisplayName.From(peer.firstName,peer.name);
+            nameplate.text=DisplayName+" ("+peer.uid+")";
             nameplate.color=peer.cuffed?new Color(1f,.75f,.32f):
                 peer.policeDuty?new Color(.36f,.83f,1f):new Color(1f,.86f,.18f);
             foreach(var edge in nameOutline)edge.text=nameplate.text;
@@ -369,13 +504,19 @@ public sealed class MultiplayerWorld : MonoBehaviour
         }
         public void Tick()
         {
+            bool seatVisible=world.policeCarWorld&&world.policeCarWorld.HasSeatedVisual(Uid);
+            avatar.SetActive(!driving&&!inPoliceCar&&!seatVisible);
+            nameplate.gameObject.SetActive(!inPoliceCar&&!seatVisible);
+            statusPlate.gameObject.SetActive(!inPoliceCar&&!seatVisible&&!string.IsNullOrEmpty(statusPlate.text));
+            bool speaking=voiceActive||Time.unscaledTime<legacyVoiceUntil||VoiceChat.Instance&&VoiceChat.Instance.IsPlayerSpeaking(Uid);
+            microphone.Refresh(speaking,nameplate);
             if(world.realtime&&world.realtime.TryGet(characterId,out var snapshot))
             {
                 if(!udpMode){udpMode=true;motion.SetRealtime(true);sourceOrigin=0;lastUdpSequence=-1;}
                 if(snapshot.Sequence!=lastUdpSequence)
                 {
                     if(snapshot.Sequence<lastUdpSequence){motion.Reset();sourceOrigin=0;}
-                    lastUdpSequence=snapshot.Sequence;targetPosition=snapshot.Position;
+                    lastUdpSequence=snapshot.Sequence;
                     float arrival=Time.unscaledTime;
                     if(sourceOrigin==0)
                     {sourceOrigin=snapshot.UpdatedAt;localOrigin=arrival-(snapshot.ServerTime-snapshot.UpdatedAt)*.001f-world.realtime.Client.RoundTripMs*.0005f;}
@@ -385,8 +526,9 @@ public sealed class MultiplayerWorld : MonoBehaviour
             }
             if(motion.Sample(Time.unscaledTime,out var position,out var rotation))
             {
-                root.transform.SetPositionAndRotation(position,rotation);
-                if(!driving)animation.Apply(motion.Speed,motion.Jumping,motion.JumpPhase,Time.unscaledDeltaTime);
+                if(combat&&combat.Dead)root.transform.SetPositionAndRotation(targetPosition,Quaternion.Euler(0,targetYaw,0));
+                else root.transform.SetPositionAndRotation(position,rotation);
+                if(!driving)animation.Apply(combat&&combat.Busy?0:motion.Speed,!(combat&&combat.Busy)&&motion.Jumping,motion.JumpPhase,Time.unscaledDeltaTime);
             }
             if(Camera.main){nameplate.transform.rotation=Camera.main.transform.rotation;
                 statusPlate.transform.rotation=Camera.main.transform.rotation;}

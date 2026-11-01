@@ -27,7 +27,7 @@ test('arrival mission has authenticated loans and exactly-once server rewards',{
    const token=String(i).repeat(43);await db.query("INSERT INTO hbrp.sessions(account_id,token_hash,expires_at) VALUES($1,sha256(convert_to($2,'UTF8')),now()+interval '1 day')",[account,token]);players.push({account,char,token});
   }
   await db.exec('SET ROLE hbrp_app');const pool=new Pool(db);const errors=[];
-  server=http.createServer(createApiHandler(pool,{log(){},errorLog:error=>errors.push(error)}));await new Promise(done=>server.listen(0,'127.0.0.1',done));
+  server=http.createServer(createApiHandler(pool,{authMode:'legacy',log(){},errorLog:error=>errors.push(error)}));await new Promise(done=>server.listen(0,'127.0.0.1',done));
   const base='http://127.0.0.1:'+server.address().port;
   async function req(method,body,who=players[0]){const response=await fetch(base+'/v1/missions/arrival',{method,headers:{'Content-Type':'application/json',...(who?{Authorization:'Bearer '+who.token}:{})},...(body?{body:JSON.stringify(body)}:{})});return {status:response.status,...await response.json()};}
   let sequence=0;

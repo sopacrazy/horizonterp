@@ -74,8 +74,8 @@ public sealed class ShootingRange : MonoBehaviour
         bool inside=player.transform.position.y<InteriorLimitY&&
             Mathf.Abs(player.transform.position.x-room.position.x)<6.3f&&
             player.transform.position.z-room.position.z>-14.8f&&player.transform.position.z-room.position.z<11.8f;
-        if(inside&&!IsActive&&!StartupLoader.IsLoading&&!AccountSession.InputBlocked)Activate();
-        else if(!inside&&IsActive)Deactivate();
+        if(inside&&!IsActive&&player.Health>0&&!StartupLoader.IsLoading&&!AccountSession.InputBlocked)Activate();
+        else if((!inside||player.Health<=0)&&IsActive)Deactivate();
         if(!IsActive)return;
         if(orbit)
         {
@@ -127,7 +127,7 @@ public sealed class ShootingRange : MonoBehaviour
 
     public void RequestFire()
     {
-        if(!IsActive||reloading||Time.unscaledTime<nextShot||StartupLoader.IsLoading||
+        if(!IsActive||player.Health<=0||reloading||Time.unscaledTime<nextShot||StartupLoader.IsLoading||
             AccountSession.InputBlocked||InGameChat.Editing||(GameHud.Instance&&GameHud.Instance.IsPanelOpen))return;
         if(Ammo<=0){StartCoroutine(Reload());return;}
         nextShot=Time.unscaledTime+.18f;Ammo--;Shots++;recoilStarted=Time.unscaledTime;

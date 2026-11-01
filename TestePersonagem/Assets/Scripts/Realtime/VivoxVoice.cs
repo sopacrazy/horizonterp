@@ -18,6 +18,15 @@ namespace Hbrp.Realtime
         public int ParticipantCount
         {get{if(!Connected)return 0;int count=0;foreach(var channel in VivoxService.Instance.ActiveChannels.Values)count+=channel.Count;return count;}}
         public bool Requested=>desired!=0;
+        public bool RadioRequested=>desired==2;
+        public bool IsPlayerSpeaking(string uid)
+        {
+            if(!Connected||string.IsNullOrEmpty(uid))return false;
+            foreach(var channel in VivoxService.Instance.ActiveChannels.Values)
+                foreach(var participant in channel)
+                    if(!participant.IsSelf&&participant.PlayerId=="hbrp-"+uid&&!participant.IsMuted&&participant.SpeechDetected)return true;
+            return false;
+        }
         public bool Transmitting {get;private set;}
         public bool RadioTransmitting {get;private set;}
         public string Status {get;private set;}="Vivox aguardando ativação";

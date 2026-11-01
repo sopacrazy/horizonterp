@@ -11,6 +11,8 @@ public class ThirdPersonCamera : MonoBehaviour
     Vector3 smoothFocus;
     Vector3 lastMouse;
     bool dragAllowed;
+    bool freeVehicleOrbit;
+    Vector3 retargetOffset;
     float vehicleYawOffset,vehicleLastLook;
     public bool VehicleFollowActive {get;private set;}
     public bool AimActive {get;private set;}
@@ -42,7 +44,7 @@ public class ThirdPersonCamera : MonoBehaviour
         yawDelta+=touchLook.x*.2f*sensitivity;
         yaw+=yawDelta;
         pitch=Mathf.Clamp(pitch-touchLook.y*.15f*sensitivity,AimActive?-5f:-10f,AimActive?20f:65f);
-        if(VehicleFollowActive&&target)
+        if(VehicleFollowActive&&!freeVehicleOrbit&&target)
         {
             if(Mathf.Abs(yawDelta)>.001f)
             {
@@ -88,11 +90,14 @@ public class ThirdPersonCamera : MonoBehaviour
         AimActive=false;distance=Mathf.Clamp(aimPreviousDistance,2f,6f);pitch=aimPreviousPitch;Place(true);
     }
 
-    public void BeginVehicleFollow(Transform vehicle)
+    public void BeginVehicleFollow(Transform vehicle,bool snap=true)
     {
         if(!vehicle)return;
-        target=vehicle;VehicleFollowActive=true;vehicleYawOffset=0;
-        vehicleLastLook=Time.unscaledTime;yaw=vehicle.eulerAngles.y;Place(true);
+        target=vehicle;VehicleFollowActive=true;freeVehicleOrbit=false;
+        vehicleYawOffset=snap?0:Mathf.DeltaAngle(vehicle.eulerAngles.y,yaw);
+        vehicleLastLook=Time.unscaledTime-(snap?0:.9f);
+        if(snap)yaw=vehicle.eulerAngles.y;
+        Place(snap);
     }
 
     public void EndVehicleFollow(Transform restoredTarget)
@@ -101,10 +106,22 @@ public class ThirdPersonCamera : MonoBehaviour
         if(restoredTarget)target=restoredTarget;
     }
 
+    // Preserve the current orbit and focus when the gameplay controller moves
+    // between feet and vehicle. No forced heading, zoom, pitch or camera cut.
+    public void RetargetPreservingView(Transform next,bool vehicle)
+    {
+        if(!next)return;
+        retargetOffset=smoothFocus-(next.position+Vector3.up*1.25f);
+        target=next;VehicleFollowActive=vehicle;freeVehicleOrbit=vehicle;
+    }
+
     void Place(bool snap)
     {
         Vector3 focus = target.position + Vector3.up * (AimActive?1.52f:1.25f);
         if(AimActive)focus+=Quaternion.Euler(0,yaw,0)*Vector3.right*.68f;
+        if(snap)retargetOffset=Vector3.zero;
+        focus+=retargetOffset;
+        retargetOffset=Vector3.Lerp(retargetOffset,Vector3.zero,1-Mathf.Exp(-2f*Time.deltaTime));
         smoothFocus = snap ? focus : Vector3.Lerp(smoothFocus, focus, 1 - Mathf.Exp(-14 * Time.deltaTime));
         Quaternion rotation = Quaternion.Euler(pitch, yaw, 0);
         Vector3 backward = rotation * Vector3.back;

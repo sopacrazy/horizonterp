@@ -14,7 +14,10 @@ public sealed class PoliceRadio : MonoBehaviour
     public KeyCode pushKey=KeyCode.V;
     GameHud hud;
     VisualElement panel;
-    Button openButton,talkButton,connectButton,disconnectButton;
+    Button openButton,connectButton,disconnectButton;
+    VisualElement talkButton;
+    readonly RadioTalkGesture gesture=new RadioTalkGesture();
+    public bool Latched=>gesture.Latched;
     Label stateLabel,channelLabel,speakerLabel;
     int selected=1;
     bool busy,wasPolice;
@@ -46,8 +49,9 @@ public sealed class PoliceRadio : MonoBehaviour
         openButton.style.width=72;openButton.style.backgroundColor=new Color(.12f,.3f,.43f,.92f);
         owner.Root.Add(openButton);
         owner.RegisterPointerBlocker(openButton);
-        talkButton=Button("",null);
-        talkButton.tooltip="Segure para falar no rádio";
+        // A plain element avoids Button's Clickable manipulator stealing touch capture.
+        talkButton=new VisualElement {name="radio-push-to-talk"};
+        talkButton.tooltip="Segure para falar · Dois toques para fixar · Toque para desligar";
         talkButton.style.position=Position.Absolute;talkButton.style.right=153;talkButton.style.bottom=126;
         talkButton.style.width=70;talkButton.style.height=70;talkButton.style.marginBottom=0;
         talkButton.style.flexDirection=FlexDirection.Column;
@@ -63,11 +67,25 @@ public sealed class PoliceRadio : MonoBehaviour
         talkButton.style.backgroundColor=new Color(.1f,.25f,.36f,.95f);
         var microphone=HudAtlas.Image("h2_microphone");
         microphone.scaleMode=ScaleMode.ScaleToFit;
+        microphone.pickingMode=PickingMode.Ignore;
         microphone.style.width=42;microphone.style.height=42;
         talkButton.Add(microphone);
-        talkButton.RegisterCallback<PointerDownEvent>(e=>{if(!Connected||busy)return;talkButton.CapturePointer(e.pointerId);BeginTalk();e.StopPropagation();});
-        talkButton.RegisterCallback<PointerUpEvent>(e=>{EndTalk();if(talkButton.HasPointerCapture(e.pointerId))talkButton.ReleasePointer(e.pointerId);e.StopPropagation();});
-        talkButton.RegisterCallback<PointerCaptureOutEvent>(_=>EndTalk());
+        talkButton.RegisterCallback<PointerDownEvent>(e=>
+        {
+            if(e.button!=0||!Connected||busy||!gesture.Down(e.pointerId,Time.unscaledTimeAsDouble))return;
+            talkButton.CapturePointer(e.pointerId);ApplyTalkInput();e.StopImmediatePropagation();
+        },TrickleDown.TrickleDown);
+        talkButton.RegisterCallback<PointerUpEvent>(e=>
+        {
+            if(!gesture.Up(e.pointerId,Time.unscaledTimeAsDouble))return;
+            ApplyTalkInput();
+            if(talkButton.HasPointerCapture(e.pointerId))talkButton.ReleasePointer(e.pointerId);
+            e.StopImmediatePropagation();
+        });
+        talkButton.RegisterCallback<PointerCancelEvent>(e=>
+        {if(gesture.Up(e.pointerId,Time.unscaledTimeAsDouble,true))ApplyTalkInput();});
+        talkButton.RegisterCallback<PointerCaptureOutEvent>(e=>
+        {if(gesture.Up(e.pointerId,Time.unscaledTimeAsDouble,true))ApplyTalkInput();});
         owner.Root.Add(talkButton);
         owner.RegisterPointerBlocker(talkButton);
         panel=new VisualElement();panel.style.position=Position.Absolute;panel.style.right=102;panel.style.top=252;
@@ -103,10 +121,14 @@ public sealed class PoliceRadio : MonoBehaviour
         if(police&&!wasPolice)StartCoroutine(ReadChannel());
         if(!police&&wasPolice){EndTalk();Channel=0;panel.style.display=DisplayStyle.None;}
         wasPolice=police;
-        if(Pressed&&(!Connected||!Input.GetKey(pushKey)&&keyPressed))EndTalk();
-        if(Connected&&Input.GetKeyDown(pushKey)){keyPressed=true;BeginTalk();}
-        if(keyPressed&&Input.GetKeyUp(pushKey)){keyPressed=false;EndTalk();}
-        if(!Connected&&Pressed)EndTalk();
+        bool blocked=hud.IsPanelOpen||InGameChat.Editing;
+        if(!Connected||blocked)EndTalk();
+        else
+        {
+            if(Input.GetKeyDown(pushKey))keyPressed=true;
+            if(keyPressed&&!Input.GetKey(pushKey))keyPressed=false;
+            ApplyTalkInput();
+        }
         if(speakerLabel!=null&&Time.unscaledTime>speakerUntil)speakerLabel.text="";
         Refresh();
     }
@@ -122,6 +144,8 @@ public sealed class PoliceRadio : MonoBehaviour
         var ringColor=Pressed?new Color(.43f,1f,.69f):new Color(.33f,.72f,.91f);
         talkButton.style.borderTopColor=ringColor;talkButton.style.borderBottomColor=ringColor;
         talkButton.style.borderLeftColor=ringColor;talkButton.style.borderRightColor=ringColor;
+        talkButton.style.opacity=Pressed ? .82f+.18f*Mathf.Abs(Mathf.Sin(Time.unscaledTime*5)) : 1f;
+        talkButton.tooltip=Latched?"Rádio fixado · Toque para desligar":"Segure para falar · Dois toques para fixar";
         stateLabel.text=busy?"Conectando...":Connected?"Conectado · canal "+Channel:"Desconectado";
         channelLabel.text="Selecionado: "+selected+" · "+(selected==1?"Central":selected==2?"Patrulha":"Operações");
         connectButton.SetEnabled(police&&!busy&&MultiplayerWorld.Instance&&MultiplayerWorld.Instance.Connected);
@@ -144,16 +168,22 @@ public sealed class PoliceRadio : MonoBehaviour
         else hud.ShowAccountMessage(reply?.error??"Não foi possível conectar ao rádio");
         Refresh();
     }
-    void BeginTalk()
+    void ApplyTalkInput()
     {
-        if(Pressed||!Connected)return;
-        Pressed=true;VoiceChat.Instance?.BeginRadio();Refresh();
+        bool wanted=Connected&&(gesture.Active||keyPressed);
+        if(wanted==Pressed)return;
+        Pressed=wanted;
+        if(wanted)VoiceChat.Instance?.BeginRadio();
+        else VoiceChat.Instance?.StopRadio();
+        Refresh();
     }
     void EndTalk()
     {
-        if(!Pressed)return;
-        Pressed=false;keyPressed=false;
-        if(VoiceChat.Instance&&VoiceChat.Instance.RadioTransmitting)VoiceChat.Instance.Stop();
+        int pointer=gesture.Pointer;
+        gesture.Cancel();Pressed=false;keyPressed=false;
+        // Cancel even while Vivox is still awaiting its channel switch.
+        VoiceChat.Instance?.StopRadio();
+        if(pointer>=0&&talkButton!=null&&talkButton.HasPointerCapture(pointer))talkButton.ReleasePointer(pointer);
         Refresh();
     }
     public void Received(string name)
@@ -164,5 +194,6 @@ public sealed class PoliceRadio : MonoBehaviour
     }
     void OnApplicationPause(bool pause){if(pause)EndTalk();}
     void OnApplicationFocus(bool focus){if(!focus)EndTalk();}
+    void OnDisable(){EndTalk();}
     void OnDestroy(){EndTalk();if(Instance==this)Instance=null;}
 }

@@ -17,7 +17,8 @@ digest=hashlib.sha256(apk.read_bytes()).hexdigest()
 assert validation['signature_verified'] and validation['same_signer_as_previous_apk']
 assert validation['updater_included']
 assert validation['versionCode']==code and validation['sha256']==digest
-assert apk.stat().st_size<=300*1024*1024,'Installed updater cannot accept more than 300 MiB'
+max_apk_mib=300 if code<=21 else 600
+assert apk.stat().st_size<=max_apk_mib*1024*1024,'Installed updater cannot accept this APK size'
 windows=args.windows.resolve() if args.windows else None
 if windows:
     windows_validation=json.loads((root/f"tools/release-{version.replace('.','')}/windows-validation.json").read_text(encoding='utf-8'))
@@ -70,5 +71,7 @@ else:
     api('PATCH',base+'/'+str(release_draft['id']),json.dumps({'draft':False,'make_latest':'true'}).encode())
 release={'available':True,'version':version,'versionCode':code,'packageId':config['packageId'],
     'apkUrl':f'https://github.com/{repo}/releases/download/{tag}/{apk.name}','bytes':apk.stat().st_size,'sha256':digest}
-(root/'releases/android.json').write_text(json.dumps(release,indent=2)+'\n',encoding='utf-8')
-print(json.dumps({'release':f'https://github.com/{repo}/releases/tag/{tag}','manifest':'releases/android.json','sha256':digest},indent=2))
+manifest_paths=['releases/android.json','releases/android-next.json'] if code==21 else ['releases/android-next.json']
+for manifest in manifest_paths:
+    (root/manifest).write_text(json.dumps(release,indent=2)+'\n',encoding='utf-8')
+print(json.dumps({'release':f'https://github.com/{repo}/releases/tag/{tag}','manifests':manifest_paths,'sha256':digest},indent=2))

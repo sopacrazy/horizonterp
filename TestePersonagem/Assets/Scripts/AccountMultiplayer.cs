@@ -14,11 +14,12 @@ using UnityEngine.Networking;
 }
 [Serializable] public class MultiplayerPeer
 {
-    public string characterId,uid,name,firstName,model;
+    public string characterId,uid,name,firstName,model,policeCarId;
     public int sequence;
     public long updatedAt;
     public float x,y,z,yaw,speed,jumpPhase;
-    public bool jumping,driving,policeDuty,cuffed,inPoliceCar;
+    public bool jumping,driving,policeDuty,cuffed,inPoliceCar,combatClient;
+    public bool voiceActive,radioActive;
     public string escortedBy;
     public string voice;
     public int voiceSequence;
@@ -26,7 +27,10 @@ using UnityEngine.Networking;
     public int radioSequence;
     public int radioChannel;
     public VoicePacket[] voiceFrames,radioFrames;
+    public CombatState combat;
 }
+[Serializable] public class CombatPeerState {public string uid;public CombatState combat;}
+[Serializable] public class CombatAttackBody {public string clientId,attackId;}
 [Serializable] public class VoicePacket {public int sequence;public string data;}
 [Serializable] public class AdminCommandReply
 {
@@ -51,7 +55,7 @@ using UnityEngine.Networking;
 [Serializable] public class AdminTeleport {public int id;public float x,y,z;}
 [Serializable] public class PoliceCarState
 {
-    public string id,ownerUid,occupantUid,occupantName;
+    public string id,ownerUid,occupantUid,occupantName,driverUid,driverName;
     public float x,y,z,yaw;
 }
 [Serializable] public class MultiplayerReply
@@ -59,6 +63,16 @@ using UnityEngine.Networking;
     public string room,error,code,chatEpoch;
     public int capacity,count,sequence,serverHour;
     public bool hourOverride,selfCuffed,selfInPoliceCar;
+    public bool voiceStateAvailable;
+    public bool policeVehicleAvailable;
+    public bool combatAvailable;
+    public CombatState selfCombat;
+    public CombatPeerState[] combatPeers;
+    public string targetUid;
+    public int damage;
+    public string selfPoliceCarId;
+    public string selfAccountRole;
+    public int selfAdminLevel;
     public string selfEscortedBy;
     public float selfX,selfY,selfZ,selfYaw;
     public long serverTime;

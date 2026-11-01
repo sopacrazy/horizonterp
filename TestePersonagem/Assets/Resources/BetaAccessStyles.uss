@@ -1,0 +1,57 @@
+.beta-backdrop { position: absolute; left: 0; right: 0; top: 0; bottom: 0; background-color: rgba(2, 5, 10, .83); align-items: center; justify-content: center; }
+.beta-modal { width: 94%; max-width: 1040px; height: 92%; max-height: 760px; padding: 18px 22px; background-color: rgb(15, 22, 32); border-radius: 18px; border-width: 1px; border-color: rgb(66, 79, 100); }
+.beta-header { flex-direction: row; align-items: flex-start; justify-content: space-between; flex-shrink: 0; margin-bottom: 12px; }
+.beta-headings { flex-grow: 1; flex-shrink: 1; }
+.beta-eyebrow { color: rgb(255, 211, 102); font-size: 10px; letter-spacing: 1.8px; -unity-font-style: bold; }
+.beta-title { color: white; font-size: 27px; -unity-font-style: bold; margin-top: 4px; }
+.beta-subtitle { color: rgb(161, 176, 198); font-size: 12px; white-space: normal; margin-top: 5px; }
+.beta-close { flex-shrink: 0; width: 40px; height: 40px; background-color: rgb(30, 41, 57); border-radius: 20px; font-size: 23px; color: white; margin-left: 12px; }
+.beta-issue-card { flex-shrink: 0; padding: 12px 14px; background-color: rgb(22, 33, 46); border-radius: 10px; border-width: 1px; border-color: rgb(49, 65, 85); margin-bottom: 12px; }
+.beta-issue-row, .beta-toolbar, .beta-secret-row { flex-direction: row; align-items: center; flex-shrink: 0; }
+.beta-issue-row { margin-top: 7px; }
+.beta-toolbar { margin-bottom: 9px; }
+.beta-input { flex-grow: 1; flex-shrink: 1; min-width: 90px; margin-right: 10px; }
+.beta-input .unity-text-field__input { color: white; background-color: rgb(9, 16, 25); border-width: 1px; border-color: rgb(61, 77, 99); border-radius: 7px; min-height: 37px; padding: 8px 10px; font-size: 13px; }
+.beta-gold, .beta-outline, .beta-danger { min-height: 38px; padding: 8px 13px; border-radius: 8px; font-size: 12px; flex-shrink: 0; color: rgb(222, 232, 247); }
+.beta-gold { background-color: rgb(250, 205, 85); border-color: rgb(250, 205, 85); color: rgb(26, 22, 13); -unity-font-style: bold; }
+.beta-gold:hover { background-color: rgb(255, 222, 130); }
+.beta-outline { background-color: rgb(29, 42, 59); border-color: rgb(62, 83, 110); }
+.beta-outline:hover { background-color: rgb(43, 59, 79); }
+.beta-danger { background-color: rgba(195, 62, 76, .18); border-color: rgb(166, 71, 83); color: rgb(255, 163, 174); }
+.beta-danger:hover { background-color: rgba(195, 62, 76, .35); }
+.beta-gold:disabled, .beta-outline:disabled, .beta-danger:disabled { opacity: .35; }
+.beta-hint { color: rgb(145, 163, 188); font-size: 11px; margin-top: 7px; white-space: normal; }
+.beta-list { flex-grow: 1; min-height: 55px; background-color: rgb(11, 18, 28); border-radius: 10px; }
+.beta-access-row { flex-direction: row; align-items: center; min-height: 74px; flex-shrink: 0; padding: 12px; border-bottom-width: 1px; border-bottom-color: rgb(39, 53, 73); }
+.beta-uid { width: 86px; flex-shrink: 0; color: rgb(255, 216, 114); font-size: 13px; -unity-font-style: bold; }
+.beta-row-info { flex-grow: 1; flex-shrink: 1; min-width: 90px; margin-right: 8px; }
+.beta-row-name { color: rgb(233, 240, 250); font-size: 14px; -unity-font-style: bold; white-space: normal; }
+.beta-row-detail { color: rgb(138, 158, 186); font-size: 10px; margin-top: 4px; white-space: normal; }
+.beta-badge { width: 100px; font-size: 10px; -unity-font-style: bold; flex-shrink: 0; }
+.beta-active { color: rgb(86, 219, 165); }
+.beta-revoked { color: rgb(246, 134, 151); }
+.beta-row-actions { flex-direction: row; flex-shrink: 0; }
+.beta-row-actions .beta-outline { margin-right: 7px; }
+.beta-status { min-height: 29px; flex-shrink: 0; font-size: 12px; color: rgb(176, 193, 218); white-space: normal; margin-top: 8px; }
+.beta-footer { flex-direction: row; align-items: center; flex-shrink: 0; margin-top: 5px; }
+.beta-total { flex-grow: 1; color: rgb(151, 172, 202); font-size: 12px; }
+.beta-page { color: rgb(151, 172, 202); margin-right: 10px; font-size: 12px; }
+.beta-page-button { width: 34px; height: 34px; margin-left: 6px; border-radius: 7px; background-color: rgb(29, 42, 59); color: white; font-size: 23px; }
+.beta-dialog-shade { position: absolute; left: 0; right: 0; top: 0; bottom: 0; background-color: rgba(0, 0, 0, .74); align-items: center; justify-content: center; }
+.beta-dialog { width: 480px; max-width: 92%; max-height: 96%; padding: 24px; background-color: rgb(20, 29, 42); border-width: 1px; border-color: rgb(143, 119, 66); border-radius: 15px; }
+.beta-dialog-title { font-size: 22px; color: white; -unity-font-style: bold; white-space: normal; margin-top: 4px; }
+.beta-dialog-text { color: rgb(172, 189, 214); font-size: 13px; white-space: normal; margin-top: 12px; margin-bottom: 12px; }
+.beta-dialog-buttons { flex-direction: row; justify-content: flex-end; flex-shrink: 0; margin-top: 15px; }
+.beta-dialog-buttons > Button { margin-left: 8px; }
+.beta-error { color: rgb(255, 158, 170); white-space: normal; font-size: 12px; }
+.beta-credential-uid { color: rgb(255, 218, 117); font-size: 24px; -unity-font-style: bold; margin-top: 4px; margin-bottom: 12px; }
+.beta-secret-row .beta-input { margin-left: 0; }
+.beta-compact .beta-modal { padding: 11px 14px; }
+.beta-compact .beta-title { font-size: 23px; }
+.beta-compact .beta-access-row { flex-direction: column; align-items: stretch; }
+.beta-compact .beta-uid { width: auto; margin-bottom: 4px; }
+.beta-compact .beta-badge { width: auto; margin-top: 6px; }
+.beta-compact .beta-row-actions { margin-top: 9px; }
+.beta-compact .beta-row-actions > Button { flex-grow: 1; }
+.beta-compact .beta-issue-card { padding: 9px; }
+.beta-compact .beta-dialog { padding: 17px; }

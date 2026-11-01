@@ -16,6 +16,9 @@ namespace Hbrp.Realtime
         public bool Authenticated {get;private set;}
         public bool Disconnected {get;private set;}
         public float RoundTripMs {get;private set;}
+        public int PingsReceived {get;private set;}
+        float lastPong;
+        public float PongAge=>PingsReceived==0?float.PositiveInfinity:Time.realtimeSinceStartup-lastPong;
         public int SnapshotsReceived {get;private set;}
         public UtpMovementClient(string host,ushort port,string caCertificate,string serverName,string ticket,int simulatedDelayMs=0)
         {
@@ -46,7 +49,11 @@ namespace Hbrp.Realtime
                     if(kind==PacketKind.Authenticated){Authenticated=true;continue;}
                     if(!Authenticated)continue;
                     if(kind==PacketKind.Pong&&reader.Length-reader.GetBytesRead()==8)
-                    {RoundTripMs=Mathf.Clamp(UtpWire.Now-reader.ReadLong(),0,5000);continue;}
+                    {
+                        float sample=Mathf.Clamp(UtpWire.Now-reader.ReadLong(),0,5000);
+                        RoundTripMs=PingsReceived==0?sample:Mathf.Lerp(RoundTripMs,sample,.3f);
+                        PingsReceived++;lastPong=Time.realtimeSinceStartup;continue;
+                    }
                     if(kind!=PacketKind.Snapshot||reader.Length-reader.GetBytesRead()<9)continue;
                     long time=reader.ReadLong();int count=reader.ReadByte();if(count>10)continue;
                     var batch=new List<UdpPose>(count);

@@ -32,6 +32,9 @@ public sealed class HudIcon : VisualElement
         void Box(float x,float y,float w,float h)=>Line(x,y,x+w,y,x+w,y+h,x,y+h,x,y);
         switch(Kind)
         {
+            case "microphone":
+                Line(8,10,8,5,10,3,14,3,16,5,16,10,14,13,10,13,8,10);
+                Line(5,10,5,13,8,17,16,17,19,13,19,10);Line(12,17,12,21);Line(8,21,16,21);break;
             case "admin":
                 p.BeginPath();p.MoveTo(Point(3,7));p.LineTo(Point(7,11));p.LineTo(Point(12,3));
                 p.LineTo(Point(17,11));p.LineTo(Point(21,7));p.LineTo(Point(19,18));p.LineTo(Point(5,18));p.ClosePath();p.Fill();p.Stroke();

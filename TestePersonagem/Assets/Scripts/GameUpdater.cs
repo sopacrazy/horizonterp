@@ -17,13 +17,16 @@ using UnityEngine.Networking;
 
 public sealed class GameUpdater : MonoBehaviour
 {
+    // The previous installed client accepts at most 300 MiB. This bridge release
+    // stays below that limit; later releases may use a larger download budget.
+    const long MaxUpdateBytes=600L*1024*1024;
     AndroidRelease release;
     bool prompt,continuePlaying,waitingPermission;
     string error;
     public static bool IsNewer(AndroidRelease value,int installedCode)=>value!=null&&value.available&&value.versionCode>installedCode;
     public static bool Valid(AndroidRelease value)
     {
-        if(value==null||value.packageId!=GameVersion.Current.packageId||value.versionCode<=0||value.bytes<=0||value.bytes>300L*1024*1024||
+        if(value==null||value.packageId!=GameVersion.Current.packageId||value.versionCode<=0||value.bytes<=0||value.bytes>MaxUpdateBytes||
             !Regex.IsMatch(value.version??"",@"^\d+\.\d+\.\d+$")||!Regex.IsMatch(value.sha256??"",@"^[a-fA-F0-9]{64}$"))return false;
         return value.apkUrl=="https://github.com/sopacrazy/horizonterp/releases/download/v"+value.version+"/HorizonteBrasil-"+value.version+".apk";
     }
@@ -59,7 +62,7 @@ public sealed class GameUpdater : MonoBehaviour
         if(File.Exists(partial))File.Delete(partial);
         using(var request=UnityWebRequest.Get(release.apkUrl))
         {
-            request.timeout=180;request.redirectLimit=5;
+            request.timeout=900;request.redirectLimit=5;
             request.downloadHandler=new DownloadHandlerFile(partial){removeFileOnAbort=true};
             var download=request.SendWebRequest();
             while(!download.isDone)

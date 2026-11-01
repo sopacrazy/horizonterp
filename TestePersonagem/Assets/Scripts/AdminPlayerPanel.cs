@@ -15,7 +15,7 @@ public sealed class AdminPlayerPanel : MonoBehaviour
     ScrollView table;
     TextField search;
     Label status,count,page;
-    Button previous,next,policeButton;
+    Button previous,next,policeButton,betaButton;
     Button[] speedButtons;
     GameHud hud;
     int offset,total,generation;
@@ -24,9 +24,7 @@ public sealed class AdminPlayerPanel : MonoBehaviour
 
     public static void Open(GameHud owner)
     {
-        if(!AccountSession.HasCharacter ||
-            AccountSession.Instance.State.accountRole!="admin" ||
-            AccountSession.Instance.State.adminLevel<1)return;
+        if(!AdminPermissions.CurrentCanUseTools)return;
         if(!Instance)owner.gameObject.AddComponent<AdminPlayerPanel>().Build(owner);
         Instance.Show();
     }
@@ -78,7 +76,10 @@ public sealed class AdminPlayerPanel : MonoBehaviour
         table.AddToClassList("admin-table");modal.Add(table);
         status=Text("","admin-status",modal);status.name="admin-status";
         var footer=Box("admin-footer",modal);
-        count=Text("","admin-count",footer);page=Text("","admin-page",footer);
+        count=Text("","admin-count",footer);
+        betaButton=Button("Beta · equipe","admin-gold",()=>BetaAccessPanel.Open(hud),footer);betaButton.name="admin-beta-access";
+        betaButton.style.minHeight=34;betaButton.style.marginRight=12;
+        page=Text("","admin-page",footer);
         previous=Button("‹","admin-page-button",()=>{offset=Mathf.Max(0,offset-25);Load();},footer);
         previous.name="admin-previous";
         next=Button("›","admin-page-button",()=>{offset+=25;Load();},footer);next.name="admin-next";
@@ -105,27 +106,29 @@ public sealed class AdminPlayerPanel : MonoBehaviour
     {
         if(policeButton==null)return;
         policeButton.text=PoliceDuty?"Sair do serviço policial":"Entrar em serviço como policial";
-        policeButton.SetEnabled(!policeBusy);
+        policeButton.SetEnabled(!policeBusy&&AdminPermissions.CurrentCanUseTools);
         policeButton.EnableInClassList("on-duty",PoliceDuty);
     }
     IEnumerator LoadPoliceDuty()
     {
-        if(policeBusy)yield break;
+        if(policeBusy||!AdminPermissions.CurrentCanUseTools)yield break;
         policeBusy=true;RefreshPoliceButton();AdminReply reply=null;
         yield return AccountSession.Instance.AdminRequest("GET","/v1/police/duty",null,r=>reply=r);
         policeBusy=false;
-        if(reply!=null&&string.IsNullOrEmpty(reply.code))PoliceDuty=reply.policeDuty;
+        if(!AdminPermissions.CurrentCanUseTools)PoliceDuty=false;
+        else if(reply!=null&&string.IsNullOrEmpty(reply.code))PoliceDuty=reply.policeDuty;
         else if(IsOpen)status.text=reply?.error??"Não foi possível consultar o serviço policial.";
         RefreshPoliceButton();
     }
     IEnumerator ChangePoliceDuty()
     {
-        if(policeBusy)yield break;
+        if(policeBusy||!AdminPermissions.CurrentCanUseTools)yield break;
         policeBusy=true;RefreshPoliceButton();AdminReply reply=null;
         string body="{\"enabled\":"+(!PoliceDuty?"true":"false")+"}";
         yield return AccountSession.Instance.AdminRequest("POST","/v1/police/duty",body,r=>reply=r);
         policeBusy=false;
-        if(reply!=null&&string.IsNullOrEmpty(reply.code))
+        if(!AdminPermissions.CurrentCanUseTools)PoliceDuty=false;
+        else if(reply!=null&&string.IsNullOrEmpty(reply.code))
         {
             PoliceDuty=reply.policeDuty;
             if(reply.organization!=null&&AccountSession.HasCharacter)
@@ -137,15 +140,16 @@ public sealed class AdminPlayerPanel : MonoBehaviour
     }
     public void Close(bool force=false)
     {
+        BetaAccessPanel.Instance?.Close();
         IsOpen=false;generation++;debounce?.Pause();
         if(overlay!=null)overlay.style.display=DisplayStyle.None;
         if(hud)hud.Root.RemoveFromClassList("hud-panel-open");
     }
     void Update()
     {
-        if(IsOpen&&(!AccountSession.HasCharacter||AccountSession.Instance.State.accountRole!="admin"||
-            AccountSession.Instance.State.adminLevel<1))Close(true);
-        if(!AccountSession.HasCharacter)PoliceDuty=false;
+        if(betaButton!=null)betaButton.style.display=AccountSession.HasCharacter&&BetaAccessPanel.CanManage(AccountSession.Instance.State)?DisplayStyle.Flex:DisplayStyle.None;
+        if(IsOpen&&!AdminPermissions.CurrentCanUseTools)Close(true);
+        if(!AdminPermissions.CurrentCanUseTools)PoliceDuty=false;
     }
     void Load()
     {

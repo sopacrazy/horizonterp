@@ -47,7 +47,8 @@ assert "sdkVersion:'26'" in badging and "native-code: 'arm64-v8a'" in badging
 assert "application-label:'Horizonte'" in badging
 assert 'android.permission.INTERNET' in badging
 if args.updater:
-    assert apk.stat().st_size<=300*1024*1024,'Existing Android updater accepts APKs up to 300 MiB; do not publish an incompatible manifest'
+    max_apk_mib=300 if args.version_code<=21 else 600
+    assert apk.stat().st_size<=max_apk_mib*1024*1024,'Installed Android updater cannot accept this APK size'
     assert 'android.permission.REQUEST_INSTALL_PACKAGES' in badging
     manifest=run([sdk/'aapt.exe','dump','xmltree',apk,'AndroidManifest.xml'])
     assert 'com.horizonte.update.HbrpApkProvider' in manifest
@@ -139,7 +140,8 @@ with zipfile.ZipFile(apk) as archive:
         version_meta=(root/'TestePersonagem/Assets/Resources/GameVersion.json.meta').read_text()
         version_guid=re.search(r'^guid: ([a-f0-9]+)',version_meta,re.MULTILINE).group(1)
         version_resources=archive.read('assets/bin/Data/'+version_guid)
-        assert b'https://raw.githubusercontent.com/sopacrazy/horizonterp/main/releases/android.json' in version_resources
+        expected_manifest=json.loads((root/'TestePersonagem/Assets/Resources/GameVersion.json').read_text())['updateManifestUrl']
+        assert expected_manifest.encode() in version_resources
         assert args.version.encode() in version_resources
     if args.stairs:
         scenes=[archive.read(name) for name in names if re.fullmatch(r'assets/bin/Data/level\d+(?:\.split\d+)?',name)]

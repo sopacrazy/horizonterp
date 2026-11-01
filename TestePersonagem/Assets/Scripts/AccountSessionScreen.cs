@@ -28,45 +28,39 @@ public sealed partial class AccountSession
         var shade=new VisualElement {pickingMode=PickingMode.Ignore};shade.AddToClassList("auth-shade");root.Add(shade);
 
         landing=new VisualElement {name="auth-landing"};landing.AddToClassList("auth-landing");root.Add(landing);
-        LabelAt("BEM-VINDO À SUA NOVA HISTÓRIA","auth-kicker",landing);
+        LabelAt("BETA FECHADO · EQUIPE","auth-kicker",landing);
         LabelAt("Entre na cidade","auth-welcome",landing);
-        LabelAt("Seu próximo capítulo começa aqui.","auth-intro",landing);
-        ProviderButton("facebook","Fazer login no Facebook",landing);
-        ProviderButton("google","Entrar com o Google",landing);
-        LabelAt("Google e Facebook disponíveis em breve","auth-provider-note",landing);
-        var divider=new VisualElement();divider.AddToClassList("auth-divider");landing.Add(divider);
-        LabelAt("OU CONTINUE COM SEU E-MAIL","auth-divider-text",divider);
-        var signup=new Button(()=>OpenEmailForm(true)) {name="auth-register-email",text="CADASTRAR COM E-MAIL"};
-        signup.AddToClassList("auth-email-button");landing.Add(signup);
-        var login=new Button(()=>OpenEmailForm(false)) {name="auth-login-email",text="JÁ TENHO CONTA  ·  ENTRAR"};
-        login.AddToClassList("auth-login-button");landing.Add(login);
+        LabelAt("Acesse com o UID e a senha enviados pela equipe.","auth-intro",landing);
+        var login=new Button(()=>OpenEmailForm(false)) {name="auth-login-uid",text="ENTRAR COM UID"};
+        login.AddToClassList("auth-email-button");landing.Add(login);
+        LabelAt("Acesso individual emitido pelo painel. O cadastro público está fechado.","auth-description",landing);
 
         scroll=new ScrollView(ScrollViewMode.Vertical) {name="auth-form-panel"};scroll.AddToClassList("auth-scroll");
         scroll.horizontalScrollerVisibility=ScrollerVisibility.Hidden;scroll.verticalScrollerVisibility=ScrollerVisibility.Auto;
         root.Add(scroll);
         form=new VisualElement();form.AddToClassList("auth-form");scroll.Add(form);
         back=new Button(ShowLanding) {name="auth-back",text="‹  VOLTAR"};back.AddToClassList("auth-back");form.Add(back);
-        LabelAt("CONTA HORIZONTE BRASIL","auth-brand",form);
+        LabelAt("ACESSO BETA · EQUIPE","auth-brand",form);
         title=LabelAt("","auth-title",form);
         description=LabelAt("","auth-description",form);
 
         var emailGroup=FieldGroup(form);
-        email=Field("E-mail","voce@exemplo.com","auth-email",false,emailGroup,254);
-        email.keyboardType=TouchScreenKeyboardType.EmailAddress;
-        email.value=Hbrp.Realtime.LocalNetworkLab.IsolateSavedAccess?"":PlayerPrefs.GetString("account.email","");
+        // The internal field name is retained for old verification assemblies.
+        // No e-mail field or public registration control is presented to players.
+        email=Field("UID","Seu UID beta","auth-uid",false,emailGroup,19);
+        email.keyboardType=TouchScreenKeyboardType.NumberPad;
+        string rememberedUid=Hbrp.Realtime.LocalNetworkLab.IsolateSavedAccess?"":PlayerPrefs.GetString("account.uid","");
+        email.value=IsBetaUid(rememberedUid)?rememberedUid:"";
         var passwordGroup=FieldGroup(form);
         password=Field("Senha","Sua senha","auth-password",true,passwordGroup,128);
         var passwordRow=password.parent;passwordRow.AddToClassList("auth-password-row");
         showPassword=new Button(TogglePassword) {name="auth-show-password",text="MOSTRAR",tooltip="Mostrar senha"};
         showPassword.AddToClassList("auth-show-password");passwordRow.Add(showPassword);
-        passwordHint=LabelAt("Pelo menos 10 caracteres.","auth-field-hint",passwordGroup);
-        confirmGroup=FieldGroup(form);
-        confirmation=Field("Confirmar senha","Digite a senha novamente","auth-confirm",true,confirmGroup,128);
+        passwordHint=LabelAt("Use a senha individual fornecida pela equipe.","auth-field-hint",passwordGroup);
 
         message=LabelAt("","auth-message",form);message.name="auth-message";
         submit=new Button(()=>StartCoroutine(Submit())) {name="auth-submit"};submit.AddToClassList("auth-submit");form.Add(submit);
-        toggle=new Button(()=>OpenEmailForm(!register)) {name="auth-toggle"};toggle.AddToClassList("auth-toggle");form.Add(toggle);
-        LabelAt("Depois de acessar a conta, escolha ou crie seu personagem.","auth-footer",form);
+        LabelAt("Seu acesso já está criado. Após entrar, escolha ou crie seu personagem.","auth-footer",form);
         var language=LabelAt("PORTUGUÊS  ·  BRASIL","auth-language",root);language.pickingMode=PickingMode.Ignore;
         BuildCharacterLobby(root);
         root.RegisterCallback<GeometryChangedEvent>(_=>
@@ -127,7 +121,9 @@ public sealed partial class AccountSession
 
     void DisplayEmailForm(bool createAccount)
     {
-        register=createAccount;
+        // Kept as a compatibility entry point for editor diagnostics. A request
+        // to show the former register form can only open the UID login now.
+        register=false;
         HideCharacterLobby();
         landing.style.display=DisplayStyle.None;scroll.style.display=DisplayStyle.Flex;
         ClearSecrets();ClearErrors();RefreshForm();scroll.scrollOffset=Vector2.zero;
@@ -142,13 +138,12 @@ public sealed partial class AccountSession
 
     void RefreshForm()
     {
-        title.text=register?"Crie sua conta":"Bem-vindo de volta";
-        description.text=register?"Cadastre seu e-mail e senha. Você cria seu personagem na próxima etapa.":"Entre com seu e-mail para escolher seu personagem.";
-        confirmGroup.style.display=register?DisplayStyle.Flex:DisplayStyle.None;
-        passwordHint.style.display=register?DisplayStyle.Flex:DisplayStyle.None;
-        password.textEdition.placeholder=register?"Crie sua senha":"Sua senha";
-        submit.text=register?"CRIAR CONTA E CONTINUAR":"ACESSAR MINHA CONTA";
-        toggle.text=register?"JÁ TENHO CONTA  ·  ENTRAR":"AINDA NÃO TEM CONTA?  CADASTRE-SE";
+        register=false;
+        title.text="Acesse sua conta";
+        description.text="Informe o UID e a senha criados pelo painel da equipe.";
+        passwordHint.style.display=DisplayStyle.Flex;
+        password.textEdition.placeholder="Senha do acesso beta";
+        submit.text="ENTRAR NO BETA";
     }
 
     void ShowLogin(string error="")
@@ -163,13 +158,15 @@ public sealed partial class AccountSession
     void ClearSecrets()
     {
         if(password==null)return;
-        password.value="";confirmation.value="";password.isPasswordField=confirmation.isPasswordField=true;
+        password.value="";password.isPasswordField=true;
+        if(confirmation!=null){confirmation.value="";confirmation.isPasswordField=true;}
         showPassword.text="MOSTRAR";showPassword.tooltip="Mostrar senha";
     }
 
     void TogglePassword()
     {
-        bool secret=!password.isPasswordField;password.isPasswordField=confirmation.isPasswordField=secret;
+        bool secret=!password.isPasswordField;password.isPasswordField=secret;
+        if(confirmation!=null)confirmation.isPasswordField=secret;
         showPassword.text=secret?"MOSTRAR":"OCULTAR";showPassword.tooltip=secret?"Mostrar senha":"Ocultar senha";
     }
 
@@ -195,15 +192,11 @@ public sealed partial class AccountSession
     {
         ClearErrors();TextField firstError=null;
         void Reject(TextField field,string error){SetFieldError(field,error);if(firstError==null)firstError=field;}
-        string address=(email.value??"").Trim().ToLowerInvariant();
-        if(address.Length>254||!Regex.IsMatch(address,@"^[^\s@]{1,64}@[^\s@]+\.[^\s@]+$"))
-            Reject(email,"Informe um e-mail válido, como voce@exemplo.com.");
-        else email.SetValueWithoutNotify(address);
+        string uid=(email.value??"").Trim();
+        if(!IsBetaUid(uid))Reject(email,"Informe o UID numérico recebido da equipe.");
+        else email.SetValueWithoutNotify(uid);
         if(string.IsNullOrWhiteSpace(password.value)||password.value.Length<10||password.value.Length>128)
             Reject(password,"Sua senha deve ter de 10 a 128 caracteres.");
-        if(register&&!string.Equals(password.value,confirmation.value,StringComparison.Ordinal))
-            Reject(confirmation,"As senhas não conferem. Digite a mesma senha.");
-        if(register&&string.IsNullOrEmpty(confirmation.value))Reject(confirmation,"Confirme sua senha para continuar.");
         if(firstError==null)return true;
         SetGeneralMessage("Confira os campos destacados.",true);firstError.Focus();return false;
     }
@@ -211,8 +204,18 @@ public sealed partial class AccountSession
     void SetFormBusy(bool value)
     {
         foreach(var field in fieldErrors.Keys)field.SetEnabled(!value);
-        submit.SetEnabled(!value);toggle.SetEnabled(!value);back.SetEnabled(!value);showPassword.SetEnabled(!value);
-        if(value)submit.text=register?"CRIANDO CONTA...":"ENTRANDO...";else RefreshForm();
+        submit.SetEnabled(!value);back.SetEnabled(!value);showPassword.SetEnabled(!value);
+        if(value)submit.text="VERIFICANDO ACESSO...";else RefreshForm();
+    }
+    internal static bool IsBetaUid(string value)=>Regex.IsMatch(value??"",@"\A[1-9][0-9]{0,18}\z");
+
+    void RememberAccountUid(ApiReply reply,string fallback=null)
+    {
+        string uid=reply?.account?.uid??reply?.state?.uid??fallback;
+        if(!IsBetaUid(uid))return;
+        email?.SetValueWithoutNotify(uid);
+        if(!Hbrp.Realtime.LocalNetworkLab.IsolateSavedAccess&&VerificationTransport==null)
+        {PlayerPrefs.SetString("account.uid",uid);PlayerPrefs.Save();}
     }
 }
 

@@ -10,6 +10,7 @@ public sealed partial class GameHud
     // The artwork has its own crop; the playable region limits are not its image bounds.
     static readonly Vector2 AtlasMin = new Vector2(65.08475f, 774.51634f);
     static readonly Vector2 AtlasMax = new Vector2(2966.77966f, 2775.85057f);
+    // The radar's 1 km detection radius must not change the familiar street zoom.
     const float MinimapVisibleMetres = 450;
     float cityMinimapYaw;
     readonly MinimapHeading cityHeading=new MinimapHeading();
@@ -22,7 +23,7 @@ public sealed partial class GameHud
     Vector2 citySelectedTarget;
     VisualElement cityDestinationMarker,cityTeleportConfirm;
     Button cityTeleportGo;
-    bool CanUseMapTeleport => AccountSession.HasCharacter && AccountSession.Instance.State.accountRole == "admin" && AccountSession.Instance.State.adminLevel > 0;
+    bool CanUseMapTeleport => AdminPermissions.CurrentCanUseTools;
 
     static Vector2 CityMapUV(Vector3 world) => new Vector2(
         (world.x - AtlasMin.x) / (AtlasMax.x - AtlasMin.x),
@@ -47,6 +48,7 @@ public sealed partial class GameHud
         cityMapPan = Vector2.zero;
         cityDragPointer = -1;
         mapArea = Element("city-map-canvas", content);
+        ResetMapRadar();
         mapArea.tooltip = CanUseMapTeleport ? "Clique para marcar um destino · Arraste para explorar" : "Arraste para explorar o mapa";
         mapImage = new Image { image = cityMapAtlas, scaleMode = ScaleMode.StretchToFill, pickingMode = PickingMode.Ignore };
         mapImage.AddToClassList("mini-image"); mapArea.Add(mapImage);
@@ -110,6 +112,7 @@ public sealed partial class GameHud
         citySelectedTarget=target;cityPointSelected=true;citySelectionVersion++;
         cityTeleportConfirm.style.display=DisplayStyle.Flex;
         UpdateCityMapMarker();
+        RefreshPlayerRadar(true);
         FindAnyObjectByType<GtaSaSectorStreaming>()?.PreviewMapDestination(target);
     }
 
@@ -158,6 +161,7 @@ public sealed partial class GameHud
         mapImage.style.width = cityImageSize.x; mapImage.style.height = cityImageSize.y;
         mapImage.style.left = cityImageOffset.x; mapImage.style.top = cityImageOffset.y;
         UpdateCityMapMarker();
+        RefreshPlayerRadar();
     }
 
     void UpdateCityMapMarker()
@@ -202,5 +206,6 @@ public sealed partial class GameHud
             minimapNorth.style.top = height * .5f - Mathf.Cos(angle) * (height * .5f - 17) - 7;
         }
         UpdateCityMapMarker();
+        RefreshPlayerRadar();
     }
 }
