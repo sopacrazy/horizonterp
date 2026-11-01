@@ -6,6 +6,7 @@ root=Path(__file__).resolve().parents[1]
 parser=argparse.ArgumentParser()
 parser.add_argument('--version',required=True)
 parser.add_argument('--manifest',action='store_true')
+parser.add_argument('--android-only',action='store_true',help='Verify a release without a Windows build')
 args=parser.parse_args()
 version=args.version
 headers={'User-Agent':'Horizonte-public-release-check','Accept':'application/vnd.github+json'}
@@ -15,9 +16,12 @@ def read_json(url):
 release=read_json(f'https://api.github.com/repos/sopacrazy/horizonterp/releases/tags/v{version}')
 assert not release['draft']
 expected=json.loads((root/f"tools/android-{version.replace('.','')}-validation.json").read_text(encoding='utf-8'))
-windows=json.loads((root/f"tools/release-{version.replace('.','')}/windows-validation.json").read_text(encoding='utf-8'))
 checks=[]
-for name,validation in [(f'HorizonteBrasil-{version}.apk',expected),(f'HorizonteBrasil-Windows-{version}.zip',windows)]:
+assets=[(f'HorizonteBrasil-{version}.apk',expected)]
+if not args.android_only:
+    windows=json.loads((root/f"tools/release-{version.replace('.','')}/windows-validation.json").read_text(encoding='utf-8'))
+    assets.append((f'HorizonteBrasil-Windows-{version}.zip',windows))
+for name,validation in assets:
     asset=next(item for item in release['assets'] if item['name']==name)
     assert asset['size']==validation['bytes']
     if asset.get('digest'):assert asset['digest']=='sha256:'+validation['sha256']
@@ -34,5 +38,7 @@ if args.manifest:
     assert public['version']==version and public['versionCode']==expected['versionCode']
     assert public['sha256']==expected['sha256'] and public['bytes']==expected['bytes']
 report={'version':version,'release':release['html_url'],'assets':checks,'manifestVerified':args.manifest}
-(root/f"tools/release-{version.replace('.','')}/public-validation.json").write_text(json.dumps(report,indent=2),encoding='utf-8')
+report_path=root/f"tools/release-{version.replace('.','')}/public-validation.json"
+report_path.parent.mkdir(parents=True,exist_ok=True)
+report_path.write_text(json.dumps(report,indent=2),encoding='utf-8')
 print('PUBLIC_RELEASE_VERIFIED',flush=True)
