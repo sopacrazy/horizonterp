@@ -15,7 +15,7 @@ public sealed class StartupLoader : MonoBehaviour
     static StartupLoader activeLoader;
     float started,opacity=1;
     string status="PREPARANDO A CIDADE";
-    GUIStyle label,percent;
+    GUIStyle label,percent,version;
 
     void Awake()
     {
@@ -96,30 +96,36 @@ public sealed class StartupLoader : MonoBehaviour
         GUI.color=new Color(1,1,1,opacity);
         float scale=Screen.height/720f;
         var screen=new Rect(0,0,Screen.width,Screen.height);
-        if(artwork)GUI.DrawTexture(screen,artwork,ScaleMode.ScaleAndCrop);
-        else GUI.DrawTexture(screen,Texture2D.blackTexture);
+        GUI.DrawTexture(screen,Texture2D.blackTexture);
+        var artRect=screen;
+        if(artwork)
+        {
+            float artScale=Mathf.Min(Screen.width/(float)artwork.width,Screen.height/(float)artwork.height);
+            artRect=new Rect((Screen.width-artwork.width*artScale)*.5f,(Screen.height-artwork.height*artScale)*.5f,artwork.width*artScale,artwork.height*artScale);
+            GUI.DrawTexture(artRect,artwork,ScaleMode.StretchToFill);
+        }
         Rect safe=Screen.safeArea;
-        float width=Mathf.Min(safe.width-48*scale,780*scale);
-        float left=safe.center.x-width/2;
-        float bottom=Screen.height-safe.yMin-19*scale;
+        float width=Mathf.Min(safe.width-48*scale,artRect.width*.34f);
+        float left=artRect.center.x-width/2;
+        // Place the bar immediately below BRASIL RP in the supplied artwork.
+        float barY=artRect.y+artRect.height*.862f;
         if(label==null)
         {
-            label=new GUIStyle(GUI.skin.label){fontStyle=FontStyle.Bold};
+            label=new GUIStyle(GUI.skin.label){fontStyle=FontStyle.Normal};
             label.normal.textColor=new Color(.88f,.88f,.88f);
             percent=new GUIStyle(label){alignment=TextAnchor.UpperRight};
+            version=new GUIStyle(label){alignment=TextAnchor.UpperCenter};
         }
-        label.fontSize=percent.fontSize=Mathf.Max(10,Mathf.RoundToInt(12*scale));
-        GUI.color=new Color(0,0,0,opacity*.8f);
-        GUI.Label(new Rect(left+scale,bottom-42*scale,width,25*scale),status,label);
-        GUI.Label(new Rect(left+scale,bottom-42*scale,width,25*scale),$"{Mathf.FloorToInt(Progress*100)}%",percent);
+        label.fontSize=percent.fontSize=version.fontSize=Mathf.Max(10,Mathf.RoundToInt(11*scale));
         GUI.color=new Color(1,1,1,opacity);
-        GUI.Label(new Rect(left,bottom-43*scale,width,25*scale),status,label);
-        GUI.Label(new Rect(left,bottom-43*scale,width,25*scale),$"{Mathf.FloorToInt(Progress*100)}%",percent);
-        GUI.Label(new Rect(left,bottom-67*scale,width,22*scale),"HORIZONTE BRASIL · v"+Application.version,label);
-        GUI.color=new Color(.17f,.18f,.19f,opacity);
-        GUI.DrawTexture(new Rect(left,bottom-12*scale,width,5*scale),Texture2D.whiteTexture);
-        GUI.color=new Color(1,.76f,.24f,opacity);
-        GUI.DrawTexture(new Rect(left,bottom-12*scale,width*Progress,5*scale),Texture2D.whiteTexture);
+        GUI.Label(new Rect(left,barY-22*scale,width,20*scale),status,label);
+        GUI.Label(new Rect(left,barY-22*scale,width,20*scale),$"{Mathf.FloorToInt(Progress*100)}%",percent);
+        GUI.color=new Color(.12f,.035f,.045f,opacity*.95f);
+        GUI.DrawTexture(new Rect(left,barY,width,5*scale),Texture2D.whiteTexture);
+        GUI.color=new Color(.91f,.075f,.11f,opacity);
+        GUI.DrawTexture(new Rect(left,barY,width*Progress,5*scale),Texture2D.whiteTexture);
+        GUI.color=new Color(1,1,1,opacity);
+        GUI.Label(new Rect(left,barY+12*scale,width,22*scale),"v"+Application.version,version);
         GUI.color=Color.white;
     }
     void OnDestroy(){if(activeLoader==this){activeLoader=null;IsLoading=false;}}

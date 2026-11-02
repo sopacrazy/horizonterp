@@ -21,7 +21,7 @@ public sealed class InGameChat : MonoBehaviour
     VisualElement root,area,composer;
     ScrollView feed;
     TextField input;
-    Label hint;
+    Label hint,composePrompt;
     Button send;
     TouchScreenKeyboard keyboard;
     string spectateUid;
@@ -42,15 +42,17 @@ public sealed class InGameChat : MonoBehaviour
         root=parent;root.AddToClassList("chat-enabled");
         var styles=Resources.Load<StyleSheet>("ChatStyles");if(styles)root.styleSheets.Add(styles);
         area=new VisualElement {name="chat-area",focusable=true,tooltip="Toque para escrever · T ou Enter no computador"};area.AddToClassList("chat-area");root.Add(area);
+        var header=new VisualElement {pickingMode=PickingMode.Ignore};header.AddToClassList("chat-header");area.Add(header);
+        var title=new Label("CHAT DA CIDADE"){pickingMode=PickingMode.Ignore};title.AddToClassList("chat-title");header.Add(title);
+        composePrompt=new Label(ComposePrompt()){pickingMode=PickingMode.Ignore};composePrompt.AddToClassList("chat-prompt");header.Add(composePrompt);
         feed=new ScrollView(ScrollViewMode.Vertical) {name="chat-feed"};feed.AddToClassList("chat-feed");
         feed.horizontalScrollerVisibility=ScrollerVisibility.Hidden;feed.verticalScrollerVisibility=ScrollerVisibility.Auto;area.Add(feed);
         composer=new VisualElement {name="chat-composer"};composer.AddToClassList("chat-composer");area.Add(composer);
         var row=new VisualElement();row.AddToClassList("chat-input-row");composer.Add(row);
         input=new TextField {name="chat-input",maxLength=180,multiline=false,isReadOnly=Application.isMobilePlatform};
-        input.AddToClassList("chat-input");input.textEdition.placeholder="Escreva sua mensagem...";
-        input.textEdition.hidePlaceholderOnFocus=false;row.Add(input);
+        input.AddToClassList("chat-input");input.textEdition.placeholder="";
+        input.textEdition.hidePlaceholderOnFocus=true;row.Add(input);
         send=new Button(Send){name="chat-send",text="›",tooltip="Enviar mensagem"};send.AddToClassList("chat-send");row.Add(send);
-        var close=new Button(Close){name="chat-close",text="×",tooltip="Fechar chat"};close.AddToClassList("chat-close");row.Add(close);
         hint=new Label(""){name="chat-hint",enableRichText=false};hint.AddToClassList("chat-hint");composer.Add(hint);
         area.RegisterCallback<ClickEvent>(evt=>
         {
@@ -64,22 +66,43 @@ public sealed class InGameChat : MonoBehaviour
             if(evt.keyCode==KeyCode.Return||evt.keyCode==KeyCode.KeypadEnter){Send();evt.StopPropagation();}
             else if(evt.keyCode==KeyCode.Escape){Close();evt.StopPropagation();}
         },TrickleDown.TrickleDown);
-        root.RegisterCallback<GeometryChangedEvent>(_=>
-        {
-            root.EnableInClassList("chat-narrow",root.resolvedStyle.width<1000);
-            bool clean=root.ClassListContains("hub2-hud");
-            area.style.width=Mathf.Clamp(root.resolvedStyle.width-(clean?700:798),220,430);
-        });
+        root.RegisterCallback<GeometryChangedEvent>(_=>Layout());
+        root.schedule.Execute(Layout);
         SystemLine("Bem-vindo ao Horizonte! Toque no chat para escrever.");Close();
+    }
+    string ComposePrompt()=>IsOpen?(Application.isMobilePlatform?"ESCREVA SUA MENSAGEM":"ENTER PARA ENVIAR"):
+        (Application.isMobilePlatform?"TOQUE PARA ESCREVER":"T OU ENTER PARA ESCREVER");
+    void Layout()
+    {
+        float panelWidth=root.resolvedStyle.width;
+        if(float.IsNaN(panelWidth)||panelWidth<=0)return;
+        root.EnableInClassList("chat-narrow",panelWidth<1000);
+        float desired=Mathf.Lerp(360,480,Mathf.InverseLerp(960,1280,panelWidth));
+        float width=Mathf.Min(desired,Mathf.Max(160,panelWidth-440));
+        area.style.width=width;
+        area.style.left=(panelWidth-width)*.5f;
+        area.style.right=StyleKeyword.Auto;
     }
     public void Open()
     {
         if(StartupLoader.IsLoading||AccountSession.InputBlocked)return;
         if(GameHud.Instance.IsPanelOpen)GameHud.Instance.ClosePanel();
         IsOpen=true;composer.style.display=DisplayStyle.Flex;
+        composePrompt.text=ComposePrompt();
         root.AddToClassList("chat-editing");Render();SetKeyboardInset(0);
         ShowHint("");
-        if(Application.isMobilePlatform)OpenKeyboard();else input.Focus();
+        if(Application.isMobilePlatform)OpenKeyboard();
+        else
+        {
+            input.Focus();
+            // The composer has just become visible; focus its editable element after layout.
+            input.schedule.Execute(()=>
+            {
+                if(!IsOpen)return;
+                var editor=input.Q<VisualElement>(className:"unity-text-field__input");
+                if(editor!=null)editor.Focus();else input.Focus();
+            }).ExecuteLater(1);
+        }
     }
     void OpenKeyboard()
     {
@@ -92,12 +115,13 @@ public sealed class InGameChat : MonoBehaviour
         IsOpen=false;CloseKeyboard();
         if(composer==null)return;
         input.Blur();composer.style.display=DisplayStyle.None;
+        composePrompt.text=ComposePrompt();
         root.RemoveFromClassList("chat-editing");root.Focus();Render();
     }
     public void Send()
     {
         string text=(keyboard!=null?keyboard.text:input.value).Replace('\r',' ').Replace('\n',' ').Trim();
-        if(string.IsNullOrEmpty(text)){ShowHint("Escreva uma mensagem antes de enviar.");return;}
+        if(string.IsNullOrEmpty(text)){input.Focus();return;}
         if(!VerifyingSend&&(!MultiplayerWorld.Instance||!MultiplayerWorld.Instance.Connected)){ShowHint("Aguarde a conexão com a sala.");return;}
         if(outgoing.Count>=20){ShowHint("Muitas mensagens na fila. Aguarde um instante.");return;}
         string id=Guid.NewGuid().ToString();bool command=text.StartsWith("/");
@@ -177,6 +201,9 @@ public sealed class InGameChat : MonoBehaviour
         }
         if(command.status=="teleport"&&player)
             player.TeleportTo(new Vector3(command.x,command.y,command.z));
+        else if(command.status=="gender"&&command.name=="trocarsexo"&&
+            AccountSession.Instance&&AccountSession.Instance.ApplyConfirmedGender(command.gender))
+            player?.GetComponent<GangsterPlayerVisual>()?.SwitchGender(command.gender);
         else if(command.status=="speed"&&player)
             player.SetAdminSpeedMultiplier(command.value);
         else if(command.status=="open_panel"&&GameHud.Instance)
@@ -293,7 +320,7 @@ public sealed class InGameChat : MonoBehaviour
         float inset=Mathf.Max(0,pixels/scale);
         float height=composer.resolvedStyle.height;
         if(float.IsNaN(height)||height<1)height=120;
-        feed.style.maxHeight=IsOpen?Mathf.Min(225,Mathf.Max(40,root.resolvedStyle.height-inset-height-38)):133;
+        feed.style.maxHeight=IsOpen?Mathf.Min(225,Mathf.Max(40,root.resolvedStyle.height-inset-height-76)):133;
     }
     void Update()
     {

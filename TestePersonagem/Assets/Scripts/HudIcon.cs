@@ -1,15 +1,23 @@
 using UnityEngine;
 using UnityEngine.UIElements;
 
-// Small vector icons stay crisp at any HUD scale, without external image dependencies.
+// Repository icons are used wherever available; the map pointer stays vector based.
 public sealed class HudIcon : VisualElement
 {
     public string Kind { get; private set; }
     public Color Ink = new Color(.9f, .96f, .98f);
+    Image artwork;
     public HudIcon(string kind)
     {
         Kind=kind; AddToClassList("icon"); pickingMode=PickingMode.Ignore;
-        generateVisualContent += Draw;
+        if(HudPack.Texture(kind))
+        {
+            artwork=HudPack.Image(kind);artwork.tintColor=Ink;
+            artwork.style.position=Position.Absolute;
+            artwork.style.left=artwork.style.right=artwork.style.top=artwork.style.bottom=0;
+            Add(artwork);
+        }
+        else generateVisualContent += Draw;
     }
     void Draw(MeshGenerationContext context)
     {
@@ -62,5 +70,5 @@ public sealed class HudIcon : VisualElement
                 p.BeginPath();p.MoveTo(Point(12,2));p.LineTo(Point(21,21));p.LineTo(Point(12,17));p.LineTo(Point(3,21));p.ClosePath();p.Fill();break;
         }
     }
-    public void SetInk(Color color){Ink=color;MarkDirtyRepaint();}
+    public void SetInk(Color color){Ink=color;if(artwork!=null)artwork.tintColor=color;MarkDirtyRepaint();}
 }

@@ -36,6 +36,14 @@ public sealed class MultiplayerWorld : MonoBehaviour
     public bool PoliceVehicleAvailable {get;private set;}
     public bool CombatAvailable {get;private set;}
     public bool CombatReady {get;private set;}
+    public Animator AnimatorForUid(string uid)
+    {
+        if(string.IsNullOrEmpty(uid))return null;
+        if(uid==AccountSession.Instance?.State?.uid)return player?player.animator:null;
+        foreach(var remote in remotes.Values)
+            if(remote.Uid==uid)return remote.VisibleAnimator;
+        return null;
+    }
     public void GetRadarPlayers(List<RadarPlayer> result)
     {
         result.Clear();if(!Connected)return;
@@ -281,6 +289,9 @@ public sealed class MultiplayerWorld : MonoBehaviour
         {
             if(string.IsNullOrEmpty(peer.characterId)||peer.model!="bybeyby")continue;
             live.Add(peer.characterId);
+            if(remotes.TryGetValue(peer.characterId,out var previous)&&
+                previous.Female!=GangsterPlayerVisual.IsFemale(peer.gender))
+            {previous.Destroy();remotes.Remove(peer.characterId);}
             if(!remotes.TryGetValue(peer.characterId,out var remote))
             {
                 remote=new Remote(this,player,peer);remotes.Add(peer.characterId,remote);
@@ -341,6 +352,8 @@ public sealed class MultiplayerWorld : MonoBehaviour
         readonly TextMesh[] nameOutline;
         readonly TextMesh statusPlate;
         readonly TextMesh[] statusOutline;
+        readonly TextMesh adminPlate;
+        readonly TextMesh[] adminOutline;
         readonly AudioSource voiceSource,radioSource;
         readonly VoicePlayback voicePlayback,radioPlayback;
         public int VoiceUnderruns=>voicePlayback.Underruns+radioPlayback.Underruns;
@@ -356,6 +369,8 @@ public sealed class MultiplayerWorld : MonoBehaviour
         public float TargetYaw=>targetYaw;
         public string Uid {get;private set;}
         public string DisplayName {get;private set;}
+        public bool Female {get;}
+        public Animator VisibleAnimator=>animator;
         public Transform Transform=>root?root.transform:null;
         public bool CanPredictHit=>root&&avatar.activeInHierarchy&&combatClient&&combat&&combat.Ready&&!combat.Dead&&
             !driving&&!inPoliceCar&&Time.unscaledTime-lastCombatSync<1.5f&&
@@ -364,7 +379,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
         public void CancelPredictedHit(string attackId){combat?.CancelPredictedHit(attackId);}
         public Remote(MultiplayerWorld world,ThirdPersonPlayer local,MultiplayerPeer peer)
         {
-            this.world=world;characterId=peer.characterId;
+            this.world=world;characterId=peer.characterId;Female=GangsterPlayerVisual.IsFemale(peer.gender);
             Uid=peer.uid;
             root=new GameObject("Jogador online "+peer.uid);root.layer=2;
             voiceSource=root.AddComponent<AudioSource>();
@@ -373,11 +388,14 @@ public sealed class MultiplayerWorld : MonoBehaviour
             radioSource=root.AddComponent<AudioSource>();radioSource.playOnAwake=false;radioSource.spatialBlend=0;
             voicePlayback=new VoicePlayback(voiceSource);radioPlayback=new VoicePlayback(radioSource);
             root.transform.SetPositionAndRotation(new Vector3(peer.x,peer.y,peer.z),Quaternion.Euler(0,peer.yaw,0));
-            // Clone only the visual child: never clone the local controller, camera or save scripts.
+            // Build the remote avatar from the peer's saved gender. The local
+            // player's account gender can change before its visual is switched
+            // (for example while driving), so it is not a reliable template.
             if(local.animator.gameObject==local.gameObject)throw new InvalidOperationException("O visual precisa ser um filho separado do controlador.");
-            var visual=UnityEngine.Object.Instantiate(local.animator.gameObject,root.transform,false);
+            var visual=GangsterPlayerVisual.CreateRemoteVisual(peer.gender,local.animator.runtimeAnimatorController,root.transform);
             avatar=visual;
-            visual.name="ByBeyby remoto";animator=visual.GetComponent<Animator>();
+            visual.name=GangsterPlayerVisual.IsFemale(peer.gender)?"ByBeyby feminina remota":"Gangster Musculo remoto";
+            animator=visual.GetComponent<Animator>();
             animation=new RemoteAvatarAnimation(animator);
             foreach(var collider in visual.GetComponentsInChildren<Collider>())collider.enabled=false;
             foreach(var listener in visual.GetComponentsInChildren<AudioListener>())listener.enabled=false;
@@ -389,25 +407,35 @@ public sealed class MultiplayerWorld : MonoBehaviour
             if(!cuffedPose)cuffedPose=visual.AddComponent<CuffedAvatarPose>();
             cuffedPose.enabled=true;
             var label=new GameObject("Nome",typeof(TextMesh));label.layer=2;label.transform.SetParent(root.transform,false);
-            label.transform.localPosition=new Vector3(0,1.88f,0);
+            label.transform.localPosition=new Vector3(0,1.84f,0);
             nameplate=label.GetComponent<TextMesh>();nameplate.richText=false;
             nameplate.anchor=TextAnchor.MiddleCenter;nameplate.alignment=TextAlignment.Center;
-            nameplate.fontSize=36;nameplate.characterSize=.025f;nameplate.color=new Color(1f,.86f,.18f);
-            nameplate.font=Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            nameplate.fontSize=39;nameplate.characterSize=.025f;nameplate.fontStyle=FontStyle.Bold;nameplate.color=Color.white;
+            nameplate.font=HudPack.LabelFont;
             label.GetComponent<MeshRenderer>().sharedMaterial=nameplate.font.material;
             label.GetComponent<MeshRenderer>().sortingOrder=1;
             nameOutline=MakeOutline(nameplate);
             microphone=WorldMicrophoneIndicator.Create(nameplate);
             var status=new GameObject("Estado do jogador",typeof(TextMesh));status.layer=2;
             status.transform.SetParent(root.transform,false);
-            status.transform.localPosition=new Vector3(0,2.11f,0);
+            status.transform.localPosition=new Vector3(0,2.04f,0);
             statusPlate=status.GetComponent<TextMesh>();statusPlate.richText=false;
             statusPlate.anchor=TextAnchor.MiddleCenter;statusPlate.alignment=TextAlignment.Center;
-            statusPlate.fontSize=31;statusPlate.characterSize=.025f;
+            statusPlate.fontSize=32;statusPlate.characterSize=.025f;statusPlate.fontStyle=FontStyle.Bold;
             statusPlate.font=nameplate.font;
             status.GetComponent<MeshRenderer>().sharedMaterial=statusPlate.font.material;
             status.GetComponent<MeshRenderer>().sortingOrder=1;
             statusOutline=MakeOutline(statusPlate);
+            var admin=new GameObject("Cargo administrativo",typeof(TextMesh));admin.layer=2;
+            admin.transform.SetParent(root.transform,false);
+            admin.transform.localPosition=new Vector3(0,1.66f,0);
+            adminPlate=admin.GetComponent<TextMesh>();adminPlate.richText=false;
+            adminPlate.anchor=TextAnchor.MiddleCenter;adminPlate.alignment=TextAlignment.Center;
+            adminPlate.fontSize=32;adminPlate.characterSize=.025f;adminPlate.fontStyle=FontStyle.Bold;
+            adminPlate.font=nameplate.font;adminPlate.color=new Color(1f,.82f,.13f);
+            admin.GetComponent<MeshRenderer>().sharedMaterial=adminPlate.font.material;
+            admin.GetComponent<MeshRenderer>().sortingOrder=1;
+            adminOutline=MakeOutline(adminPlate);
             UpdateNameplate(peer);
             targetPosition=root.transform.position;targetYaw=peer.yaw;
         }
@@ -441,6 +469,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
             driving=peer.driving;inPoliceCar=peer.inPoliceCar;avatar.SetActive(!driving&&!peer.inPoliceCar);
             nameplate.gameObject.SetActive(!peer.inPoliceCar);
             statusPlate.gameObject.SetActive(!peer.inPoliceCar&&!string.IsNullOrEmpty(statusPlate.text));
+            adminPlate.gameObject.SetActive(!peer.inPoliceCar&&peer.adminLevel>0);
             if(cuffedPose)cuffedPose.Cuffed=peer.cuffed;
             bool loanDriving=driving&&string.IsNullOrEmpty(peer.policeCarId);
             if(loanDriving&&!vehicle){vehicle=MissionVehicle.CreateRemoteVisual();vehicle.transform.SetParent(root.transform,false);}
@@ -474,14 +503,16 @@ public sealed class MultiplayerWorld : MonoBehaviour
         void UpdateNameplate(MultiplayerPeer peer)
         {
             DisplayName=PlayerDisplayName.From(peer.firstName,peer.name);
-            nameplate.text=DisplayName+" ("+peer.uid+")";
-            nameplate.color=peer.cuffed?new Color(1f,.75f,.32f):
-                peer.policeDuty?new Color(.36f,.83f,1f):new Color(1f,.86f,.18f);
+            nameplate.text=DisplayName+" ["+peer.uid+"]";
+            nameplate.color=Color.white;
             foreach(var edge in nameOutline)edge.text=nameplate.text;
             statusPlate.text=peer.cuffed?"ALGEMADO":peer.policeDuty?"POLÍCIA":"";
             statusPlate.color=peer.cuffed?new Color(1f,.75f,.32f):new Color(.36f,.83f,1f);
             foreach(var edge in statusOutline)edge.text=statusPlate.text;
             statusPlate.gameObject.SetActive(!peer.inPoliceCar&&!string.IsNullOrEmpty(statusPlate.text));
+            adminPlate.text=peer.adminLevel>0?"ADMIN":"";
+            foreach(var edge in adminOutline)edge.text=adminPlate.text;
+            adminPlate.gameObject.SetActive(!peer.inPoliceCar&&peer.adminLevel>0);
         }
         static TextMesh[] MakeOutline(TextMesh source)
         {
@@ -494,7 +525,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
                 edge.transform.localPosition=new Vector3(x*.008f,y*.008f,.005f);
                 var text=edge.GetComponent<TextMesh>();text.richText=false;
                 text.anchor=TextAnchor.MiddleCenter;text.alignment=TextAlignment.Center;
-                text.fontSize=source.fontSize;text.characterSize=source.characterSize;
+                text.fontSize=source.fontSize;text.characterSize=source.characterSize;text.fontStyle=source.fontStyle;
                 text.font=source.font;text.color=Color.black;
                 edge.GetComponent<MeshRenderer>().sharedMaterial=source.font.material;
                 edge.GetComponent<MeshRenderer>().sortingOrder=0;
@@ -508,6 +539,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
             avatar.SetActive(!driving&&!inPoliceCar&&!seatVisible);
             nameplate.gameObject.SetActive(!inPoliceCar&&!seatVisible);
             statusPlate.gameObject.SetActive(!inPoliceCar&&!seatVisible&&!string.IsNullOrEmpty(statusPlate.text));
+            adminPlate.gameObject.SetActive(!inPoliceCar&&!seatVisible&&!string.IsNullOrEmpty(adminPlate.text));
             bool speaking=voiceActive||Time.unscaledTime<legacyVoiceUntil||VoiceChat.Instance&&VoiceChat.Instance.IsPlayerSpeaking(Uid);
             microphone.Refresh(speaking,nameplate);
             if(world.realtime&&world.realtime.TryGet(characterId,out var snapshot))
@@ -531,8 +563,9 @@ public sealed class MultiplayerWorld : MonoBehaviour
                 if(!driving)animation.Apply(combat&&combat.Busy?0:motion.Speed,!(combat&&combat.Busy)&&motion.Jumping,motion.JumpPhase,Time.unscaledDeltaTime);
             }
             if(Camera.main){nameplate.transform.rotation=Camera.main.transform.rotation;
-                statusPlate.transform.rotation=Camera.main.transform.rotation;}
+                statusPlate.transform.rotation=Camera.main.transform.rotation;
+                adminPlate.transform.rotation=Camera.main.transform.rotation;}
         }
-        public void Destroy(){voicePlayback.Dispose();radioPlayback.Dispose();if(root)UnityEngine.Object.Destroy(root);}
+        public void Destroy(){voicePlayback.Dispose();radioPlayback.Dispose();if(root){root.SetActive(false);UnityEngine.Object.Destroy(root);}}
     }
 }

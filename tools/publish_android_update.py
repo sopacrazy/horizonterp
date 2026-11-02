@@ -32,7 +32,8 @@ assert notes.is_file() and notes.read_text(encoding='utf-8').strip(),'Release no
 repo='sopacrazy/horizonterp';tag='v'+version
 def run(*args):return subprocess.run(args,check=True,text=True,capture_output=True).stdout
 commit=run('git','rev-parse','HEAD').strip()
-if shutil.which('gh'):
+if shutil.which('gh') and subprocess.run(['gh','auth','status','--hostname','github.com'],
+    capture_output=True).returncode==0:
     existing=subprocess.run(['gh','release','view',tag,'--repo',repo],capture_output=True)
     if existing.returncode==0:raise SystemExit('Release already exists; never overwrite an APK already offered to clients.')
     assets=[str(apk)]+([str(windows)] if windows else [])

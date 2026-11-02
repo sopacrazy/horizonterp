@@ -45,9 +45,32 @@ public static class GameUpdateSetup
         PrefabUtility.SaveAsPrefabAsset(player.gameObject,"Assets/Prefabs/Jogador.prefab");
 
         const string loginArtworkPath="Assets/Startup/IntroLogin.png";
-        string loginSource=Path.GetFullPath("../personagem/amigos.png");
+        string loginSource=Path.GetFullPath("../personagem/loo.png");
         if(!File.Exists(loginSource))throw new FileNotFoundException("Arte de autenticação ausente",loginSource);
         Directory.CreateDirectory("Assets/Startup");
+        string splashSource=Path.GetFullPath("../personagem/Horizonte Brasil RP.png");
+        string musicSource=Path.GetFullPath("../personagem/Notas da Cidade.mp3");
+        if(!File.Exists(splashSource)||!File.Exists(musicSource))throw new FileNotFoundException("Arte ou música inicial ausente");
+        File.Copy(splashSource,"Assets/Startup/HorizonteBrasil.png",true);
+        File.Copy(musicSource,"Assets/Startup/intro.mp3",true);
+        const string rememberedArtworkPath="Assets/Resources/Startup/RememberedEntry.png";
+        string rememberedSource=Path.GetFullPath("../personagem/loo.png");
+        if(!File.Exists(rememberedSource))throw new FileNotFoundException("Arte de acesso salvo ausente",rememberedSource);
+        Directory.CreateDirectory("Assets/Resources/Startup");File.Copy(rememberedSource,rememberedArtworkPath,true);
+        AssetDatabase.ImportAsset(rememberedArtworkPath,ImportAssetOptions.ForceSynchronousImport|ImportAssetOptions.ForceUpdate);
+        PrepareArtwork(rememberedArtworkPath);
+        const string rememberedLogoPath="Assets/Resources/Startup/RememberedLogo.png";
+        string rememberedLogoSource=Path.GetFullPath("../personagem/logorp.png");
+        if(!File.Exists(rememberedLogoSource))throw new FileNotFoundException("Logo de acesso salvo ausente",rememberedLogoSource);
+        File.Copy(rememberedLogoSource,rememberedLogoPath,true);
+        AssetDatabase.ImportAsset(rememberedLogoPath,ImportAssetOptions.ForceSynchronousImport|ImportAssetOptions.ForceUpdate);
+        PrepareArtwork(rememberedLogoPath);
+        const string combatArtworkPath="Assets/Resources/HudMinimal/CombatIcons.png";
+        string combatArtworkSource=Path.GetFullPath("../personagem/icons.png");
+        if(!File.Exists(combatArtworkSource))throw new FileNotFoundException("Ícones de combate ausentes",combatArtworkSource);
+        File.Copy(combatArtworkSource,combatArtworkPath,true);
+        AssetDatabase.ImportAsset(combatArtworkPath,ImportAssetOptions.ForceSynchronousImport|ImportAssetOptions.ForceUpdate);
+        PrepareCombatIcons(combatArtworkSource);
         File.Copy(loginSource,loginArtworkPath,true);
         AssetDatabase.ImportAsset(loginArtworkPath,ImportAssetOptions.ForceSynchronousImport|ImportAssetOptions.ForceUpdate);
         PrepareArtwork("Assets/Startup/HorizonteBrasil.png");
@@ -92,6 +115,25 @@ public static class GameUpdateSetup
         texture.maxTextureSize=Mathf.Max(2048,Mathf.NextPowerOfTwo(Mathf.Max(width,height)));
         texture.mipmapEnabled=false;texture.wrapMode=TextureWrapMode.Clamp;
         texture.textureCompression=TextureImporterCompression.Uncompressed;texture.SaveAndReimport();
+    }
+
+    static void PrepareCombatIcons(string source)
+    {
+        var sheet=new Texture2D(2,2,TextureFormat.RGBA32,false);
+        if(!sheet.LoadImage(File.ReadAllBytes(source))||sheet.width!=sheet.height*3)
+            throw new Exception("A folha de ícones precisa ter três quadros quadrados.");
+        for(int i=0;i<3;i++)
+        {
+            var square=new Texture2D(sheet.height,sheet.height,TextureFormat.RGBA32,false);
+            square.SetPixels(sheet.GetPixels(i*sheet.height,0,sheet.height,sheet.height));
+            square.Apply(false);
+            string path="Assets/Resources/HudMinimal/CombatIcon"+i+".png";
+            File.WriteAllBytes(path,square.EncodeToPNG());
+            AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport|ImportAssetOptions.ForceUpdate);
+            PrepareArtwork(path);
+            UnityEngine.Object.DestroyImmediate(square);
+        }
+        UnityEngine.Object.DestroyImmediate(sheet);
     }
 
     public static void PrepareAndBuildWindows(){Prepare();HudSetup.Prepare();PrototypeSetup.BuildWindows();}

@@ -6,6 +6,8 @@ using UnityEngine.UIElements;
 public sealed partial class AccountSession
 {
     VisualElement remembered;
+    VisualElement rememberedCanvas;
+    Texture2D rememberedArtwork;
     Button rememberedPlay,rememberedSwitch;
     Label rememberedMessage;
     void HideRemembered(){if(remembered!=null)remembered.style.display=DisplayStyle.None;}
@@ -15,22 +17,35 @@ public sealed partial class AccountSession
         {
             remembered=new VisualElement{name="remembered-access"};root.Add(remembered);
             remembered.style.position=Position.Absolute;remembered.style.left=0;remembered.style.right=0;remembered.style.top=0;remembered.style.bottom=0;
-            remembered.style.alignItems=Align.Center;remembered.style.justifyContent=Justify.FlexEnd;remembered.style.paddingBottom=Length.Percent(12);
-            rememberedMessage=new Label{enableRichText=false,name="remembered-message"};remembered.Add(rememberedMessage);
-            rememberedMessage.style.color=Color.white;rememberedMessage.style.fontSize=14;rememberedMessage.style.marginBottom=14;
-            rememberedMessage.style.whiteSpace=WhiteSpace.Normal;rememberedMessage.style.maxWidth=Length.Percent(85);
-            rememberedPlay=new Button(()=>{if(busy)return;if(HasCharacter)EnterCity();else StartCoroutine(RestoreRemembered());}){text="JOGAR",name="remembered-play"};remembered.Add(rememberedPlay);
-            rememberedPlay.style.width=320;rememberedPlay.style.maxWidth=Length.Percent(85);rememberedPlay.style.height=64;
-            rememberedPlay.style.backgroundColor=new Color(.10f,.67f,.33f);rememberedPlay.style.color=Color.white;
-            rememberedPlay.style.fontSize=23;rememberedPlay.style.unityFontStyleAndWeight=FontStyle.Bold;
-            rememberedPlay.style.borderTopLeftRadius=12;rememberedPlay.style.borderTopRightRadius=12;rememberedPlay.style.borderBottomLeftRadius=12;rememberedPlay.style.borderBottomRightRadius=12;
-            rememberedSwitch=new Button(()=>{if(busy)return;if(Authenticated)Logout();else {SessionVault.Clear();HideRemembered();ShowLogin();}}){text="Trocar conta",name="remembered-switch"};remembered.Add(rememberedSwitch);
-            rememberedSwitch.style.backgroundColor=Color.clear;rememberedSwitch.style.color=Color.white;rememberedSwitch.style.marginTop=14;
-            rememberedSwitch.style.borderTopWidth=0;rememberedSwitch.style.borderBottomWidth=0;rememberedSwitch.style.borderLeftWidth=0;rememberedSwitch.style.borderRightWidth=0;
+            remembered.style.backgroundColor=Color.black;
+            rememberedArtwork=Resources.Load<Texture2D>("Startup/RememberedEntry");
+            var image=new Image{name="remembered-artwork",image=rememberedArtwork,scaleMode=ScaleMode.ScaleAndCrop,pickingMode=PickingMode.Ignore};
+            image.style.position=Position.Absolute;image.style.left=image.style.right=image.style.top=image.style.bottom=0;remembered.Add(image);
+            rememberedCanvas=new VisualElement{name="remembered-canvas",pickingMode=PickingMode.Ignore};rememberedCanvas.style.position=Position.Absolute;remembered.Add(rememberedCanvas);
+            var logo=new Image{name="remembered-logo",image=Resources.Load<Texture2D>("Startup/RememberedLogo"),scaleMode=ScaleMode.ScaleToFit,pickingMode=PickingMode.Ignore};logo.AddToClassList("remembered-logo");rememberedCanvas.Add(logo);
+            var kicker=new Label("BEM-VINDO AO HORIZONTE"){name="remembered-kicker",pickingMode=PickingMode.Ignore};kicker.AddToClassList("remembered-kicker");rememberedCanvas.Add(kicker);
+            var title=new Label("Sua história\ncomeça aqui."){name="remembered-title",pickingMode=PickingMode.Ignore};title.AddToClassList("remembered-title");rememberedCanvas.Add(title);
+            var subtitle=new Label("Entre na cidade e viva do seu jeito."){name="remembered-subtitle",pickingMode=PickingMode.Ignore};subtitle.AddToClassList("remembered-subtitle");rememberedCanvas.Add(subtitle);
+            rememberedMessage=new Label{enableRichText=false,name="remembered-message"};rememberedMessage.AddToClassList("remembered-message");rememberedCanvas.Add(rememberedMessage);
+            rememberedPlay=new Button(()=>{if(busy)return;if(HasCharacter)EnterCity();else StartCoroutine(RestoreRemembered());}){text="JOGAR",name="remembered-play"};rememberedPlay.AddToClassList("remembered-play");rememberedCanvas.Add(rememberedPlay);
+            rememberedPlay.style.unityFont=Resources.Load<Font>("HudMinimal/Barlow-SemiBold");
+            rememberedSwitch=new Button(()=>{if(busy)return;if(Authenticated)Logout();else {SessionVault.Clear();HideRemembered();ShowLogin();}}){text="Trocar conta",tooltip="Voltar ao login",name="remembered-switch"};rememberedSwitch.AddToClassList("remembered-switch");rememberedCanvas.Add(rememberedSwitch);
+            root.RegisterCallback<GeometryChangedEvent>(_=>LayoutRemembered());root.schedule.Execute(LayoutRemembered);
         }
         HideCharacterLobby();landing.style.display=DisplayStyle.None;scroll.style.display=DisplayStyle.None;
         AuthVisible=true;ReadyToEnterCity=false;root.style.display=DisplayStyle.Flex;remembered.style.display=DisplayStyle.Flex;
-        rememberedMessage.text=text;rememberedPlay.SetEnabled(!busy);rememberedSwitch.SetEnabled(!busy);
+        rememberedMessage.text=text;rememberedMessage.style.display=string.IsNullOrEmpty(text)?DisplayStyle.None:DisplayStyle.Flex;
+        rememberedPlay.SetEnabled(!busy);rememberedSwitch.SetEnabled(!busy);LayoutRemembered();
+    }
+    void LayoutRemembered()
+    {
+        if(rememberedCanvas==null)return;
+        float width=root.resolvedStyle.width,height=root.resolvedStyle.height;
+        if(float.IsNaN(width)||float.IsNaN(height)||width<=0||height<=0)return;
+        float artWidth=rememberedArtwork?rememberedArtwork.width:1672,artHeight=rememberedArtwork?rememberedArtwork.height:941;
+        float scale=Mathf.Max(width/artWidth,height/artHeight);
+        rememberedCanvas.style.width=artWidth*scale;rememberedCanvas.style.height=artHeight*scale;
+        rememberedCanvas.style.left=(width-artWidth*scale)*.5f;rememberedCanvas.style.top=(height-artHeight*scale)*.5f;
     }
     internal IEnumerator RestoreRemembered()
     {

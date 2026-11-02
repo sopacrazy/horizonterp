@@ -66,8 +66,9 @@ public sealed class MobileControls : MonoBehaviour
             circle.SetPixels(pixels);circle.Apply();
         }
         float r=Radius;Vector2 center=new Vector2(origin.x,Screen.height-origin.y);
-        GUI.color=new Color(.08f,.09f,.1f,.45f);GUI.DrawTexture(new Rect(center.x-r,center.y-r,r*2,r*2),circle);
-        GUI.color=new Color(1,.81f,.25f,.8f);GUI.DrawTexture(new Rect(center.x+knob.x-r*.38f,center.y-knob.y-r*.38f,r*.76f,r*.76f),circle);
+        GUI.color=new Color(.85f,.92f,.97f,.2f);GUI.DrawTexture(new Rect(center.x-r,center.y-r,r*2,r*2),circle);
+        GUI.color=new Color(.035f,.047f,.063f,.45f);GUI.DrawTexture(new Rect(center.x-r+2,center.y-r+2,r*2-4,r*2-4),circle);
+        GUI.color=new Color(.68f,.89f,.82f,.76f);GUI.DrawTexture(new Rect(center.x+knob.x-r*.38f,center.y-knob.y-r*.38f,r*.76f,r*.76f),circle);
         GUI.color=Color.white;
     }
     void OnDestroy(){if(circle)Destroy(circle);}

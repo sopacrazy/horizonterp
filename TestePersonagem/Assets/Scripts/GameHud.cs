@@ -38,7 +38,8 @@ public sealed partial class GameHud : MonoBehaviour
     HudIcon miniMarker,mapMarker;
     Image sprintArtwork;
     Label levelLabel,cashLabel,dateLabel,healthLabel,energyLabel,waterLabel;
-    VisualElement healthFill,energyFill,waterFill,xpFill;
+    HudStatusRing healthRing,energyRing,waterRing;
+    VisualElement xpFill;
     Image miniImage,mapImage;
     readonly List<VisualElement> pointerBlockers=new List<VisualElement>();
     Camera miniCamera,mapCamera;
@@ -75,7 +76,11 @@ public sealed partial class GameHud : MonoBehaviour
         root.AddToClassList("hub2-hud");
         root.styleSheets.Add(Resources.Load<StyleSheet>("HudStyles"));
         root.styleSheets.Add(Resources.Load<StyleSheet>("Hud2Styles"));
+        root.AddToClassList("modern-hud");
+        root.style.unityFont=Resources.Load<Font>("HudMinimal/Barlow-Medium");
         CreateMapCameras();Build();InGameChat.Create(this);PoliceRadio.Create(this);
+        var modernStyles=Resources.Load<StyleSheet>("HudModernStyles");
+        if(modernStyles)root.styleSheets.Add(modernStyles);
         var version=Text("v"+Application.version,"",root);version.name="game-version";
         version.style.position=Position.Absolute;version.style.left=14;version.style.bottom=5;
         version.style.fontSize=10;version.style.color=new Color(.8f,.82f,.85f,.8f);
@@ -98,7 +103,10 @@ public sealed partial class GameHud : MonoBehaviour
         var button=new Button(action){tooltip=tooltip};
         foreach(var styleClass in css.Split(' '))if(styleClass!="")button.AddToClassList(styleClass);
         parent.Add(button);
-        button.Add(new HudIcon(icon));return button;
+        var modern=HudPack.Texture(icon);
+        if(modern)button.Add(HudPack.Image(icon));
+        else button.Add(new HudIcon(icon));
+        return button;
     }
     void Block(VisualElement e)=>pointerBlockers.Add(e);
     public void RegisterPointerBlocker(VisualElement element)
@@ -109,17 +117,35 @@ public sealed partial class GameHud : MonoBehaviour
     Button AtlasButton(string asset,string css,string tooltip,Action action,VisualElement parent)
     {
         var button=new Button(action){tooltip=tooltip,name="atlas-"+asset};button.AddToClassList("atlas-button");button.AddToClassList(css);
-        var artwork=HudAtlas.Image(asset);
+        if(asset=="h2_fist"||asset=="h2_sprint")
+        {
+            var combat=CombatIcon(asset=="h2_fist"?0:2);
+            if(combat!=null){button.Add(combat);parent.Add(button);return button;}
+        }
+        var modernName=asset=="h2_menu"?"home":asset=="h2_tasks"?"missions":asset=="h2_phone"?"phone":
+            asset=="h2_inventory"?"bag":asset=="h2_store"?"store":asset=="h2_microphone"?"microphone":
+            asset=="h2_camera"?"camera":asset=="h2_fist"?"fist":asset=="h2_sprint"?"run":null;
+        var modern=modernName==null?null:HudPack.Texture(modernName);
+        var artwork=modern?HudPack.Image(modernName):HudAtlas.Image(asset);
         if(css=="h2-top-button"||css=="h2-nav-button"||css=="h2-microphone"||css=="h2-camera")artwork.scaleMode=ScaleMode.ScaleToFit;
         button.Add(artwork);parent.Add(button);return button;
     }
 
-    VisualElement AtlasStat(string icon,string css,string tooltip,out VisualElement fill,out Label value,VisualElement parent)
+    Image CombatIcon(int index)
     {
-        var row=Element("atlas-stat-row",parent);row.tooltip=tooltip;
-        row.Add(HudAtlas.Image(icon,"atlas-stat-icon"));
-        var track=Element("atlas-stat-track",row);fill=Element("atlas-stat-fill "+css,track);
-        value=Text("100","atlas-stat-value",row);value.name="stat-"+icon+"-value";return row;
+        var artwork=Resources.Load<Texture2D>("HudMinimal/CombatIcon"+index);
+        if(!artwork)return null;
+        var icon=new Image{image=artwork,scaleMode=ScaleMode.ScaleToFit,pickingMode=PickingMode.Ignore};
+        icon.AddToClassList("combat-icon");return icon;
+    }
+
+    void StatusRing(string icon,string title,Color color,out HudStatusRing ring,out Label value,VisualElement parent)
+    {
+        var cell=Element("status-cell",parent);cell.tooltip=title;
+        ring=new HudStatusRing(color);cell.Add(ring);
+        var symbol=HudPack.Image(icon);symbol.AddToClassList("status-symbol");ring.Add(symbol);
+        value=Text("100","status-value",ring);value.name="stat-"+icon+"-value";
+        Text(title.ToUpperInvariant(),"status-caption",cell);
     }
 
     void Build()
@@ -127,14 +153,15 @@ public sealed partial class GameHud : MonoBehaviour
         var identity=Element("h2-identity");identity.style.display=DisplayStyle.None;
         playerNameLabel=Text(PlayerName.ToUpperInvariant(),"",identity);avatarLabel=Text("","",identity);
         var wallet=Element("h2-wallet");Block(wallet);
-        wallet.Add(HudAtlas.Image("h2_cash","h2-currency"));cashLabel=Text("0","h2-cash",wallet);
-        var level=Element("h2-level");Block(level);level.Add(HudAtlas.Image("h2_trophy","h2-trophy"));
+        var walletIcon=HudPack.Image("cash");walletIcon.tintColor=new Color(.4f,.9f,.6f);walletIcon.AddToClassList("h2-currency");wallet.Add(walletIcon);
+        Text("R$","h2-cash-prefix",wallet);cashLabel=Text("0","h2-cash",wallet);
+        var level=Element("h2-level");Block(level);var levelIcon=HudPack.Image("level");levelIcon.AddToClassList("h2-trophy");level.Add(levelIcon);
         levelLabel=Text("LVL 1 | EXP 0/100","h2-level-text",level);
         xpFill=Element("h2-xp-hidden",level);xpFill.style.display=DisplayStyle.None;
         var stats=Element("h2-stats");Block(stats);
-        AtlasStat("h2_heart","health","Vida",out healthFill,out healthLabel,stats);healthLabel.name="stat-heart-value";
-        AtlasStat("h2_water","water","Hidratação",out waterFill,out waterLabel,stats);
-        AtlasStat("h2_hunger","energy","Fome",out energyFill,out energyLabel,stats);
+        StatusRing("health","Vida",new Color(.94f,.43f,.43f),out healthRing,out healthLabel,stats);healthLabel.name="stat-heart-value";
+        StatusRing("water","Água",new Color(.39f,.73f,.9f),out waterRing,out waterLabel,stats);
+        StatusRing("hunger","Comida",new Color(.91f,.73f,.38f),out energyRing,out energyLabel,stats);
 
         var mini=Element("h2-mini");mini.name="minimap-card";Block(mini);
         var miniButton=new Button(()=>OpenPanel("map")){name="nav-map",tooltip="Mapa da área [M]"};miniButton.AddToClassList("h2-mini-button");mini.Add(miniButton);
@@ -148,11 +175,13 @@ public sealed partial class GameHud : MonoBehaviour
         AtlasButton("h2_menu","h2-nav-button","Menu [Tab]",()=>OpenPanel("menu"),nav).name="nav-menu";
         AtlasButton("h2_tasks","h2-nav-button","Missões",()=>OpenPanel("missions"),nav).name="nav-session";
         AtlasButton("h2_phone","h2-nav-button","Celular",()=>OpenPanel("phone"),nav).name="nav-phone";
+        AtlasButton("h2_inventory","h2-nav-button","Inventário",()=>OpenPanel("inventory"),nav).name="nav-inventory";
         var top=Element("h2-top");Block(top);
         adminButton=IconButton("admin","h2-top-button h2-admin","Painel administrativo",()=>AdminPlayerPanel.Open(this),top);
         adminButton.name="action-admin";
-        adminButton.Q<HudIcon>().SetInk(new Color(1f,.82f,.28f));
-        var inventory=AtlasButton("h2_inventory","h2-top-button","Inventário",()=>OpenPanel("inventory"),top);inventory.name="atlas-inventory";
+        var adminGlyph=adminButton.Q<HudIcon>();
+        if(adminGlyph!=null)adminGlyph.SetInk(new Color(1f,.82f,.28f));
+        IconButton("settings","h2-top-button","Configurações",()=>OpenPanel("settings"),top).name="top-settings";
         var store=AtlasButton("h2_store","h2-top-button","Loja ainda indisponível",()=>{},top);store.SetEnabled(false);
         var tools=Element("h2-tools");Block(tools);
         microphoneButton=AtlasButton("h2_microphone","h2-microphone","Ligar/desligar microfone",()=>VoiceChat.Instance?.Toggle(),tools);
@@ -160,14 +189,17 @@ public sealed partial class GameHud : MonoBehaviour
         microphoneRing.AddToClassList("h2-microphone-ring");
         microphoneButton.Add(microphoneRing);
         AtlasButton("h2_camera","h2-camera","Centralizar câmera [C]",()=>TriggerAction("camera"),tools).name="action-camera";
+        IconButton("chat","h2-camera","Abrir chat",()=>InGameChat.Instance?.Open(),tools).name="action-chat";
 
         var actions=Element("h2-actions");Block(actions);
         AtlasButton("h2_fist","h2-fist","Soco [F]",()=>TriggerAction("attack"),actions).name="action-list";
         sprint=AtlasButton("h2_sprint","h2-sprint","Ativar/desativar corrida [Shift]",()=>TriggerAction("sprint"),actions);
         sprint.AddToClassList("sprint-button");sprint.name="action-sprint";sprintArtwork=(Image)sprint[0];
         var jump=IconButton("jump","h2-jump","Pular [Espaço]",()=>TriggerAction("jump"),root);jump.name="action-jump";Block(jump);
+        var jumpArtwork=CombatIcon(1);if(jumpArtwork!=null){jump.Clear();jump.Add(jumpArtwork);}
 
-        var safe=Element("h2-safe");safe.tooltip="Área de testes";safe.pickingMode=PickingMode.Ignore;safe.Add(HudAtlas.Image("h2_safe"));
+        var safe=Element("h2-safe");safe.tooltip="Zona segura";safe.pickingMode=PickingMode.Ignore;
+        safe.Add(HudPack.Image("safe"));Text("ZONA SEGURA","h2-safe-label",safe);
         var footer=Element("h2-footer");Block(footer);
         var room=Element("h2-chip h2-room",footer);room.tooltip="Sala de testes";
         Text(AccountSession.Authenticated?"CONECTANDO":"LOCAL","",room).name="multiplayer-status";
@@ -423,7 +455,7 @@ public sealed partial class GameHud : MonoBehaviour
             idMicrophone.style.opacity=.5f+.5f*Mathf.Abs(Mathf.Sin(Time.unscaledTime*5));
         }
         microphoneButton.tooltip=active?"Microfone ligado — tocar para desligar":"Ligar microfone";
-        microphoneButton.style.backgroundColor=active?new Color(.02f,.42f,.26f,.75f):Color.clear;
+        microphoneButton.EnableInClassList("voice-active",active);
         if(microphoneRing!=null)
         {
             microphoneRing.style.display=active?DisplayStyle.Flex:DisplayStyle.None;
@@ -566,14 +598,14 @@ public sealed partial class GameHud : MonoBehaviour
         speedFill.style.width=Length.Percent(Mathf.Clamp01(player.CurrentSpeed/(player.runSpeed*player.AdminSpeedMultiplier))*100);
         bool running=player.CurrentSpeed>2.4f||SprintRequested||Input.GetKey(KeyCode.LeftShift)||Input.GetKey(KeyCode.RightShift);
         sprint.EnableInClassList("active",running);sprintArtwork.style.opacity=running?1:.9f;
-        levelLabel.text="LVL "+player.Level+" | EXP "+Mathf.RoundToInt(player.Experience)+"/100";
+        levelLabel.text="NÍVEL "+player.Level+"  ·  "+Mathf.RoundToInt(player.Experience)+" XP";
         cashLabel.text=(player.Cash+(TutorialJourney.Instance?TutorialJourney.Instance.DemoDonations:0))
             .ToString("N0",System.Globalization.CultureInfo.GetCultureInfo("pt-BR"));
         xpFill.style.width=Length.Percent(Mathf.Clamp01(player.Experience/100f)*100);
-        healthFill.style.width=Length.Percent(Mathf.Clamp(player.Health,0,100));healthLabel.text=Mathf.RoundToInt(player.Health).ToString();
+        healthRing.SetValue(player.Health);healthLabel.text=Mathf.RoundToInt(player.Health).ToString();
         if(cloudSaveLabel!=null && AccountSession.Instance)cloudSaveLabel.text=AccountSession.Instance.SaveStatus;
-        energyFill.style.width=Length.Percent(Mathf.Clamp(player.Hunger,0,100));energyLabel.text=Mathf.RoundToInt(player.Hunger).ToString();
-        waterFill.style.width=Length.Percent(Mathf.Clamp(player.Hydration,0,100));waterLabel.text=Mathf.RoundToInt(player.Hydration).ToString();
+        energyRing.SetValue(player.Hunger);energyLabel.text=Mathf.RoundToInt(player.Hunger).ToString();
+        waterRing.SetValue(player.Hydration);waterLabel.text=Mathf.RoundToInt(player.Hydration).ToString();
         var pos=player.transform.position;
         if(coordinates!=null&&coordinatePanel.resolvedStyle.display!=DisplayStyle.None)coordinates.text=CoordinateSnapshot();
         int serverHour=MultiplayerWorld.Instance?MultiplayerWorld.Instance.ServerHour:-1;
@@ -647,8 +679,9 @@ public sealed partial class GameHud : MonoBehaviour
         if(minimapNorth!=null)
         {
             float radians=playerYaw*Mathf.Deg2Rad;
-            minimapNorth.style.left=75-Mathf.Sin(radians)*70;
-            minimapNorth.style.top=80-Mathf.Cos(radians)*70;
+            float size=miniViewport.resolvedStyle.width;
+            minimapNorth.style.left=size*.5f-12-Mathf.Sin(radians)*(size*.5f-17);
+            minimapNorth.style.top=size*.5f-7-Mathf.Cos(radians)*(size*.5f-17);
         }
         miniCamera.Render();miniImage.MarkDirtyRepaint();
         if(CurrentPanel=="map")
