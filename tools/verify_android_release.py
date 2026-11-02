@@ -19,8 +19,16 @@ parser.add_argument('--official-city',action='store_true')
 parser.add_argument('--los-santos',action='store_true')
 parser.add_argument('--current-features',action='store_true')
 parser.add_argument('--realtime',action='store_true')
+parser.add_argument('--female-character',action='store_true')
+parser.add_argument('--rifle',action='store_true')
+parser.add_argument('--named-access',action='store_true')
 args=parser.parse_args()
 assert re.fullmatch(r'\d+\.\d+\.\d+',args.version)
+verify_female=args.female_character or tuple(map(int,args.version.split('.'))) >= (0,7,4)
+verify_rifle_feature=args.rifle or tuple(map(int,args.version.split('.'))) >= (0,7,4)
+verify_named_feature=args.named_access or tuple(map(int,args.version.split('.'))) >= (0,7,4)
+female_character=None
+rifle_feature=named_access=None
 
 root=Path(__file__).resolve().parents[1]
 apk=args.apk.resolve() if args.apk else root/'TestePersonagem/Builds/Android/TestePersonagem.apk'
@@ -37,6 +45,8 @@ build=(root/'tools'/args.log).read_text(encoding='utf-8',errors='replace')
 assert 'ANDROID_APK_OK' in build and 'PROTOTYPE_BUILD_FAILED' not in build
 assert f'GAME_VERSION_APPLIED version={args.version} code={args.version_code}' in build,'Build must use the shared version configuration'
 if args.hud2:assert 'HUD2_ATLAS_VERIFIED' in build,'HUB2 atlas must be prepared for the build'
+if verify_female:
+    assert 'FEMALE_DEPENDENCIES_VERIFIED' in build and 'FEMALE_CHARACTER_VERIFIED' in build,'Build must validate the feminine dependency graph and imported Humanoid avatar'
 signer=[java,'-jar',sdk/'lib/apksigner.jar','verify','--verbose','--print-certs']
 previous=run(signer+[old]);current=run(signer+[apk])
 digest=lambda output:re.search(r'Signer #1 certificate SHA-256 digest: ([0-9a-f]+)',output).group(1)
@@ -84,9 +94,25 @@ with zipfile.ZipFile(apk) as archive:
         archive_names=archive.namelist()
         original_read=archive.read
         archive=PackedArchive()
+    if verify_female:
+        from verify_apk_character import verify_female_character
+        if 'environment' not in globals():
+            sys.path.insert(0,str(root/'tools/apk-inspection-deps'))
+            import UnityPy
+            environment=UnityPy.load({name:archive.read(name) for name in archive.namelist()
+                if re.fullmatch(r'assets/bin/Data/(?:resources|sharedassets\d+)\.assets',name)})
+        female_character=verify_female_character(environment)
     names=archive.namelist()
     assert 'lib/arm64-v8a/libil2cpp.so' in names
     metadata=archive.read('assets/bin/Data/Managed/Metadata/global-metadata.dat')
+    if verify_rifle_feature:
+        from verify_apk_character import verify_rifle
+        assert 'environment' in globals(), 'Rifle artifact verification requires the deserialized Unity assets'
+        calibration=json.loads((root/'TestePersonagem/Assets/Resources/Weapons/Rifle/SocketCalibration.json').read_text(encoding='utf-8'))
+        rifle_feature=verify_rifle(environment,metadata,calibration)
+    if verify_named_feature:
+        from verify_apk_character import verify_named_access
+        named_access=verify_named_access(metadata)
     if args.realtime:
         for feature in [b'RealtimeMovement',b'UtpMovementClient',b'UnreliableSequencedPipelineStage',b'VivoxVoice',b'IVivoxTokenProvider',b'VoicePcmBuffer',b'MinimapHeading']:
             assert feature in metadata,'Missing realtime integration: '+str(feature)
@@ -185,6 +211,9 @@ report={'result':'ANDROID_RELEASE_VERIFIED','version':args.version,'versionCode'
     'official_city_streaming_included':args.official_city,
     'los_santos_only':args.los_santos,
     'udp_dtls_and_vivox_included':args.realtime,
+    'female_character_verified':verify_female,'female_character':female_character,
+    'rifle_and_low_ready_verified':verify_rifle_feature,'rifle':rifle_feature,
+    'named_beta_access_verified':verify_named_feature,'named_beta_access':named_access,
     'bytes':release.stat().st_size,'sha256':hashlib.sha256(release.read_bytes()).hexdigest(),
     'device_runtime_tested':False,'file':str(release)}
 (root/('tools/android-'+args.version.replace('.','')+'-validation.json')).write_text(json.dumps(report,indent=2),encoding='utf-8')

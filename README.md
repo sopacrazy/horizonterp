@@ -50,6 +50,25 @@ e usa as cenas em `Assets/Scenes/AndroidLosSantos`, preservando o mapa completo 
 `GameUpdateSetup.Scenes` escolhe o perfil conforme a plataforma. `ReleaseBuild.Windows`
 e `ReleaseBuild.Android` geram os pacotes; `tools/prepare_android_los_santos_project.py`
 prepara uma cópia Android isolada para reduzir a importação de recursos.
+Os reparos de Los Santos ficam em `Assets/GTASanAndreasModFull/GroundRepairs`
+e `CollisionRepairs`, com malhas editáveis e catálogos reaplicados ao regenerar
+os setores. As ferramentas `LosSantos*` do Editor verificam chão, colisões e
+objetos duplicados; os backups, relatórios e imagens locais ficam em
+`tools/los-santos-repair`. `tools/sync_los_santos_repairs.py` sincroniza os
+arquivos verificados com a cópia Android existente, preservando backup.
+As bases e guias usam `surfaceKind: foundation` no catálogo, com colisão
+verificada por raios alinhados às faces. Os pisos mantêm o teste de contato
+vertical. A recuperação de terrenos distingue as alturas das ruas, plataformas
+e canais; a cobertura projetada de um telhado não remove o chão abaixo dele.
+Uma patrulha física de Los Santos usa `CharacterController.Move` com as dimensões
+do jogador, a 1,65 e 54 m/s. `LosSantosPatrolBatch.RunAfter` percorre a malha de
+rotas e registra reinícios após obstáculos; `LosSantosPatrolRecheck.Run` confronta
+os achados com as faces visuais e a colisão local. Relatórios, percursos e imagens
+na altura do jogador ficam em `tools/los-santos-patrol`. Os testes distinguem
+muros visíveis, movimento no ar em descidas e frestas de sondagem de quedas reais.
+Para testar reparos no Editor, pare o Play antes de recarregar a cena
+`Assets/Scenes/TestePersonagem.unity`; a cena `Entrada` carrega essa cidade.
+Executáveis e APKs já gerados exigem uma nova build para incluir os reparos.
 Áreas rurais e San Fierro ainda têm falhas visuais; NPCs e missões precisam de revisão
 de posição. O tutorial inicial está desativado nos testes do mapa novo.
 

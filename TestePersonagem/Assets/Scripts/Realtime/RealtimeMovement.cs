@@ -48,11 +48,15 @@ namespace Hbrp.Realtime
             if(!Active||player.MapTeleportLoading||Time.realtimeSinceStartup<nextSend)return;
             Status="UDP / DTLS · 20 Hz";float now=Time.realtimeSinceStartup;nextSend=Mathf.Max(nextSend+.05f,now+.025f);
             var police=PoliceVehicleController.Driving?PoliceVehicleController.Active:null;
-            Client.Send(new UdpPose{Sequence=++sequence,Position=police?police.transform.position:player.transform.position,Yaw=Mathf.Repeat(police?police.transform.eulerAngles.y:player.transform.eulerAngles.y,360),
+            var pose=new UdpPose{Sequence=++sequence,Position=police?police.transform.position:player.transform.position,Yaw=Mathf.Repeat(police?police.transform.eulerAngles.y:player.transform.eulerAngles.y,360),
                 Speed=Mathf.Clamp(police?Mathf.Abs(police.Speed):MissionVehicle.Driver==player?MissionVehicle.DriverSpeed:player.CurrentSpeed,0,8),Driving=police||MissionVehicle.Driver==player,
-                Jumping=player.IsJumping,JumpPhase=player.JumpPhase});
+                Jumping=player.IsJumping,JumpPhase=player.JumpPhase};
+            var rifle=player.GetComponent<RifleWeapon>();
+            Client.SendVisual(pose,new UdpWeaponPose {Sequence=sequence,Equipped=rifle&&rifle.Equipped,Aiming=rifle&&rifle.Aiming,
+                ShotSequence=rifle?rifle.ShotSequence:0,Pitch=rifle?rifle.AimPitch:0});
         }
         public bool TryGet(string character,out UdpPose pose){pose=default;return Active&&Client.TryGet(character,out pose);}
+        public bool TryGetWeapon(string character,out UdpWeaponPose pose){pose=default;return Active&&Client.TryGetWeapon(character,out pose);}
         public void StopConnection(){generation++;Client?.Dispose();Client=null;Status="HTTPS";}
         void OnApplicationPause(bool pause){if(pause)StopConnection();}
         void OnDestroy(){StopConnection();}

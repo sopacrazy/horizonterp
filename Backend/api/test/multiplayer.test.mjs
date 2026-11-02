@@ -3,6 +3,15 @@ import assert from 'node:assert/strict';
 import {createRoom} from '../multiplayer.mjs';
 const id=n=>({characterId:'character-'+n,uid:String(n),name:'Jogador '+n,model:'bybeyby',world:'centro_teste'});
 const frame=(sequence=1,extra={})=>({clientId:'11111111-1111-4111-8111-111111111111',sequence,x:0,y:0,z:0,yaw:0,speed:0,jumping:false,jumpPhase:0,...extra});
+test('room publishes the saved character gender for each remote avatar',()=>{
+ const room=createRoom({clock:()=>1000,capacity:3});
+ const woman={...id(1),gender:'female'};
+ const man={...id(2),gender:'male'};
+ room.sync(woman,'woman-session',frame(1));
+ const seen=room.sync(man,'man-session',frame(1)).peers.find(p=>p.uid==='1');
+ assert.equal(seen.gender,'female');
+ assert.equal(room.sync(woman,'woman-session',frame(2)).peers.find(p=>p.uid==='2').gender,'male');
+});
 test('test bot spawns near its owner and remains stationary',()=>{
  let now=1000;const room=createRoom({clock:()=>now,capacity:3});
  const owner={...id(18),characterId:'11111111-2222-4333-8444-555555555555'};
@@ -16,6 +25,19 @@ test('test bot spawns near its owner and remains stationary',()=>{
  assert.equal(bot.z,2);assert.equal(bot.speed,0);assert.equal(bot.jumping,false);
  room.leave(owner.characterId,'owner-session',frame().clientId);
  assert.equal(room.sync(id(20),'observer-session',frame(3)).peers.some(p=>p.uid==='99'),false);
+});
+test('/bot1 creates a temporary stationary bot in front of an admin',async()=>{
+ const room=createRoom({capacity:3});
+ const admin={...id(18),characterId:'11111111-2222-4333-8444-555555555555',accountRole:'admin',adminLevel:1};
+ room.sync(admin,'admin-session',frame(1,{x:10,z:10,yaw:90}));
+ const reply=await room.chat(admin,'admin-session',{
+  clientId:frame().clientId,messageId:'00000000-0000-4000-8000-000000000001',text:'/bot1'});
+ assert.equal(reply.command.status,'ok');
+ const bot=room.sync(id(20),'observer-session',frame()).peers.find(peer=>peer.uid==='BOT1');
+ assert.ok(bot);assert.ok(Math.abs(bot.x-12)<.001);assert.ok(Math.abs(bot.z-10)<.001);
+ assert.equal(bot.speed,0);
+ room.leave(admin.characterId,'admin-session',frame().clientId);
+ assert.equal(room.sync(id(20),'observer-session',frame(2)).peers.some(peer=>peer.uid==='BOT1'),false);
 });
 test('escorted bot publishes increasing peer sequence and follows the officer',()=>{
  let now=1000;const room=createRoom({clock:()=>now,capacity:3});
@@ -177,6 +199,7 @@ test('only an authenticated admin in the room can enter police duty',()=>{
  assert.throws(()=>room.duty(admin,'wrong-session',{enabled:true}),e=>e.code==='NOT_IN_ROOM');
  assert.deepEqual(room.duty(admin,'admin-session',{enabled:true}),{policeDuty:true,radioChannel:0});
  assert.equal(room.sync(civilian,'civil-session',frame(2)).peers[0].policeDuty,true);
+ assert.equal(room.sync(civilian,'civil-session',frame(3)).peers[0].adminLevel,1);
  assert.equal(room.duty(admin,'admin-session',{enabled:false}).policeDuty,false);
  room.duty(admin,'admin-session',{enabled:true});
  room.removeSession('admin-session');
@@ -283,7 +306,7 @@ test('admin commands enforce levels, stay private and report missing systems',as
  now+=1300;
  reply=await room.chat(admin,'s1',body('/goto 2'));
  assert.equal(reply.command.status,'teleport');
- assert.deepEqual([reply.command.x,reply.command.y,reply.command.z],[0,0,0]);
+ assert.deepEqual([reply.command.x,reply.command.y,reply.command.z],[0,0,1.7]);
  now+=1300;
  reply=await room.chat(admin,'s1',body('/jail 2 5 motivo'));
  assert.equal(reply.command.status,'not_implemented');

@@ -160,6 +160,7 @@ public sealed partial class GameHud : MonoBehaviour
         xpFill=Element("h2-xp-hidden",level);xpFill.style.display=DisplayStyle.None;
         var stats=Element("h2-stats");Block(stats);
         StatusRing("health","Vida",new Color(.94f,.43f,.43f),out healthRing,out healthLabel,stats);healthLabel.name="stat-heart-value";
+        healthRing.name="health-progress";
         StatusRing("water","Água",new Color(.39f,.73f,.9f),out waterRing,out waterLabel,stats);
         StatusRing("hunger","Comida",new Color(.91f,.73f,.38f),out energyRing,out energyLabel,stats);
 
@@ -342,6 +343,8 @@ public sealed partial class GameHud : MonoBehaviour
                 drawerTitle.text="Como jogar";
                 Help("ESPAÇO","Pular (também disponível no botão de pulo)");
                 Text("Explore no seu ritmo.","panel-description",content);
+                Help("/arma","Equipar ou guardar o rifle de teste");
+                Help("RIFLE","Botão direito: mirar · esquerdo/F: disparar · R: recarregar. No celular, use os botões da arma.");
                 Help("W A S D","Andar pelo cenário");Help("SHIFT","Correr enquanto segura");Help("F / PUNHO","Um soco por clique");Help("MOUSE","Arrastar para girar a câmera");Help("RODA","Aproximar ou afastar");Help("C / R","Câmera / voltar ao início");Help("N","Alternar dia e noite");Help("TAB / M","Menu / mapa");Help("P / H","Perfil / ocultar interface");Help("ESC","Fechar um menu");
                 break;
             default: ClosePanel();break;

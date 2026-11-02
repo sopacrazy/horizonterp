@@ -5,8 +5,13 @@ root=Path(__file__).resolve().parents[1];source=root/'TestePersonagem';target=ro
 backup=root/'tools/release-071/sync-backup';changed=[]
 assert (target/'Assets/Scenes/LosSantosAndroid.enabled').exists()
 files=[]
-for folder in ['Assets/Scripts','Assets/Editor','Assets/Resources','Packages','ProjectSettings']:
- files.extend(p for p in (source/folder).rglob('*') if p.is_file())
+for folder in ['Assets/Scripts','Assets/Editor','Assets/Resources','Assets/ByBeyby','Packages','ProjectSettings']:
+ base=source/folder
+ if folder=='Assets/ByBeyby':assert base.is_dir(),'Female character source package is missing'
+ files.extend(p for p in base.rglob('*') if p.is_file())
+ meta=Path(str(base)+'.meta')
+ if folder=='Assets/ByBeyby':assert meta.is_file(),'Female character package folder meta is missing'
+ if meta.is_file():files.append(meta)
 for path in files:
  rel=path.relative_to(source);dest=target/rel
  if rel.suffix in {'.log','.tmp'}:continue

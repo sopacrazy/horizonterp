@@ -18,6 +18,7 @@ public sealed class PoliceSeatAvatar : MonoBehaviour
     public float Steering {get;set;}
     PoliceCarRig rig;
     Animator animator;
+    Animator sourceAnimator;
     VehicleSeatedPose pose;
     Transform avatar;
     bool driver;
@@ -54,13 +55,17 @@ public sealed class PoliceSeatAvatar : MonoBehaviour
     public Vector3 ExpectedHip {get;private set;}
     public void Initialize(PoliceCarRig car,Animator source,bool isDriver)
     {
+        sourceAnimator=source;
         rig=car;driver=isDriver;
         var visual=Instantiate(source.gameObject,transform,false);
         visual.name=isDriver?"Motorista visível":"Passageiro visível";
-        foreach(var c in visual.GetComponentsInChildren<Collider>())c.enabled=false;
-        foreach(var b in visual.GetComponentsInChildren<MonoBehaviour>())b.enabled=false;
-        foreach(var a in visual.GetComponentsInChildren<AudioSource>())a.enabled=false;
-        foreach(var l in visual.GetComponentsInChildren<AudioListener>())l.enabled=false;
+        foreach(var c in visual.GetComponentsInChildren<Collider>(true))c.enabled=false;
+        foreach(var b in visual.GetComponentsInChildren<MonoBehaviour>(true))b.enabled=false;
+        foreach(var a in visual.GetComponentsInChildren<AudioSource>(true))a.enabled=false;
+        foreach(var l in visual.GetComponentsInChildren<AudioListener>(true))l.enabled=false;
+        // Remote visuals are hidden while their owner occupies the car. The
+        // seat clone still needs one active frame to bind the Humanoid pose.
+        visual.SetActive(true);
         avatar=visual.transform;originalRotation=source.transform.localRotation;
         avatar.localPosition=Vector3.zero;avatar.localRotation=originalRotation;
         animator=visual.GetComponent<Animator>();animator.applyRootMotion=false;
@@ -77,6 +82,17 @@ public sealed class PoliceSeatAvatar : MonoBehaviour
         idleHip=transform.InverseTransformPoint(animator.GetBoneTransform(HumanBodyBones.Hips).position);
         if(driver)exitingClip=Resources.LoadAll<AnimationClip>("Vehicles/Police/ExitingCar").FirstOrDefault(c=>c.humanMotion&&!c.name.StartsWith("__preview")&&c.name!="RearMirrored");
         enteringClip=Resources.LoadAll<AnimationClip>("Vehicles/Police/EnteringCar").FirstOrDefault(c=>c.humanMotion&&!c.name.StartsWith("__preview")&&(driver?c.name!="RearMirrored":c.name=="RearMirrored"));
+    }
+    // The car exists before its occupants are known. Copy the actual player's
+    // visual when a seat is assigned so remote female characters keep their
+    // appearance while boarding and sitting in the vehicle.
+    public void UseVisual(Animator source)
+    {
+        if(!source||sourceAnimator==source)return;
+        Abort();
+        if(avatar)Destroy(avatar.gameObject);
+        avatar=null;
+        Initialize(rig,source,driver);
     }
     public void SetOccupant(string uid,Vector3 startOrExit,bool animate=true,float startYaw=float.NaN)
     {

@@ -1,0 +1,43 @@
+BYBEYBY — PERSONAGEM PARA UNITY
+
+Instalação
+1. No Unity, use Assets > Import Package > Custom Package e selecione ByBeyby-Unity.unitypackage.
+2. Arraste Assets/ByBeyby/Prefabs/ByBeyby.prefab para sua cena.
+3. Se o projeto usa URP ou HDRP, execute Tools > ByBeyby > Atualizar materiais.
+4. Para usar as animações do seu jogo, atribua seu Animator Controller ao Animator do prefab.
+   Os clipes precisam usar um Avatar Humanoid compatível. O Avatar do personagem já está atribuído.
+
+Conteúdo
+- Prefab nativo com SkinnedMeshRenderer, Animator, Avatar Humanoid e CapsuleCollider.
+- Malha, bind poses, 32 ossos e até quatro influências por vértice.
+- Cinco materiais e cinco texturas PNG originais, com UVs, alpha recortado e mipmaps.
+- Animação Idle simples e repetível, criada nesta preparação; o arquivo original não continha clipes.
+- Helper de materiais para Built-in, URP e HDRP, restrito aos materiais desta pasta.
+- Relatório de validação em Documentation/validation.json.
+
+Uso
+O personagem tem aproximadamente 1,77 m; a origem está no chão e a frente aponta para +Z.
+A malha usa uma pose de referência em T; a animação Idle é aplicada pelo Animator em Play Mode.
+O prefab é um personagem visual animável. Movimento, câmera, controles, combate e rede
+continuam sendo responsabilidade dos componentes e do Animator Controller do seu jogo.
+O CapsuleCollider serve como volume inicial; ajuste-o ou substitua-o conforme seu controlador.
+
+Preparação
+Os pesos originais foram preservados. O esqueleto foi convertido para os eixos do Unity,
+com rotações normalizadas, ombros associados ao tronco e bind poses recalculadas após
+a conversão da pose A para T. Os materiais equivalentes foram reunidos em cinco grupos.
+Os arquivos DFF/TXD originais foram mantidos intactos na pasta de origem.
+
+Limites do modelo original
+50.261 vértices e 73.803 triângulos, sem LODs. Ajuste o orçamento se usar muitos personagens.
+Não existem normal maps, rig facial funcional ou dedos individualmente articulados.
+Ossos auxiliares originais foram preservados, mas não foram anunciados como controles faciais/digitais.
+Não há animações de caminhada, corrida ou ataque no arquivo original; use os clipes Humanoid do seu jogo.
+
+Validação
+O pacote foi preparado no Editor Unity 6000.6.7f1. Consulte validation.json para os testes
+efetivamente concluídos: Avatar, pesos, pose neutra e deformações de braços, pernas e tronco.
+Materiais Built-in foram usados na prévia. URP/HDRP possuem helper de conversão e não fazem
+parte do projeto de teste desta entrega. Outras versões do Unity não foram testadas.
+
+Créditos originais: ByBeyby. Consulte CREDITOS.txt.

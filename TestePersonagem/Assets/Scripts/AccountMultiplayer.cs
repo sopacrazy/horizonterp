@@ -14,11 +14,15 @@ using UnityEngine.Networking;
 }
 [Serializable] public class MultiplayerPeer
 {
-    public string characterId,uid,name,firstName,model,policeCarId;
+    public string characterId,uid,name,firstName,gender,model,policeCarId;
     public int sequence;
+    public int adminLevel;
     public long updatedAt;
     public float x,y,z,yaw,speed,jumpPhase;
     public bool jumping,driving,policeDuty,cuffed,inPoliceCar,combatClient;
+    public bool weaponEquipped,weaponAiming;
+    public int weaponShotSequence;
+    public float weaponAimPitch;
     public bool voiceActive,radioActive;
     public string escortedBy;
     public string voice;
@@ -29,12 +33,24 @@ using UnityEngine.Networking;
     public VoicePacket[] voiceFrames,radioFrames;
     public CombatState combat;
 }
+[Serializable] public class WeaponVisualFrame
+{
+    public bool weaponEquipped,weaponAiming;
+    public int weaponShotSequence;
+    public float weaponAimPitch;
+}
 [Serializable] public class CombatPeerState {public string uid;public CombatState combat;}
 [Serializable] public class CombatAttackBody {public string clientId,attackId;}
+[Serializable] public class RifleShotBody
+{
+    public string clientId,shotId,targetUid;
+    public float originX,originY,originZ,directionX,directionY,directionZ;
+}
+[Serializable] public class CombatRespawnBody {public string clientId,requestId,epoch;public int deathSequence;}
 [Serializable] public class VoicePacket {public int sequence;public string data;}
 [Serializable] public class AdminCommandReply
 {
-    public string name,status,message,uid;
+    public string name,status,message,uid,gender;
     public string[] lines;
     public AdminHelpEntry[] help;
     public WantedEntry[] wanted;
@@ -66,6 +82,8 @@ using UnityEngine.Networking;
     public bool voiceStateAvailable;
     public bool policeVehicleAvailable;
     public bool combatAvailable;
+    public bool weaponStateAvailable;
+    public bool rifleDamageAvailable,respawnAvailable;
     public CombatState selfCombat;
     public CombatPeerState[] combatPeers;
     public string targetUid;

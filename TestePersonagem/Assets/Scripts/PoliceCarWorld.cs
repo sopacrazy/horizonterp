@@ -20,6 +20,8 @@ public sealed class PoliceCarWorld : MonoBehaviour
     readonly Dictionary<string,CarVisual> visuals=new Dictionary<string,CarVisual>();
     ThirdPersonPlayer player;
     Button interaction;
+    Image interactionIcon;
+    Label interactionCaption;
     PoliceVehicleController nearest;
     public void Initialize(ThirdPersonPlayer owner){player=owner;Instance=this;}
     public void Apply(PoliceCarState[] cars,string selfCarId=null,Vector3? selfPosition=null,int revision=-1)
@@ -37,6 +39,8 @@ public sealed class PoliceCarWorld : MonoBehaviour
             visual.controls.ApplyState(car,player,selfCarId,selfPosition);
             bool driverExiting=string.IsNullOrEmpty(car.driverUid);
             string driverUid=driverExiting?visual.lastDriverUid:car.driverUid;
+            if(!string.IsNullOrEmpty(driverUid))visual.driver.UseVisual(
+                MultiplayerWorld.Instance?MultiplayerWorld.Instance.AnimatorForUid(driverUid):player.animator);
             Vector3 driverStart=PlayerPosition(driverUid,driverExiting
                 ?Ground(visual.root.transform.position-visual.root.transform.right*2.1f)
                 :visual.root.transform.TransformPoint(visual.rig.DriverDoor));
@@ -45,6 +49,8 @@ public sealed class PoliceCarWorld : MonoBehaviour
             if(!visual.controls.Occupied)visual.driver.SetOccupant(car.driverUid,driverStart,startYaw:driverYaw);
             bool passengerExiting=string.IsNullOrEmpty(car.occupantUid);
             string passengerUid=passengerExiting?visual.lastPassengerUid:car.occupantUid;
+            if(!string.IsNullOrEmpty(passengerUid))visual.passenger.UseVisual(
+                MultiplayerWorld.Instance?MultiplayerWorld.Instance.AnimatorForUid(passengerUid):player.animator);
             // The reliable peer pose has already moved to the car's center. Start
             // boarding where the actor is still visibly standing instead.
             Vector3 passengerPoint=passengerExiting
@@ -143,11 +149,11 @@ public sealed class PoliceCarWorld : MonoBehaviour
         {
             interaction=new Button(()=>Interact()){name="police-car-interact"};
             interaction.style.position=Position.Absolute;interaction.style.right=240;interaction.style.bottom=126;
-            interaction.style.width=70;interaction.style.height=70;interaction.style.borderTopLeftRadius=35;interaction.style.borderTopRightRadius=35;interaction.style.borderBottomLeftRadius=35;interaction.style.borderBottomRightRadius=35;
-            interaction.style.backgroundColor=new Color(.025f,.07f,.12f,.95f);interaction.style.borderTopWidth=2;interaction.style.borderBottomWidth=2;interaction.style.borderLeftWidth=2;interaction.style.borderRightWidth=2;
-            interaction.style.borderTopColor=interaction.style.borderBottomColor=interaction.style.borderLeftColor=interaction.style.borderRightColor=new Color(.3f,.72f,1f);
-            interaction.style.alignItems=Align.Center;interaction.style.justifyContent=Justify.Center;
-            var icon=new HudIcon("door");icon.style.width=35;icon.style.height=35;interaction.Add(icon);
+            interaction.style.width=70;interaction.style.height=70;HudPack.Skin(interaction,35);
+            interaction.style.flexDirection=FlexDirection.Column;interaction.style.alignItems=Align.Center;interaction.style.justifyContent=Justify.Center;
+            interactionIcon=HudPack.Image("door");interactionIcon.name="police-car-interact-icon";interactionIcon.style.width=28;interactionIcon.style.height=28;interaction.Add(interactionIcon);
+            interactionCaption=new Label("E ENTRAR"){name="police-car-interact-label",pickingMode=PickingMode.Ignore};interactionCaption.style.fontSize=10;interactionCaption.style.color=Color.white;interactionCaption.style.marginTop=3;interactionCaption.style.unityFontStyleAndWeight=FontStyle.Bold;
+            interactionCaption.style.textShadow=new TextShadow{offset=new Vector2(0,1),blurRadius=2,color=new Color(0,0,0,.95f)};interaction.Add(interactionCaption);
             hud.Root.Add(interaction);hud.RegisterPointerBlocker(interaction);
         }
         nearest=null;float best=.85f;
@@ -159,6 +165,8 @@ public sealed class PoliceCarWorld : MonoBehaviour
             if(allowed&&distance<best){best=distance;nearest=v.controls;}
         }
         bool active=PoliceVehicleController.Active;
+        interactionIcon.image=HudPack.Texture(active?"exit":"door");
+        interactionCaption.text=active?"F SAIR":"E ENTRAR";
         bool show=(active||nearest)&&!hud.IsPanelOpen&&!InGameChat.Editing&&!StartupLoader.IsLoading;
         interaction.style.display=show?DisplayStyle.Flex:DisplayStyle.None;
         interaction.SetEnabled(active?!PoliceVehicleController.Active.Busy:!nearest||!nearest.Busy);

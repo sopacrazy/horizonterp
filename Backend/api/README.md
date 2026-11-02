@@ -321,3 +321,29 @@ O diretório deve existir e ser privado. O utilitário cria um arquivo exclusivo
 Na mesma transação, o utilitário autoriza somente a conta gestora indicada, copiando o hash da senha atual e associando suas sessões não revogadas à concessão inicial. Esse aproveitamento de sessões acontece apenas quando a conta ainda não tinha concessão; novas execuções não recuperam sessões invalidadas depois por redefinição ou revogação. A conta gestora precisa ser um administrador de nível positivo já existente e diferente do cargo 4; sua função e nível não são alterados. Nenhuma outra conta antiga recebe autorização implícita. As cinco contas novas começam como jogador normal, nível administrativo zero e sem personagem. Só depois desse provisionamento conclua a troca do código e reinicie exclusivamente `hbrp-api`.
 
 Validação local: `node --test test/beta-access.test.mjs`. A suíte usa PostgreSQL descartável e cobre acesso somente por UID, bloqueio do cadastro público, tokens antigos sem concessão, preservação explícita da gestão, cinco contas sem personagem, criação posterior de personagem, nível 4 sem acesso ao painel, idempotência, sigilo das senhas, redefinição, revogação, concorrência de credenciais e rollback quando a auditoria falha. O modo legado existe somente como opção explícita do construtor nos testes históricos; a inicialização de produção não lê modo legado de variável de ambiente nem de dados enviados pelo cliente.
+
+### Aliases individuais da equipe
+
+A migração aditiva `014_beta_named_login.sql` amplia o alias opcional introduzido pela 013. Aceita de 3 a 32 caracteres ASCII, começando por letra e continuando com letras, números ou `_`. O índice único continua sem diferenciar maiúsculas/minúsculas; `Fixture_Admin` e `fixture_admin` identificam o mesmo acesso fictício de exemplo. O UID numérico permanente continua aceito e nunca pode ser ocultado por um alias numérico. Um alias com `Admin` no nome não concede nenhum cargo. O cadastro público continua fechado.
+
+Depois do backup e da migração 014 com `ON_ERROR_STOP=1`, um operador já autorizado com `beta_access.can_manage` pode criar até 25 acessos normais por lote. Guarde as credenciais em JSON privado fora do Git, modo `0600` no Linux:
+
+```json
+{
+  "managerUid": "<UID do operador já autorizado>",
+  "batchId": "<UUID fixo da operação>",
+  "accounts": [
+    {"loginName": "Equipe_Teste", "password": "<senha individual>", "label": "Equipe de teste"}
+  ]
+}
+```
+
+Com a `DATABASE_URL` existente carregada do ambiente privado, sem imprimi-la:
+
+```text
+node provision_named_beta_accounts.mjs --input /diretorio/privado/acessos-nomeados.json
+```
+
+O utilitário exibe apenas aliases, UIDs e contagens; nunca senhas, hashes ou tokens. Cria contas normais de nível administrativo zero, sem personagem, sem capacidade de emitir acessos. Não altera cargos, contas ou sessões existentes. Uma colisão de alias aborta o lote inteiro. Repetir o mesmo `batchId` e dados retorna os mesmos UIDs sem recriar contas ou redefinir senhas; credencial alterada ou acesso revogado exige operação explícita posterior, sem reativação silenciosa. Não inclui senha nem digest não salgado da senha nos metadados de idempotência. O arquivo de entrada continua sendo a fonte privada das credenciais para distribuição individual.
+
+Validação em banco descartável: `node --test test/beta-named-access.test.mjs`, seguida de `node --test test/beta-access.test.mjs`. Inclui lote de 14 acessos, aliases sem distinção de caixa, UID preservado, repetição sem alteração das sessões, colisão com rollback, cadastro fechado, proibição de administrar por nome e revogação.

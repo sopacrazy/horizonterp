@@ -6,6 +6,8 @@ root=Path(__file__).resolve().parents[1]
 parser=argparse.ArgumentParser()
 parser.add_argument('--version',required=True)
 parser.add_argument('--manifest',action='store_true')
+parser.add_argument('--manifest-path',choices=['releases/android.json','releases/android-next.json'],
+                    help='Updater manifest to verify; defaults to the current game configuration')
 parser.add_argument('--android-only',action='store_true',help='Verify a release without a Windows build')
 args=parser.parse_args()
 version=args.version
@@ -33,8 +35,10 @@ for name,validation in assets:
     check={'name':name,'bytes':count,'sha256':digest.hexdigest(),'publicDownloadVerified':True}
     checks.append(check);print(json.dumps(check),flush=True)
 if args.manifest:
-    public=read_json('https://raw.githubusercontent.com/sopacrazy/horizonterp/main/releases/android.json')
-    assert public==json.loads((root/'releases/android.json').read_text(encoding='utf-8'))
+    config=json.loads((root/'TestePersonagem/Assets/Resources/GameVersion.json').read_text(encoding='utf-8'))
+    manifest_path=args.manifest_path or ('releases/android-next.json' if config['updateManifestUrl'].endswith('/android-next.json') else 'releases/android.json')
+    public=read_json('https://raw.githubusercontent.com/sopacrazy/horizonterp/main/'+manifest_path)
+    assert public==json.loads((root/manifest_path).read_text(encoding='utf-8'))
     assert public['version']==version and public['versionCode']==expected['versionCode']
     assert public['sha256']==expected['sha256'] and public['bytes']==expected['bytes']
 report={'version':version,'release':release['html_url'],'assets':checks,'manifestVerified':args.manifest}

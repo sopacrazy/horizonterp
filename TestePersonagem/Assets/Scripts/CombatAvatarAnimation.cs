@@ -5,8 +5,9 @@ using UnityEngine;
 [Serializable] public sealed class CombatState
 {
     public string epoch,attackId,hitAttackId;
-    public int revision,attackSequence,hitSequence,deathSequence;
-    public long attackAt,hitAt,deathAt;
+    public int revision,attackSequence,hitSequence,deathSequence,respawnSequence;
+    public long attackAt,hitAt,deathAt,respawnAt;
+    public float respawnX,respawnY,respawnZ,respawnYaw;
     public float health=100;
     public bool dead;
 }

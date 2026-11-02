@@ -12,6 +12,7 @@ import {createArrivalMission,ArrivalError,arrivalConfig} from './arrival-mission
 import {createPoliceCommands} from './police-commands.mjs';
 import {createRealtimeAccess,RealtimeError} from './realtime-access.mjs';
 import {createBetaAccess,BetaAccessError} from './beta-access.mjs';
+import {isBetaLoginIdentifier} from './beta-login-name.mjs';
 
 const scrypt=promisify(scryptCb);
 const hash=x=>createHash('sha256').update(x).digest();
@@ -34,18 +35,25 @@ export function characterIdentity(body){
  return {firstName,lastName,gender:body.gender,name:firstName+' '+lastName};
 }
 function password(value){if(typeof value!=='string'||value.length<10||value.length>128||!value.trim())fail(400,'A senha precisa ter entre 10 e 128 caracteres.');return value;}
-export function createApiHandler(pool,{log=console.log,errorLog=console.error,servicesEnv=process.env,authMode='beta'}={}){
+export function createApiHandler(pool,{log=console.log,errorLog=console.error,servicesEnv=process.env,authMode='beta',combatClock=Date.now}={}){
 if(!['beta','legacy'].includes(authMode))throw new Error('Invalid authentication mode');
 // Production invokes this factory without an override. Legacy mode exists only
 // as an explicit code-level fixture option, never an HTTP or environment switch.
 const betaRequired=authMode==='beta';
-const room=createRoom({capacity:10,persistDamage:async({characterId,damage})=>{
+const room=createRoom({capacity:10,clock:combatClock,persistDamage:async({characterId,damage})=>{
  // Combat owns health. Checkpoints only store position and cannot undo a hit.
  const result=await pool.query(`UPDATE hbrp.character_stats SET health=GREATEST(0,health-$2),
   version=version+1,updated_at=now() WHERE character_id=$1 RETURNING health::float`,[characterId,damage]);
  if(!result.rowCount)fail(409,'Dados do personagem incompletos.','CHARACTER_INCOMPLETE');
  return result.rows[0].health;
-}});
+},persistRespawn:async({characterId,world,x,y,z,yaw})=>transaction(async client=>{
+ const result=await client.query(`UPDATE hbrp.character_stats SET health=100,version=version+1,updated_at=now()
+  WHERE character_id=$1 AND health<=0 RETURNING health`,[characterId]);
+ if(!result.rowCount)fail(409,'O personagem já foi recuperado.','RESPAWN_STALE');
+ const position=await client.query(`UPDATE hbrp.character_positions SET x=$2,y=$3,z=$4,yaw=$5,camera_yaw=$5,
+  version=version+1,updated_at=now() WHERE character_id=$1 AND world_id=(SELECT id FROM hbrp.worlds WHERE code=$6) RETURNING character_id`,[characterId,x,y,z,yaw,world]);
+ if(!position.rowCount)fail(409,'Posição do personagem indisponível.','CHARACTER_INCOMPLETE');
+})});
 const realtime=createRealtimeAccess({room,env:servicesEnv});
 let followerReady;
 function loadFollower(){
@@ -156,10 +164,10 @@ async function login(body){
 }
 async function betaLogin(body){
  exact(body,['uid','password']);
- if(typeof body.uid!=='string'||!/^[1-9][0-9]{0,18}$/.test(body.uid.trim()))fail(400,'Informe o UID fornecido pela equipe.','INVALID_UID');
- const uid=body.uid.trim(),pass=password(body.password);
+ if(!isBetaLoginIdentifier(body.uid))fail(400,'Informe seu UID ou usuário fornecido pela equipe.','INVALID_UID');
+ const uid=body.uid.trim(),pass=typeof body.password==='string'&&body.password.length>=6&&body.password.length<=128?body.password:fail(400,'A senha precisa ter entre 6 e 128 caracteres.');
  const result=await pool.query(`SELECT a.id,a.status,b.password_hash,b.credential_version::text,b.revoked_at
-  FROM hbrp.accounts a LEFT JOIN hbrp.beta_access b ON b.account_id=a.id WHERE a.uid::text=$1`,[uid]);
+  FROM hbrp.accounts a LEFT JOIN hbrp.beta_access b ON b.account_id=a.id WHERE a.uid::text=$1 OR lower(b.login_name)=lower($1)`,[uid]);
  const account=result.rows[0];const valid=await checkPassword(pass,account?.password_hash);
  if(!valid||account.status!=='active'||account.revoked_at||!account.credential_version)
   fail(401,'UID ou senha inválidos, ou acesso beta não autorizado.','INVALID_CREDENTIALS');
@@ -305,6 +313,10 @@ return async(req,res)=>{
    const auth=await session(pool,token);
    const identity=await requireCharacter(pool,auth.account_id);
    return send(200,await room.attack(identity,auth.id,await readBody(req)));
+  }
+  if(req.method==='POST'&&(path==='/v1/multiplayer/shoot'||path==='/v1/multiplayer/respawn')){
+   const auth=await session(pool,token),identity=await requireCharacter(pool,auth.account_id),body=await readBody(req);
+   return send(200,await(path.endsWith('/shoot')?room.shoot(identity,auth.id,body):room.respawn(identity,auth.id,body)));
   }
   if(req.method==='POST'&&(path==='/v1/multiplayer/sync'||path==='/v1/multiplayer/leave'||path==='/v1/multiplayer/chat')){
    const auth=await session(pool,token);

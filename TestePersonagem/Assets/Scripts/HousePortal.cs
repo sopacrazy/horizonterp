@@ -23,6 +23,7 @@ public sealed class HousePortal : MonoBehaviour
     GameObject fadeObject;
     Button action;
     Label actionLabel;
+    Image actionIcon;
     Vector3 entrancePosition;
     float entranceYaw;
     float nextInteraction;
@@ -86,7 +87,11 @@ public sealed class HousePortal : MonoBehaviour
         if (prompt != null)
         {
             prompt.style.display = available ? DisplayStyle.Flex : DisplayStyle.None;
-            if (available && actionLabel != null) actionLabel.text = inside ? "E  SAIR" : "E  ENTRAR";
+            if (available && actionLabel != null)
+            {
+                actionLabel.text = inside ? "E  SAIR" : "E  ENTRAR";
+                if (actionIcon != null) actionIcon.image = HudPack.Texture(inside ? "exit" : "door");
+            }
         }
         if (available && Input.GetKeyDown(KeyCode.E)) Interact();
         AnimateArrow(exteriorArrow, 0f);
@@ -211,28 +216,22 @@ public sealed class HousePortal : MonoBehaviour
         action.style.height = 72;
         action.style.paddingLeft = action.style.paddingRight = 0;
         action.style.paddingTop = action.style.paddingBottom = 0;
-        action.style.backgroundColor = new Color(.035f, .045f, .055f, .92f);
-        action.style.borderTopWidth = action.style.borderBottomWidth = 2;
-        action.style.borderLeftWidth = action.style.borderRightWidth = 2;
-        action.style.borderTopColor = action.style.borderBottomColor = new Color(1f, .76f, .12f);
-        action.style.borderLeftColor = action.style.borderRightColor = new Color(1f, .76f, .12f);
-        action.style.borderTopLeftRadius = action.style.borderTopRightRadius = 36;
-        action.style.borderBottomLeftRadius = action.style.borderBottomRightRadius = 36;
+        HudPack.Skin(action,36);
         action.style.alignItems = Align.Center;
         action.style.justifyContent = Justify.Center;
-        var doorIcon = new HudIcon("door") { name = "house-door-icon" };
-        doorIcon.style.width = 42;
-        doorIcon.style.height = 42;
-        doorIcon.SetInk(new Color(1f, .83f, .3f));
-        action.Add(doorIcon);
+        actionIcon = HudPack.Image("door");actionIcon.name = "house-door-icon";
+        actionIcon.style.width = 32;
+        actionIcon.style.height = 32;
+        action.Add(actionIcon);
         prompt.Add(action);
         actionLabel = new Label("E  ENTRAR") { name = "house-door-label" };
         actionLabel.style.marginTop = 5;
         actionLabel.style.paddingLeft = actionLabel.style.paddingRight = 10;
         actionLabel.style.paddingTop = actionLabel.style.paddingBottom = 3;
-        actionLabel.style.backgroundColor = new Color(.025f, .035f, .045f, .82f);
+        actionLabel.style.backgroundColor = new Color(.035f, .047f, .063f, .76f);
         actionLabel.style.color = Color.white;
-        actionLabel.style.fontSize = 13;
+        actionLabel.style.fontSize = 11;
+        actionLabel.style.textShadow = new TextShadow { offset = new Vector2(0,1), blurRadius = 2, color = new Color(0,0,0,.95f) };
         actionLabel.style.unityFontStyleAndWeight = FontStyle.Bold;
         actionLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
         actionLabel.style.borderTopLeftRadius = actionLabel.style.borderTopRightRadius = 8;

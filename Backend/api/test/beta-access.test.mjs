@@ -63,6 +63,16 @@ test('closed beta requires issued UID credentials and explicit active session gr
    assert.equal((await request('GET','/v1/player',undefined,manager.token)).status,200);
    assert.equal((await request('GET','/v1/player',undefined,manager.token)).needsCharacter,true);
   });
+  await t.test('team alias and six-character beta password work without changing permanent UID',async()=>{
+   const issued=initial.credentials[0],alias='user01';
+   const account=(await pool.query('SELECT id FROM hbrp.accounts WHERE uid::text=$1',[issued.uid])).rows[0];
+   await pool.query('UPDATE hbrp.beta_access SET login_name=$1,password_hash=$2 WHERE account_id=$3',[alias,await hashBetaPassword(alias),account.id]);
+   const login=await request('POST','/v1/auth/login',{uid:alias,password:alias});
+   assert.equal(login.status,200);assert.equal(login.account.uid,issued.uid);assert.equal(login.needsCharacter,true);
+   assert.equal((await request('POST','/v1/auth/login',{uid:'USER01',password:alias})).status,200);
+   assert.equal((await request('POST','/v1/auth/login',{uid:alias,password:'wrong1'})).code,'INVALID_CREDENTIALS');
+   await pool.query('UPDATE hbrp.beta_access SET login_name=NULL,password_hash=$1 WHERE account_id=$2',[await hashBetaPassword(issued.password),account.id]);
+  });
   await t.test('credential changes between password read and login locks cannot issue a refreshed session',async()=>{
    const target=initial.credentials[2];
    const before=(await pool.query('SELECT count(*)::int AS n FROM hbrp.sessions')).rows[0].n;

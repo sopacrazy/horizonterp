@@ -25,6 +25,8 @@ public sealed class FighterCombo : MonoBehaviour
     void Update(){if(Input.GetKeyDown(KeyCode.F))Trigger();}
     public void Trigger()
     {
+        var rifle=GetComponent<RifleWeapon>();
+        if(rifle&&rifle.Equipped){rifle.RequestFire();return;}
         var visual=EnsureAnimation();
         if(!enabled||!player||!visual||!visual.Ready||Time.unscaledTime<nextAttack||visual.Busy||player.CombatLocked||
             player.Health<=0||player.IsCuffed||player.InPoliceCar||PoliceVehicleController.BlocksPlayer(player)||MissionVehicle.Driver==player||

@@ -122,6 +122,20 @@ public sealed class InGameChat : MonoBehaviour
     {
         string text=(keyboard!=null?keyboard.text:input.value).Replace('\r',' ').Replace('\n',' ').Trim();
         if(string.IsNullOrEmpty(text)){input.Focus();return;}
+        string localCommand=text.Split(' ')[0].ToLowerInvariant();
+        if(localCommand=="/arma"||localCommand=="/rifle"||localCommand=="/desarmar")
+        {
+            input.value="";Close();
+            var player=GameHud.Instance?GameHud.Instance.Player:null;
+            if(player)
+            {
+                var weapon=RifleWeapon.Create(player);
+                bool equipped=localCommand!="/desarmar"&&!weapon.Equipped;
+                if(weapon.SetEquipped(equipped))SystemLine(equipped?
+                    "Rifle equipado. Mouse direito: mirar · esquerdo/F: atirar · R: recarregar · /arma: guardar.":"Arma guardada.");
+            }
+            input.value="";Close();return;
+        }
         if(!VerifyingSend&&(!MultiplayerWorld.Instance||!MultiplayerWorld.Instance.Connected)){ShowHint("Aguarde a conexão com a sala.");return;}
         if(outgoing.Count>=20){ShowHint("Muitas mensagens na fila. Aguarde um instante.");return;}
         string id=Guid.NewGuid().ToString();bool command=text.StartsWith("/");

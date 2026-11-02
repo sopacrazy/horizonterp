@@ -16,9 +16,10 @@ public sealed class PoliceRadio : MonoBehaviour
     VisualElement panel;
     Button openButton,connectButton,disconnectButton;
     VisualElement talkButton;
+    StyleColor talkIdleBackground,talkIdleBorder;
     readonly RadioTalkGesture gesture=new RadioTalkGesture();
     public bool Latched=>gesture.Latched;
-    Label stateLabel,channelLabel,speakerLabel;
+    Label stateLabel,channelLabel,speakerLabel,openChannel;
     int selected=1;
     bool busy,wasPolice;
     float speakerUntil;
@@ -31,9 +32,7 @@ public sealed class PoliceRadio : MonoBehaviour
     static Button Button(string text,Action action)
     {
         var b=new Button(action){text=text};
-        b.style.height=38;b.style.marginBottom=5;b.style.backgroundColor=new Color(.1f,.16f,.23f,.96f);
-        b.style.color=Color.white;b.style.borderTopLeftRadius=7;b.style.borderTopRightRadius=7;
-        b.style.borderBottomLeftRadius=7;b.style.borderBottomRightRadius=7;
+        b.style.height=38;b.style.marginBottom=5;b.style.color=Color.white;HudPack.Skin(b,10);
         return b;
     }
     static Label Label(string text,int size=13)
@@ -44,32 +43,24 @@ public sealed class PoliceRadio : MonoBehaviour
     void Build(GameHud owner)
     {
         hud=owner;
-        openButton=Button("RÁDIO",()=>{panel.style.display=panel.style.display==DisplayStyle.Flex?DisplayStyle.None:DisplayStyle.Flex;});
-        openButton.style.position=Position.Absolute;openButton.style.right=90;openButton.style.top=205;
-        openButton.style.width=72;openButton.style.backgroundColor=new Color(.12f,.3f,.43f,.92f);
+        openButton=Button("",()=>{panel.style.display=panel.style.display==DisplayStyle.Flex?DisplayStyle.None:DisplayStyle.Flex;});
+        openButton.name="radio-open";openButton.tooltip="Rádio policial";
+        openButton.style.position=Position.Absolute;openButton.style.right=24;openButton.style.top=202;
+        openButton.style.width=46;openButton.style.height=46;openButton.style.alignItems=Align.Center;openButton.style.justifyContent=Justify.Center;HudPack.Skin(openButton,14);
+        var openIcon=HudPack.Image("radio");openIcon.name="radio-open-icon";openIcon.style.width=26;openIcon.style.height=26;openButton.Add(openIcon);
+        openChannel=Label("",10);openChannel.name="radio-channel-badge";openChannel.style.position=Position.Absolute;openChannel.style.right=3;openChannel.style.bottom=0;openChannel.style.marginBottom=0;openChannel.style.unityFontStyleAndWeight=FontStyle.Bold;openButton.Add(openChannel);
         owner.Root.Add(openButton);
         owner.RegisterPointerBlocker(openButton);
         // A plain element avoids Button's Clickable manipulator stealing touch capture.
         talkButton=new VisualElement {name="radio-push-to-talk"};
         talkButton.tooltip="Segure para falar · Dois toques para fixar · Toque para desligar";
-        talkButton.style.position=Position.Absolute;talkButton.style.right=153;talkButton.style.bottom=126;
-        talkButton.style.width=70;talkButton.style.height=70;talkButton.style.marginBottom=0;
+        talkButton.style.position=Position.Absolute;talkButton.style.right=130;talkButton.style.bottom=132;
+        talkButton.style.width=64;talkButton.style.height=64;talkButton.style.marginBottom=0;
         talkButton.style.flexDirection=FlexDirection.Column;
         talkButton.style.alignItems=Align.Center;talkButton.style.justifyContent=Justify.Center;
-        talkButton.style.borderTopLeftRadius=35;talkButton.style.borderTopRightRadius=35;
-        talkButton.style.borderBottomLeftRadius=35;talkButton.style.borderBottomRightRadius=35;
-        talkButton.style.borderTopWidth=2;talkButton.style.borderBottomWidth=2;
-        talkButton.style.borderLeftWidth=2;talkButton.style.borderRightWidth=2;
-        talkButton.style.borderTopColor=new Color(.33f,.72f,.91f);
-        talkButton.style.borderBottomColor=new Color(.33f,.72f,.91f);
-        talkButton.style.borderLeftColor=new Color(.33f,.72f,.91f);
-        talkButton.style.borderRightColor=new Color(.33f,.72f,.91f);
-        talkButton.style.backgroundColor=new Color(.1f,.25f,.36f,.95f);
-        var microphone=HudAtlas.Image("h2_microphone");
-        microphone.scaleMode=ScaleMode.ScaleToFit;
-        microphone.pickingMode=PickingMode.Ignore;
-        microphone.style.width=42;microphone.style.height=42;
-        talkButton.Add(microphone);
+        HudPack.Skin(talkButton,32);
+        talkIdleBackground=talkButton.style.backgroundColor;talkIdleBorder=talkButton.style.borderTopColor;
+        var talkIcon=HudPack.Image("radio");talkIcon.name="radio-talk-icon";talkIcon.style.width=28;talkIcon.style.height=28;talkButton.Add(talkIcon);
         talkButton.RegisterCallback<PointerDownEvent>(e=>
         {
             if(e.button!=0||!Connected||busy||!gesture.Down(e.pointerId,Time.unscaledTimeAsDouble))return;
@@ -88,31 +79,27 @@ public sealed class PoliceRadio : MonoBehaviour
         {if(gesture.Up(e.pointerId,Time.unscaledTimeAsDouble,true))ApplyTalkInput();});
         owner.Root.Add(talkButton);
         owner.RegisterPointerBlocker(talkButton);
-        panel=new VisualElement();panel.style.position=Position.Absolute;panel.style.right=102;panel.style.top=252;
+        panel=new VisualElement{name="radio-panel"};panel.style.position=Position.Absolute;panel.style.right=24;panel.style.top=258;
         panel.style.width=270;panel.style.paddingLeft=14;panel.style.paddingRight=14;
         panel.style.paddingTop=13;panel.style.paddingBottom=13;
-        panel.style.backgroundColor=new Color(.035f,.055f,.085f,.96f);
-        panel.style.borderTopLeftRadius=11;panel.style.borderTopRightRadius=11;
-        panel.style.borderBottomLeftRadius=11;panel.style.borderBottomRightRadius=11;
-        panel.style.borderTopWidth=1;panel.style.borderBottomWidth=1;
-        panel.style.borderLeftWidth=1;panel.style.borderRightWidth=1;
-        panel.style.borderTopColor=new Color(.25f,.5f,.65f);panel.style.borderBottomColor=new Color(.25f,.5f,.65f);
-        panel.style.borderLeftColor=new Color(.25f,.5f,.65f);panel.style.borderRightColor=new Color(.25f,.5f,.65f);
-        panel.Add(Label("RÁDIO DA POLÍCIA",17));
-        stateLabel=Label("Desconectado");panel.Add(stateLabel);
-        channelLabel=Label("Selecione um canal");panel.Add(channelLabel);
+        HudPack.Skin(panel,16);
+        var header=new VisualElement{name="radio-panel-header"};header.style.flexDirection=FlexDirection.Row;header.style.alignItems=Align.Center;panel.Add(header);
+        var title=Label("RÁDIO DA POLÍCIA",16);title.name="radio-panel-title";title.style.flexGrow=1;header.Add(title);
+        var close=new Button(()=>panel.style.display=DisplayStyle.None){name="radio-close",tooltip="Fechar rádio"};close.style.width=30;close.style.height=30;close.style.alignItems=Align.Center;close.style.justifyContent=Justify.Center;HudPack.Skin(close,10);
+        var closeIcon=HudPack.Image("close");closeIcon.style.width=18;closeIcon.style.height=18;close.Add(closeIcon);header.Add(close);
+        stateLabel=Label("Desconectado");stateLabel.name="radio-state";panel.Add(stateLabel);
+        channelLabel=Label("Selecione um canal");channelLabel.name="radio-selected-channel";panel.Add(channelLabel);
         foreach(var option in new[]{(1,"1 · Central"),(2,"2 · Patrulha"),(3,"3 · Operações")})
         {
             int choice=option.Item1;
-            var button=Button(option.Item2,()=>{selected=choice;Refresh();});panel.Add(button);
+            var button=Button(option.Item2,()=>{selected=choice;Refresh();});button.name="radio-select-"+choice;panel.Add(button);
         }
-        connectButton=Button("CONECTAR / TROCAR CANAL",()=>StartCoroutine(SetChannel(selected)));panel.Add(connectButton);
-        disconnectButton=Button("DESCONECTAR",()=>StartCoroutine(SetChannel(0)));panel.Add(disconnectButton);
-        var slider=new Slider("Volume",0,1){value=Volume};slider.style.color=Color.white;
+        connectButton=Button("CONECTAR / TROCAR CANAL",()=>StartCoroutine(SetChannel(selected)));connectButton.name="radio-connect";panel.Add(connectButton);
+        disconnectButton=Button("DESCONECTAR",()=>StartCoroutine(SetChannel(0)));disconnectButton.name="radio-disconnect";panel.Add(disconnectButton);
+        var slider=new Slider("Volume",0,1){name="radio-volume",value=Volume};slider.style.color=Color.white;
         slider.RegisterValueChangedCallback(e=>Volume=e.newValue);panel.Add(slider);
-        panel.Add(Button("FECHAR",()=>panel.style.display=DisplayStyle.None));
-        speakerLabel=Label("");speakerLabel.style.position=Position.Absolute;
-        speakerLabel.style.right=102;speakerLabel.style.top=177;owner.Root.Add(speakerLabel);
+        speakerLabel=Label("");speakerLabel.name="radio-current-speaker";speakerLabel.style.position=Position.Absolute;
+        speakerLabel.style.right=82;speakerLabel.style.top=216;owner.Root.Add(speakerLabel);
         owner.Root.Add(panel);owner.RegisterPointerBlocker(panel);panel.style.display=DisplayStyle.None;Refresh();
     }
     void Update()
@@ -138,10 +125,11 @@ public sealed class PoliceRadio : MonoBehaviour
         if(openButton==null)return;
         bool police=AccountSession.HasCharacter&&AdminPlayerPanel.PoliceDuty;
         openButton.style.display=police?DisplayStyle.Flex:DisplayStyle.None;
-        openButton.text=Channel>0?"RÁDIO "+Channel:"RÁDIO";
+        openChannel.text=Channel>0?Channel.ToString():"";
+        openButton.tooltip=Channel>0?"Rádio policial · canal "+Channel:"Rádio policial";
         talkButton.style.display=Connected?DisplayStyle.Flex:DisplayStyle.None;
-        talkButton.style.backgroundColor=Pressed?new Color(.05f,.78f,.52f,.98f):new Color(.1f,.25f,.36f,.95f);
-        var ringColor=Pressed?new Color(.43f,1f,.69f):new Color(.33f,.72f,.91f);
+        talkButton.style.backgroundColor=Pressed?new StyleColor(new Color(.1f,.66f,.49f,.9f)):talkIdleBackground;
+        var ringColor=Pressed?new StyleColor(new Color(.48f,1f,.79f,.95f)):talkIdleBorder;
         talkButton.style.borderTopColor=ringColor;talkButton.style.borderBottomColor=ringColor;
         talkButton.style.borderLeftColor=ringColor;talkButton.style.borderRightColor=ringColor;
         talkButton.style.opacity=Pressed ? .82f+.18f*Mathf.Abs(Mathf.Sin(Time.unscaledTime*5)) : 1f;

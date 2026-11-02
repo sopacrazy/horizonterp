@@ -30,8 +30,8 @@ public sealed partial class AccountSession
         landing=new VisualElement {name="auth-landing"};landing.AddToClassList("auth-landing");root.Add(landing);
         LabelAt("BETA FECHADO · EQUIPE","auth-kicker",landing);
         LabelAt("Entre na cidade","auth-welcome",landing);
-        LabelAt("Acesse com o UID e a senha enviados pela equipe.","auth-intro",landing);
-        var login=new Button(()=>OpenEmailForm(false)) {name="auth-login-uid",text="ENTRAR COM UID"};
+        LabelAt("Acesse com seu usuário ou UID e senha enviados pela equipe.","auth-intro",landing);
+        var login=new Button(()=>OpenEmailForm(false)) {name="auth-login-uid",text="ENTRAR"};
         login.AddToClassList("auth-email-button");landing.Add(login);
         LabelAt("Acesso individual emitido pelo painel. O cadastro público está fechado.","auth-description",landing);
 
@@ -47,8 +47,8 @@ public sealed partial class AccountSession
         var emailGroup=FieldGroup(form);
         // The internal field name is retained for old verification assemblies.
         // No e-mail field or public registration control is presented to players.
-        email=Field("UID","Seu UID beta","auth-uid",false,emailGroup,19);
-        email.keyboardType=TouchScreenKeyboardType.NumberPad;
+        email=Field("USUÁRIO OU UID","Seu usuário ou UID","auth-uid",false,emailGroup,32);
+        email.keyboardType=TouchScreenKeyboardType.Default;
         string rememberedUid=Hbrp.Realtime.LocalNetworkLab.IsolateSavedAccess?"":PlayerPrefs.GetString("account.uid","");
         email.value=IsBetaUid(rememberedUid)?rememberedUid:"";
         var passwordGroup=FieldGroup(form);
@@ -140,7 +140,7 @@ public sealed partial class AccountSession
     {
         register=false;
         title.text="Acesse sua conta";
-        description.text="Informe o UID e a senha criados pelo painel da equipe.";
+        description.text="Informe seu usuário ou UID e a senha da equipe.";
         passwordHint.style.display=DisplayStyle.Flex;
         password.textEdition.placeholder="Senha do acesso beta";
         submit.text="ENTRAR NO BETA";
@@ -193,10 +193,10 @@ public sealed partial class AccountSession
         ClearErrors();TextField firstError=null;
         void Reject(TextField field,string error){SetFieldError(field,error);if(firstError==null)firstError=field;}
         string uid=(email.value??"").Trim();
-        if(!IsBetaUid(uid))Reject(email,"Informe o UID numérico recebido da equipe.");
+        if(!IsBetaUid(uid))Reject(email,"Informe seu usuário ou UID recebido da equipe.");
         else email.SetValueWithoutNotify(uid);
-        if(string.IsNullOrWhiteSpace(password.value)||password.value.Length<10||password.value.Length>128)
-            Reject(password,"Sua senha deve ter de 10 a 128 caracteres.");
+        if(string.IsNullOrWhiteSpace(password.value)||password.value.Length<6||password.value.Length>128)
+            Reject(password,"Sua senha deve ter de 6 a 128 caracteres.");
         if(firstError==null)return true;
         SetGeneralMessage("Confira os campos destacados.",true);firstError.Focus();return false;
     }
@@ -207,11 +207,11 @@ public sealed partial class AccountSession
         submit.SetEnabled(!value);back.SetEnabled(!value);showPassword.SetEnabled(!value);
         if(value)submit.text="VERIFICANDO ACESSO...";else RefreshForm();
     }
-    internal static bool IsBetaUid(string value)=>Regex.IsMatch(value??"",@"\A[1-9][0-9]{0,18}\z");
+    internal static bool IsBetaUid(string value)=>Regex.IsMatch(value??"",@"\A(?:[1-9][0-9]{0,18}|[A-Za-z][A-Za-z0-9_]{2,31})\z",RegexOptions.CultureInvariant);
 
     void RememberAccountUid(ApiReply reply,string fallback=null)
     {
-        string uid=reply?.account?.uid??reply?.state?.uid??fallback;
+        string uid=IsBetaUid(fallback)?fallback:(reply?.account?.uid??reply?.state?.uid);
         if(!IsBetaUid(uid))return;
         email?.SetValueWithoutNotify(uid);
         if(!Hbrp.Realtime.LocalNetworkLab.IsolateSavedAccess&&VerificationTransport==null)

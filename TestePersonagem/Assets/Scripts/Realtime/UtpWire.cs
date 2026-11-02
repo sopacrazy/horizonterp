@@ -5,7 +5,17 @@ using UnityEngine;
 
 namespace Hbrp.Realtime
 {
-    public enum PacketKind:byte {Authenticate=1,Authenticated=2,Move=3,Snapshot=4,Ping=5,Pong=6}
+    public enum PacketKind:byte {Authenticate=1,Authenticated=2,Move=3,Snapshot=4,Ping=5,Pong=6,WeaponMove=7,WeaponSnapshot=8}
+    // Cosmetic only: this never carries hit results, damage, inventory or ammunition authority.
+    public struct UdpWeaponPose
+    {
+        public string CharacterId;
+        public int Sequence,ShotSequence;
+        public long UpdatedAt;
+        public double ReceivedAt;
+        public bool Equipped,Aiming;
+        public float Pitch;
+    }
     public struct UdpPose
     {
         public string CharacterId;
@@ -55,6 +65,16 @@ namespace Hbrp.Realtime
                 p.Position.x>=-4200&&p.Position.x<=4200&&p.Position.y>=-200&&p.Position.y<=1000&&p.Position.z>=-4200&&p.Position.z<=4200&&
                 p.Yaw>=0&&p.Yaw<360&&p.Speed>=0&&p.Speed<=8&&p.JumpPhase>=0&&p.JumpPhase<=1;
         }
+        public static void Weapon(ref DataStreamWriter w,UdpWeaponPose p)
+        {w.WriteInt(p.Sequence);w.WriteInt(p.ShotSequence);w.WriteFloat(p.Pitch);w.WriteByte((byte)((p.Equipped?1:0)|(p.Aiming?2:0)));}
+        public static UdpWeaponPose Weapon(ref DataStreamReader r)
+        {
+            if(r.Length-r.GetBytesRead()<13)throw new FormatException();
+            var p=new UdpWeaponPose {Sequence=r.ReadInt(),ShotSequence=r.ReadInt(),Pitch=r.ReadFloat()};
+            byte flags=r.ReadByte();if(flags>3)throw new FormatException();p.Equipped=(flags&1)!=0;p.Aiming=(flags&2)!=0;
+            if(!Valid(p))throw new FormatException();return p;
+        }
+        public static bool Valid(UdpWeaponPose p)=>p.Sequence>=0&&p.ShotSequence>=0&&Finite(p.Pitch)&&p.Pitch>=-80&&p.Pitch<=80&&(!p.Aiming||p.Equipped);
         static bool Finite(float value)=>!float.IsNaN(value)&&!float.IsInfinity(value);
     }
 }

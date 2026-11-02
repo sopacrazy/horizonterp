@@ -36,6 +36,15 @@ public sealed class MultiplayerWorld : MonoBehaviour
     public bool PoliceVehicleAvailable {get;private set;}
     public bool CombatAvailable {get;private set;}
     public bool CombatReady {get;private set;}
+    public bool WeaponStateAvailable {get;private set;}
+    public bool RifleDamageAvailable {get;private set;}
+    public bool RespawnAvailable {get;private set;}
+    public float RespawnDeadline {get;private set;}
+    bool respawnRequest;
+    int lastRespawnSequence;
+    string selfCombatEpoch;
+    int selfCombatRevision=-1;
+    readonly HashSet<string> retiredSelfCombatEpochs=new HashSet<string>();
     public Animator AnimatorForUid(string uid)
     {
         if(string.IsNullOrEmpty(uid))return null;
@@ -110,6 +119,14 @@ public sealed class MultiplayerWorld : MonoBehaviour
             bool combatClient=CombatAvailable;
             string json=JsonUtility.ToJson(frame);
             if(combatClient)json=json.Substring(0,json.Length-1)+",\"combatClient\":true}";
+            if(WeaponStateAvailable)
+            {
+                var rifle=player.GetComponent<RifleWeapon>();
+                var state=new WeaponVisualFrame {weaponEquipped=rifle&&rifle.Equipped,weaponAiming=rifle&&rifle.Aiming,
+                    weaponShotSequence=rifle?rifle.ShotSequence:0,weaponAimPitch=rifle?rifle.AimPitch:0};
+                json=json.Substring(0,json.Length-1)+","+JsonUtility.ToJson(state).Substring(1);
+            }
+            if(RespawnAvailable)json=json.Substring(0,json.Length-1)+",\"afterRespawn\":"+lastRespawnSequence+"}";
             if(police&&PoliceVehicleAvailable)json=json.Substring(0,json.Length-1)+",\"policeCarId\":\""+police.Id+"\"}";
             // Old installed servers strictly validate fields; negotiate before sending the new state.
             if(VoiceStateAvailable)
@@ -150,6 +167,8 @@ public sealed class MultiplayerWorld : MonoBehaviour
                 VoiceStateAvailable=reply.voiceStateAvailable;
                 PoliceVehicleAvailable=reply.policeVehicleAvailable;
                 CombatAvailable=reply.combatAvailable;
+                WeaponStateAvailable=reply.weaponStateAvailable;
+                RifleDamageAvailable=reply.rifleDamageAvailable;RespawnAvailable=reply.respawnAvailable;
                 CombatReady=reply.combatAvailable&&combatClient;
                 // Refresh permission changes for this authenticated character without
                 // requiring logout. Older servers omit these fields and are ignored.
@@ -163,7 +182,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
                         GameHud.Instance?.ApplyAccountIdentity();
                     }
                 }
-                player.GetComponent<FighterCombo>()?.ApplyState(reply.selfCombat,reply.serverTime,roundTrip);
+                ApplySelfCombat(reply.selfCombat,reply.serverTime,roundTrip);
                 SetStatus("ONLINE "+reply.count+"/"+reply.capacity);
                 UpdatePeers(reply.peers,reply.serverTime,roundTrip);
                 policeCarWorld.Apply(reply.policeCars,reply.selfPoliceCarId,new Vector3(reply.selfX,reply.selfY,reply.selfZ),vehicleRevision);
@@ -253,6 +272,91 @@ public sealed class MultiplayerWorld : MonoBehaviour
         closest?.PredictHit(attackId);
         StartCoroutine(SendAttack(attackId));
     }
+    public string RaycastRifleTarget(Ray ray,float maxDistance)
+    {
+        string uid="";float nearest=maxDistance;
+        foreach(var remote in remotes.Values)
+        {
+            if(!remote.Transform||!remote.CanPredictHit)continue;
+            // Match the server's upright capsule: .55m radius, .65m half-height.
+            Vector3 center=remote.Transform.position+Vector3.up*.95f,delta=center-ray.origin;
+            float along=Vector3.Dot(delta,ray.direction);
+            if(along<0||along>nearest)continue;
+            Vector3 offset=delta-ray.direction*along;
+            offset.y=Mathf.Max(0,Mathf.Abs(offset.y)-.65f);
+            if(offset.magnitude>.55f)continue;
+            nearest=along;uid=remote.Uid;
+        }
+        return uid;
+    }
+    public void FireRifle(string shotId,Vector3 origin,Vector3 direction,string targetUid="")
+    {
+        if(!Connected||!CombatReady||!RifleDamageAvailable||paused)return;
+        foreach(var remote in remotes.Values)if(remote.Uid==targetUid)remote.PredictHit(shotId);
+        StartCoroutine(SendRifleShot(new RifleShotBody{clientId=clientId,shotId=shotId,targetUid=targetUid??"",
+            originX=origin.x,originY=origin.y,originZ=origin.z,directionX=direction.x,directionY=direction.y,directionZ=direction.z}));
+    }
+    IEnumerator SendRifleShot(RifleShotBody body)
+    {
+        string character=AccountSession.Instance.State.characterId,json=JsonUtility.ToJson(body);
+        MultiplayerReply reply=null;float started=Time.realtimeSinceStartup;
+        for(int attempt=0;attempt<2;attempt++)
+        {
+            if(!AccountSession.HasCharacter||AccountSession.Instance.State.characterId!=character||paused)yield break;
+            yield return AccountSession.Instance.MultiplayerRequest("/v1/multiplayer/shoot",json,r=>reply=r);
+            if(reply?.code=="SHOT_BLOCKED"&&attempt==0&&player.Health>0&&
+                player.TryGetComponent<RifleWeapon>(out var rifle)&&rifle.Equipped)
+            {yield return new WaitForSecondsRealtime(.15f);continue;}
+            if(reply?.code!="CONNECTION_LOST")break;
+        }
+        if(!player||!AccountSession.HasCharacter||AccountSession.Instance.State.characterId!=character||paused)yield break;
+        if(reply!=null&&string.IsNullOrEmpty(reply.code)&&reply.combatAvailable)
+        {
+            float trip=Time.realtimeSinceStartup-started;ApplySelfCombat(reply.selfCombat,reply.serverTime,trip);
+            if(reply.combatPeers!=null)foreach(var peer in reply.combatPeers)
+                foreach(var remote in remotes.Values)if(remote.Uid==peer.uid)remote.ApplyCombat(peer.combat,reply.serverTime,trip);
+        }
+        else foreach(var remote in remotes.Values)remote.CancelPredictedHit(body.shotId);
+    }
+    void ApplySelfCombat(CombatState state,long serverTime,float roundTrip)
+    {
+        if(state==null||!player)return;
+        if(selfCombatEpoch!=state.epoch)
+        {
+            if(!string.IsNullOrEmpty(state.epoch)&&retiredSelfCombatEpochs.Contains(state.epoch))return;
+            if(!string.IsNullOrEmpty(selfCombatEpoch))retiredSelfCombatEpochs.Add(selfCombatEpoch);
+            selfCombatEpoch=state.epoch;lastRespawnSequence=state.dead?0:state.respawnSequence;selfCombatRevision=-1;
+        }
+        if(state.revision<selfCombatRevision)return;selfCombatRevision=state.revision;
+        player.GetComponent<FighterCombo>()?.ApplyState(state,serverTime,roundTrip);
+        if(AccountSession.Instance?.State!=null)AccountSession.Instance.State.health=state.health;
+        if(state.dead)
+        {
+            if(state.respawnAt>0)RespawnDeadline=Time.unscaledTime+Mathf.Max(0,(state.respawnAt-serverTime)*.001f-roundTrip*.5f);
+            if(RespawnAvailable&&!respawnRequest)StartCoroutine(RequestRespawn(state.epoch,state.deathSequence));
+        }
+        else if(state.respawnSequence>lastRespawnSequence)
+        {
+            lastRespawnSequence=state.respawnSequence;RespawnDeadline=0;
+            player.ApplyConfirmedRespawn(new Vector3(state.respawnX,state.respawnY,state.respawnZ),state.respawnYaw);
+            player.Health=state.health;
+        }
+    }
+    IEnumerator RequestRespawn(string epoch,int deathSequence)
+    {
+        respawnRequest=true;
+        try
+        {
+            while(player&&player.Health<=0&&Time.unscaledTime<RespawnDeadline)yield return null;
+            if(!player||player.Health>0||!AccountSession.HasCharacter||paused)yield break;
+            var body=new CombatRespawnBody{clientId=clientId,requestId=Guid.NewGuid().ToString(),epoch=epoch,deathSequence=deathSequence};
+            MultiplayerReply reply=null;float started=Time.realtimeSinceStartup;
+            yield return AccountSession.Instance.MultiplayerRequest("/v1/multiplayer/respawn",JsonUtility.ToJson(body),r=>reply=r);
+            if(reply!=null&&string.IsNullOrEmpty(reply.code))ApplySelfCombat(reply.selfCombat,reply.serverTime,Time.realtimeSinceStartup-started);
+            else yield return new WaitForSecondsRealtime(.5f);
+        }
+        finally{respawnRequest=false;}
+    }
     IEnumerator SendAttack(string attackId)
     {
         string character=AccountSession.Instance.State.characterId;
@@ -270,7 +374,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
         if(reply!=null&&string.IsNullOrEmpty(reply.code)&&reply.combatAvailable)
         {
             float trip=Time.realtimeSinceStartup-started;
-            player.GetComponent<FighterCombo>()?.ApplyState(reply.selfCombat,reply.serverTime,trip);
+            ApplySelfCombat(reply.selfCombat,reply.serverTime,trip);
             if(reply.combatPeers!=null)foreach(var peer in reply.combatPeers)
                 foreach(var remote in remotes.Values)if(remote.Uid==peer.uid)remote.ApplyCombat(peer.combat,reply.serverTime,trip);
             foreach(var remote in remotes.Values)
@@ -344,6 +448,10 @@ public sealed class MultiplayerWorld : MonoBehaviour
         readonly Animator animator;
         readonly RemoteAvatarAnimation animation;
         readonly CombatAvatarAnimation combat;
+        readonly RifleAvatar rifle;
+        bool weaponEquipped,weaponAiming;
+        int weaponShotSequence;
+        float weaponAimPitch;
         readonly CuffedAvatarPose cuffedPose;
         readonly TextMesh nameplate;
         readonly WorldMicrophoneIndicator microphone;
@@ -403,6 +511,9 @@ public sealed class MultiplayerWorld : MonoBehaviour
             combat=visual.GetComponent<CombatAvatarAnimation>();
             if(!combat)combat=visual.AddComponent<CombatAvatarAnimation>();
             combat.enabled=true;combat.Initialize(animator);
+            rifle=visual.GetComponent<RifleAvatar>();
+            if(!rifle)rifle=visual.AddComponent<RifleAvatar>();
+            rifle.enabled=true;rifle.Configure(animator,root.transform);
             cuffedPose=visual.GetComponent<CuffedAvatarPose>();
             if(!cuffedPose)cuffedPose=visual.AddComponent<CuffedAvatarPose>();
             cuffedPose.enabled=true;
@@ -441,6 +552,9 @@ public sealed class MultiplayerWorld : MonoBehaviour
         }
         public void Apply(MultiplayerPeer peer,long serverTime,float roundTrip)
         {
+            weaponEquipped=peer.weaponEquipped&&!peer.cuffed&&!peer.driving&&!peer.inPoliceCar;
+            weaponAiming=peer.weaponAiming;
+            weaponShotSequence=peer.weaponShotSequence;weaponAimPitch=peer.weaponAimPitch;
             combatClient=peer.combatClient;lastCombatSync=Time.unscaledTime;
             ApplyCombat(peer.combat,serverTime,roundTrip);
             voiceActive=peer.voiceActive||peer.radioActive;
@@ -565,6 +679,10 @@ public sealed class MultiplayerWorld : MonoBehaviour
             if(Camera.main){nameplate.transform.rotation=Camera.main.transform.rotation;
                 statusPlate.transform.rotation=Camera.main.transform.rotation;
                 adminPlate.transform.rotation=Camera.main.transform.rotation;}
+            bool equipped=weaponEquipped,aiming=weaponAiming;int shots=weaponShotSequence;float pitch=weaponAimPitch;
+            if(world.realtime&&world.realtime.TryGetWeapon(characterId,out var weapon))
+            {equipped=weapon.Equipped;aiming=weapon.Aiming;shots=weapon.ShotSequence;pitch=weapon.Pitch;}
+            if(rifle)rifle.Apply(equipped&&!driving&&!inPoliceCar&&!(cuffedPose&&cuffedPose.Cuffed)&&!(combat&&combat.Busy),aiming,shots,pitch,motion.Speed);
         }
         public void Destroy(){voicePlayback.Dispose();radioPlayback.Dispose();if(root){root.SetActive(false);UnityEngine.Object.Destroy(root);}}
     }

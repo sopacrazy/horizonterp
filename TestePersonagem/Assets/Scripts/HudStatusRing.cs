@@ -6,6 +6,7 @@ public sealed class HudStatusRing : VisualElement
 {
     readonly Color accent;
     float percent=100;
+    public float Value=>percent;
     public HudStatusRing(Color color)
     {
         accent=color;pickingMode=PickingMode.Ignore;AddToClassList("status-ring");

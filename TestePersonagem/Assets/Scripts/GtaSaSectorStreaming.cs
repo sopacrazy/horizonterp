@@ -40,6 +40,22 @@ public sealed class GtaSaSectorStreaming : MonoBehaviour
     }
     public bool DestinationSectorLoaded(Vector2 point)=>IsLoaded(PointSector(point));
     public bool DestinationSectorAvailable(Vector2 point)=>sectors!=null&&Array.Exists(sectors,s=>s!=null&&s.scene==PointSector(point));
+
+    // Ground meshes cross tile borders. Check every overlapping sector rather
+    // than the nominal owner, ignoring altitude and distant preview requests.
+    public bool CollisionAreaLoadedAt(Vector3 position, float margin)
+    {
+        if (sectors == null) return true;
+        float limit = Mathf.Max(0, margin);
+        limit *= limit;
+        foreach (var sector in sectors)
+        {
+            if (sector == null || string.IsNullOrEmpty(sector.scene)) continue;
+            var horizontal = new Vector3(position.x, sector.bounds.center.y, position.z);
+            if (sector.bounds.SqrDistance(horizontal) <= limit && !IsLoaded(sector.scene)) return false;
+        }
+        return true;
+    }
     public void PreviewMapDestination(Vector2 point)
     {
         string name=PointSector(point);

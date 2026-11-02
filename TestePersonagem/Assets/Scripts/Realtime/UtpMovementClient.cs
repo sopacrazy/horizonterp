@@ -12,6 +12,8 @@ namespace Hbrp.Realtime
     {
         NetworkDriver driver;NetworkConnection connection;NetworkPipeline reliable,unreliable;
         readonly Dictionary<string,UdpPose> states=new Dictionary<string,UdpPose>();
+        readonly Dictionary<string,UdpWeaponPose> weapons=new Dictionary<string,UdpWeaponPose>();
+        public bool WeaponStateAvailable {get;private set;}
         string ticket;long nextPing;
         public bool Authenticated {get;private set;}
         public bool Disconnected {get;private set;}
@@ -41,12 +43,13 @@ namespace Hbrp.Realtime
             while((type=driver.PopEventForConnection(connection,out var reader))!=NetworkEvent.Type.Empty)
             {
                 if(type==NetworkEvent.Type.Connect){Authenticate();continue;}
-                if(type==NetworkEvent.Type.Disconnect){Disconnected=true;Authenticated=false;states.Clear();continue;}
+                if(type==NetworkEvent.Type.Disconnect){Disconnected=true;Authenticated=false;WeaponStateAvailable=false;states.Clear();weapons.Clear();continue;}
                 if(type!=NetworkEvent.Type.Data)continue;
                 try
                 {
                     if(!UtpWire.Header(ref reader,out var kind))continue;
-                    if(kind==PacketKind.Authenticated){Authenticated=true;continue;}
+                    if(kind==PacketKind.Authenticated)
+                    {Authenticated=true;WeaponStateAvailable=reader.Length-reader.GetBytesRead()==1&&(reader.ReadByte()&1)!=0;continue;}
                     if(!Authenticated)continue;
                     if(kind==PacketKind.Pong&&reader.Length-reader.GetBytesRead()==8)
                     {
@@ -54,17 +57,30 @@ namespace Hbrp.Realtime
                         RoundTripMs=PingsReceived==0?sample:Mathf.Lerp(RoundTripMs,sample,.3f);
                         PingsReceived++;lastPong=Time.realtimeSinceStartup;continue;
                     }
-                    if(kind!=PacketKind.Snapshot||reader.Length-reader.GetBytesRead()<9)continue;
+                    bool extended=kind==PacketKind.WeaponSnapshot&&WeaponStateAvailable;
+                    if((kind!=PacketKind.Snapshot&&!extended)||reader.Length-reader.GetBytesRead()<9)continue;
                     long time=reader.ReadLong();int count=reader.ReadByte();if(count>10)continue;
                     var batch=new List<UdpPose>(count);
+                    var visualBatch=new List<UdpWeaponPose>(count);
                     for(int i=0;i<count;i++)
                     {
                         string id=UtpWire.Text(ref reader);if(!Guid.TryParse(id,out _))throw new FormatException();
                         long updated=reader.ReadLong();var p=UtpWire.Pose(ref reader);p.CharacterId=id;p.ServerTime=time;p.UpdatedAt=updated;p.ReceivedAt=Time.realtimeSinceStartupAsDouble;
                         if(updated>time||time-updated>1000)throw new FormatException();batch.Add(p);
+                        if(extended)
+                        {
+                            if(reader.Length-reader.GetBytesRead()<1)throw new FormatException();
+                            byte has=reader.ReadByte();if(has>1)throw new FormatException();
+                            if(has==1)
+                            {
+                                var visual=UtpWire.Weapon(ref reader);if(visual.Sequence!=p.Sequence)throw new FormatException();
+                                visual.CharacterId=id;visual.UpdatedAt=updated;visual.ReceivedAt=p.ReceivedAt;visualBatch.Add(visual);
+                            }
+                        }
                     }
                     if(reader.GetBytesRead()!=reader.Length)continue;
                     foreach(var p in batch)if(!states.TryGetValue(p.CharacterId,out var old)||p.Sequence>old.Sequence)states[p.CharacterId]=p;
+                    foreach(var p in visualBatch)if(!weapons.TryGetValue(p.CharacterId,out var old)||p.Sequence>old.Sequence||p.UpdatedAt>old.UpdatedAt&&Time.realtimeSinceStartupAsDouble-old.ReceivedAt>.6)weapons[p.CharacterId]=p;
                     SnapshotsReceived++;
                 }
                 catch(FormatException){/* Malformed or truncated datagrams never update rendered state. */}
@@ -78,6 +94,13 @@ namespace Hbrp.Realtime
         public void Send(UdpPose pose)
         {if(!Authenticated||!UtpWire.Valid(pose)||driver.BeginSend(unreliable,connection,out var writer)!=0)return;UtpWire.Header(ref writer,PacketKind.Move);UtpWire.Pose(ref writer,pose);driver.EndSend(writer);}
         public bool TryGet(string id,out UdpPose pose)=>states.TryGetValue(id,out pose)&&Time.realtimeSinceStartupAsDouble-pose.ReceivedAt<.6;
-        public void Dispose(){if(driver.IsCreated)driver.Dispose();Authenticated=false;Disconnected=true;states.Clear();}
+        public void SendVisual(UdpPose pose,UdpWeaponPose weapon)
+        {
+            if(!WeaponStateAvailable){Send(pose);return;}
+            if(!Authenticated||pose.Sequence!=weapon.Sequence||!UtpWire.Valid(pose)||!UtpWire.Valid(weapon)||driver.BeginSend(unreliable,connection,out var writer)!=0)return;
+            UtpWire.Header(ref writer,PacketKind.WeaponMove);UtpWire.Pose(ref writer,pose);UtpWire.Weapon(ref writer,weapon);driver.EndSend(writer);
+        }
+        public bool TryGetWeapon(string id,out UdpWeaponPose pose)=>weapons.TryGetValue(id,out pose)&&Time.realtimeSinceStartupAsDouble-pose.ReceivedAt<.6;
+        public void Dispose(){if(driver.IsCreated)driver.Dispose();Authenticated=false;Disconnected=true;WeaponStateAvailable=false;states.Clear();weapons.Clear();}
     }
 }

@@ -35,7 +35,7 @@ public sealed partial class AccountSession
         if(styles)parent.styleSheets.Add(styles);
         var garageStyles=Resources.Load<StyleSheet>("CharacterGarage");
         if(garageStyles)parent.styleSheets.Add(garageStyles);
-        characterFemaleArtwork=Resources.Load<Texture2D>("Characters/Feminina");
+        characterFemaleArtwork=Resources.Load<Texture2D>("Characters/ByBeybyPreview");
         characterMaleArtwork=Resources.Load<Texture2D>("Characters/Masculino");
         characterLobby=new VisualElement {name="character-lobby"};
         characterLobby.AddToClassList("character-lobby");parent.Add(characterLobby);

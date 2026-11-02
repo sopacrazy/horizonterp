@@ -49301,6 +49301,60 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.14
   m_Center: {x: 0.87760544, y: -0.51101345, z: 0.32037544}
+--- !u!1 &635617759
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 635617760}
+  - component: {fileID: 635617761}
+  m_Layer: 0
+  m_Name: "COL REPARO PISO \u2014 c288e018dd31641338f2"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &635617760
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 635617759}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1160135345}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!64 &635617761
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 635617759}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: 2d2b664c3c02f28409149fdc948aab92, type: 2}
 --- !u!1 &636329446
 GameObject:
   m_ObjectHideFlags: 0
@@ -89876,11 +89930,19 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 462426359d87dde4884c46b027e62317, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1503595796}
+    - targetCorrespondingSourceObject: {fileID: 1151388028547126963, guid: 462426359d87dde4884c46b027e62317, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 635617760}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 462426359d87dde4884c46b027e62317, type: 3}
 --- !u!4 &1160135344 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 462426359d87dde4884c46b027e62317, type: 3}
+  m_PrefabInstance: {fileID: 1160135343}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1160135345 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1151388028547126963, guid: 462426359d87dde4884c46b027e62317, type: 3}
   m_PrefabInstance: {fileID: 1160135343}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1160310828

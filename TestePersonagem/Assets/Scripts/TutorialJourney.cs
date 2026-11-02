@@ -272,7 +272,8 @@ public sealed class TutorialJourney : MonoBehaviour
     GameObject Npc(string caption,Vector3 position,Color color)
     {
         var npc=new GameObject(caption);npc.layer=2;npc.transform.position=position;
-        var visual=Instantiate(player.animator.gameObject,npc.transform,false);visual.name="Personagem NPC";
+        var visual=GangsterPlayerVisual.CreateRemoteVisual("male",player.animator.runtimeAnimatorController,npc.transform);
+        visual.name="Personagem NPC";
         foreach(var component in visual.GetComponentsInChildren<MonoBehaviour>())component.enabled=false;
         foreach(var collider in visual.GetComponentsInChildren<Collider>())collider.enabled=false;
         var animator=visual.GetComponent<Animator>();if(animator){animator.applyRootMotion=false;animator.SetFloat("Speed",0);animator.SetBool("Jumping",false);if(animator.layerCount>1)animator.SetLayerWeight(1,0);}

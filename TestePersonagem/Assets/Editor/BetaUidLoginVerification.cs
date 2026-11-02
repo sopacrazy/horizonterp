@@ -12,6 +12,7 @@ using UnityEngine.UIElements;
 // Include --verify-beta-login to also exercise the explicit offline transport.
 public static class BetaUidLoginVerification
 {
+    public static void RunWithCharacterCheck(){Run();FemaleCharacterVerification.Verify();}
     const BindingFlags Instance=BindingFlags.Instance|BindingFlags.NonPublic;
     const BindingFlags Static=BindingFlags.Static|BindingFlags.NonPublic;
     [Serializable] sealed class Result {public bool passed;public List<string> checks=new List<string>();}
@@ -56,7 +57,7 @@ public static class BetaUidLoginVerification
             var root=account.Document.rootVisualElement;
             Check(root.Q<TextField>("auth-uid")!=null,"The login form has a UID field");
             var uid=root.Q<TextField>("auth-uid");var password=root.Q<TextField>("auth-password");
-            Check(uid.keyboardType==TouchScreenKeyboardType.NumberPad&&uid.maxLength==19,"Mobile UID entry uses the numeric keyboard with a bounded identifier");
+            Check(uid.keyboardType==TouchScreenKeyboardType.Default&&uid.maxLength==32,"Mobile entry accepts a 32-character named alias or numeric UID with a bounded identifier");
             Check(uid.value=="","An old e-mail preference is never reused as a UID");
             Check(root.Q<TextField>("auth-email")==null&&root.Q<Button>("auth-register-email")==null&&root.Q<Button>("auth-toggle")==null,
                 "The public e-mail and registration controls are absent");
@@ -68,6 +69,11 @@ public static class BetaUidLoginVerification
             var validUid=type.GetMethod("IsBetaUid",Static);
             foreach(string invalid in new[]{"","0","018","-18","18.0","equipe@example.invalid","١٨","18\n20","12345678901234567890"})
                 Check(!(bool)validUid.Invoke(null,new object[]{invalid}),"UID contract rejects invalid input "+result.checks.Count);
+            Check((bool)validUid.Invoke(null,new object[]{"fixture01"}),"Team alias is accepted");
+            foreach(string named in new[]{"Fixture_Member01","Fixture_Member02","Fixture_Member03","Fixture_Member04","Fixture_Member05","Fixture_Member06","Fixture_Member07","Fixture_Member08","Fixture_Member09","Fixture_Member10","Fixture_Member11","Fixture_Member12","Fixture_Member13","Fixture_Member14"})
+                Check((bool)validUid.Invoke(null,new object[]{named}),"Named beta alias is accepted: "+named);
+            foreach(string invalid in new[]{"ab","_Admin","Admin Ribeiro","Admin-Dev","Admin\nDev",new string('A',33)})
+                Check(!(bool)validUid.Invoke(null,new object[]{invalid}),"Named alias rejects malformed input "+result.checks.Count);
             // The TextField itself truncates overlong input and strips line breaks;
             // exercise those cases directly above, then test the actual form.
             foreach(string invalid in new[]{"","0","018","-18","18.0","invalid@uid","١٨"})
@@ -76,6 +82,8 @@ public static class BetaUidLoginVerification
             }
             uid.value=" 18 ";
             Check((bool)Call(account,"ValidateForm")&&uid.value=="18","A valid UID is trimmed and accepted");
+            uid.value="fixture01";password.value="654321";
+            Check((bool)Call(account,"ValidateForm"),"A team alias and six-character beta password are accepted");
             password.value="short";Check(!(bool)Call(account,"ValidateForm"),"The provided password must satisfy the existing length policy");
             password.value="LocalBetaFixture123";
             string serialized=JsonUtility.ToJson(new BetaLoginBody {uid="18",password="LocalBetaFixture123"});

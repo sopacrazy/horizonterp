@@ -5080,11 +5080,19 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: d0aad4f3a0590ab44b84c40aedd676a4, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2033393016}
+    - targetCorrespondingSourceObject: {fileID: 1151388028547126963, guid: d0aad4f3a0590ab44b84c40aedd676a4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2018745672}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d0aad4f3a0590ab44b84c40aedd676a4, type: 3}
 --- !u!4 &889081794 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: d0aad4f3a0590ab44b84c40aedd676a4, type: 3}
+  m_PrefabInstance: {fileID: 889081793}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &889081795 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1151388028547126963, guid: d0aad4f3a0590ab44b84c40aedd676a4, type: 3}
   m_PrefabInstance: {fileID: 889081793}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &894440242
@@ -10479,6 +10487,60 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2.9903486, y: 2.2353034, z: 0.18762374}
   m_Center: {x: 0.01751709, y: -0.54177225, z: -1.6979408}
+--- !u!1 &2018745671
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2018745672}
+  - component: {fileID: 2018745673}
+  m_Layer: 0
+  m_Name: "COL REPARO PISO \u2014 5a8478e5ff6fc195f9c7"
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 2147483647
+  m_IsActive: 1
+--- !u!4 &2018745672
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2018745671}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 889081795}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!64 &2018745673
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2018745671}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 4300000, guid: 33a954f9ecd47bc4eb5ac22badeb2f08, type: 2}
 --- !u!1001 &2022767226
 PrefabInstance:
   m_ObjectHideFlags: 0

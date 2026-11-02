@@ -1,6 +1,21 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public sealed class RifleSocketPose
+{
+    public string avatarKey;
+    public Quaternion weaponInRightHand;
+    public Quaternion leftHandInWeapon;
+    public float referenceSupportGap;
+}
+
+[System.Serializable]
+public sealed class RifleSocketCalibrationData
+{
+    public RifleSocketPose[] entries;
+}
+
 // Retarget the two-handed grip to this avatar's proportions after animation.
 // The imported shooting clip has no finger tracks and uses a different skeleton.
 public sealed class ShootingGrip
@@ -32,6 +47,21 @@ public sealed class ShootingGrip
 
     Transform root, weapon;
     Arm right, left;
+    RifleSocketPose authoredSocket;
+    Transform authoredSupport;
+    public Vector3 AuthoredRifleDirection=>authoredSocket!=null&&right!=null?
+        right.hand.rotation*authoredSocket.weaponInRightHand*Vector3.forward:Vector3.forward;
+    public float RifleGripError
+    {
+        get
+        {
+            if(right==null||left==null||!weapon)return float.PositiveInfinity;
+            var support=weapon.Find("SupportGrip");
+            float rightError=Vector3.Distance(right.hand.TransformPoint(right.palmCenter),weapon.position);
+            float leftError=support?Vector3.Distance(left.hand.TransformPoint(left.palmCenter),support.position):0;
+            return Mathf.Max(rightError,leftError);
+        }
+    }
 
     public bool Configure(Animator animator, Transform pistol, Transform muzzle, Transform playerRoot)
     {
@@ -71,6 +101,70 @@ public sealed class ShootingGrip
         return right != null && left != null;
     }
 
+    public string AuthoredAvatarKey(Animator animator)
+    {
+        return animator.avatar.name+"|"+right.upper.name+"|"+right.lower.name+"|"+right.hand.name;
+    }
+
+    // Called on an isolated avatar sampled in the authored idle pose. This is
+    // a fixed socket calibration, never a replacement for the right arm pose.
+    public RifleSocketPose CaptureAuthoredRifle(Animator animator,Quaternion weaponWorldRotation)
+    {
+        if(right==null||left==null||!weapon)throw new System.InvalidOperationException("Rifle grip was not configured");
+        var support=weapon.Find("SupportGrip");
+        Vector3 trigger=right.hand.TransformPoint(right.palmCenter);
+        Vector3 expectedSupport=trigger+weaponWorldRotation*(support?support.localPosition:Vector3.zero);
+        return new RifleSocketPose
+        {
+            avatarKey=AuthoredAvatarKey(animator),
+            weaponInRightHand=Quaternion.Inverse(right.hand.rotation)*weaponWorldRotation,
+            leftHandInWeapon=Quaternion.Inverse(weaponWorldRotation)*left.hand.rotation,
+            referenceSupportGap=Vector3.Distance(left.hand.TransformPoint(left.palmCenter),expectedSupport)
+        };
+    }
+
+    public bool ConfigureAuthoredRifle(Animator animator,Transform rifle,Transform playerRoot)
+    {
+        authoredSocket=null;authoredSupport=null;
+        if(!Configure(animator,rifle,rifle?rifle.Find("Muzzle"):null,playerRoot))return false;
+        var json=Resources.Load<TextAsset>("Weapons/Rifle/SocketCalibration");
+        if(!json)return false;
+        var data=JsonUtility.FromJson<RifleSocketCalibrationData>(json.text);
+        string key=AuthoredAvatarKey(animator);
+        if(data?.entries!=null)
+            authoredSocket=System.Array.Find(data.entries,entry=>entry!=null&&entry.avatarKey==key);
+        authoredSupport=rifle.Find("SupportGrip");
+        return authoredSocket!=null&&authoredSupport;
+    }
+
+    public void LowerAuthoredCarry(float degrees)
+    {
+        if(right==null||left==null||!root||degrees<=0)return;
+        // Lower the complete authored arm chains, preserving their elbow bend
+        // and wrist grip. Rotating only the weapon would detach it from the hands.
+        var lower=Quaternion.AngleAxis(degrees,root.right);
+        right.upper.rotation=lower*right.upper.rotation;
+        left.upper.rotation=lower*left.upper.rotation;
+    }
+
+    public void ApplyAuthoredRifle(Vector3 direction,bool aiming,float recoil,float speed)
+    {
+        if(authoredSocket==null||!weapon||!root||right==null||left==null||!authoredSupport)return;
+        // The authored right hand drives the rifle throughout idle, run and
+        // firing. No camera quaternion, forced wrist twist or right-arm IK.
+        Vector3 trigger=right.hand.TransformPoint(right.palmCenter);
+        Quaternion rotation=right.hand.rotation*authoredSocket.weaponInRightHand;
+        weapon.SetPositionAndRotation(trigger,rotation);
+        Vector3 leftHint=left.lower.position;
+        Quaternion leftRotation=rotation*authoredSocket.leftHandInWeapon;
+        Vector3 wrist=authoredSupport.position-leftRotation*Vector3.Scale(left.palmCenter,left.hand.lossyScale);
+        SolveArm(left,wrist,leftRotation,leftHint,0,true);
+        // These avatars' source clips have no mapped finger tracks. Close the
+        // digits around the handle/handguard without changing either wrist.
+        foreach(var finger in right.fingers)PoseFinger(finger);
+        foreach(var finger in left.fingers)PoseFinger(finger);
+    }
+
     Arm CreateArm(Animator animator, bool isRight)
     {
         var arm = new Arm
@@ -82,12 +176,22 @@ public sealed class ShootingGrip
         var index = animator.GetBoneTransform(isRight ? HumanBodyBones.RightIndexProximal : HumanBodyBones.LeftIndexProximal);
         var middle = animator.GetBoneTransform(isRight ? HumanBodyBones.RightMiddleProximal : HumanBodyBones.LeftMiddleProximal);
         var little = animator.GetBoneTransform(isRight ? HumanBodyBones.RightLittleProximal : HumanBodyBones.LeftLittleProximal);
-        if (!arm.upper || !arm.lower || !arm.hand || !index || !middle || !little) return null;
-        Vector3 along = (middle.position - arm.hand.position).normalized;
-        Vector3 thumb = Vector3.ProjectOnPlane(index.position - little.position, along).normalized;
+        bool groupedFingers=false;
+        if(!middle&&arm.hand)
+        {
+            string groupedName=isRight?"RightFinger":"LeftFinger";
+            foreach(var candidate in arm.hand.GetComponentsInChildren<Transform>(true))
+                if(candidate.name==groupedName){middle=candidate;groupedFingers=true;break;}
+        }
+        if (!arm.upper || !arm.lower || !arm.hand) return null;
+        // Some valid Humanoid avatars omit finger mappings. The wrist and arm
+        // still provide a stable palm frame for the shared weapon sockets.
+        Vector3 along = middle?(middle.position-arm.hand.position).normalized:(arm.hand.position-arm.lower.position).normalized;
+        Vector3 thumb = index&&little?Vector3.ProjectOnPlane(index.position-little.position,along).normalized:
+            Vector3.ProjectOnPlane(root.up,along).normalized;
         Vector3 inward = Vector3.Cross(along, thumb).normalized * (isRight ? 1f : -1f);
         arm.palmFrame = Quaternion.Inverse(arm.hand.rotation) * Quaternion.LookRotation(along, thumb);
-        arm.palmCenter = arm.hand.InverseTransformPoint(Vector3.Lerp(arm.hand.position, middle.position, .65f));
+        arm.palmCenter = arm.hand.InverseTransformPoint(middle?Vector3.Lerp(arm.hand.position,middle.position,.65f):arm.hand.position+along*.055f);
         Vector3 nativeBend = Vector3.ProjectOnPlane(arm.lower.position - arm.upper.position,
             arm.hand.position - arm.upper.position).normalized;
         if(nativeBend.sqrMagnitude < .001f)nativeBend = -root.forward;
@@ -134,6 +238,15 @@ public sealed class ShootingGrip
             if (isRight && finger == 1) curl = joint == 0 ? 20f : joint == 1 ? 42f : 30f;
             arm.fingers.Add(new Finger { bone = bone, rest = bone.localRotation,
                 curlAxis = bone.InverseTransformDirection(axis), curl = curl });
+        }
+        if(groupedFingers)
+        {
+            foreach(var bone in middle.GetComponentsInChildren<Transform>(true))
+            {
+                Vector3 direction=bone.childCount>0?bone.GetChild(0).position-bone.position:along;
+                Vector3 axis=Vector3.Cross(direction.normalized,inward).normalized;
+                arm.fingers.Add(new Finger{bone=bone,rest=bone.localRotation,curlAxis=bone.InverseTransformDirection(axis),curl=55f});
+            }
         }
         return arm;
     }
@@ -183,6 +296,36 @@ public sealed class ShootingGrip
         foreach (var finger in left.fingers) PoseFinger(finger);
     }
 
+    public void ApplyRiflePose(Vector3 aimDirection,bool aiming,float recoil,float speed)
+    {
+        if(right==null||left==null||!root||!weapon)return;
+        bool running=speed>2.5f&&!aiming;
+        Vector3 direction=aimDirection.sqrMagnitude>.001f?aimDirection.normalized:root.forward;
+        Quaternion frame=Quaternion.LookRotation(direction,Vector3.up)*Quaternion.Euler(aiming?-2f:running?26f:0,0,0);
+        frame*=Quaternion.Euler(-3f*Mathf.Clamp01(recoil),0,0);
+        Vector3 forward=frame*Vector3.forward,up=frame*Vector3.up,side=frame*Vector3.right;
+        Vector3 shoulders=(right.upper.position+left.upper.position)*.5f;
+        // Keep the authored wrist movement (idle, run and recoil) instead of
+        // replacing all three animations with one fixed shoulder-space pose.
+        Vector3 position=right.hand.TransformPoint(right.palmCenter);
+        if(aiming)position=shoulders+Quaternion.FromToRotation(root.forward,direction)*(position-shoulders);
+        Vector3 rightHint=right.lower.position,leftHint=left.lower.position;
+        position-=forward*.025f*Mathf.Clamp01(recoil);
+        Quaternion rightPalm=Quaternion.LookRotation(forward*.77f+up*.64f,-forward*.64f+up*.77f);
+        Quaternion leftPalm=Quaternion.LookRotation(forward*.35f+side*.94f,up);
+        Quaternion rr=rightPalm*Quaternion.Inverse(right.palmFrame),lr=leftPalm*Quaternion.Inverse(left.palmFrame);
+        var support=weapon.Find("SupportGrip");
+        Vector3 supportLocal=support?support.localPosition:new Vector3(-.015f,.025f,.3f);
+        Vector3 ro=-(rr*Vector3.Scale(right.palmCenter,right.hand.lossyScale));
+        Vector3 lo=frame*supportLocal-lr*Vector3.Scale(left.palmCenter,left.hand.lossyScale);
+        for(int i=0;i<8;i++){ConstrainReach(ref position,right,ro);ConstrainReach(ref position,left,lo);}
+        SolveArm(right,position+ro,rr,rightHint,0,true);
+        SolveArm(left,position+lo,lr,leftHint,0,true);
+        weapon.SetPositionAndRotation(position,frame);
+        foreach(var finger in right.fingers)PoseFinger(finger);
+        foreach(var finger in left.fingers)PoseFinger(finger);
+    }
+
     static void PoseFinger(Finger finger)
     {
         finger.bone.localRotation = finger.rest * Quaternion.AngleAxis(finger.curl, finger.curlAxis);
@@ -208,7 +351,7 @@ public sealed class ShootingGrip
         if (delta.sqrMagnitude > .000001f) grip = center + delta.normalized * upperLength;
     }
 
-    static void SolveArm(Arm arm, Vector3 target, Quaternion handRotation, Vector3 hint, float elbowSwivel = 0f)
+    static void SolveArm(Arm arm, Vector3 target, Quaternion handRotation, Vector3 hint, float elbowSwivel = 0f,bool useHint=false)
     {
         Vector3 origin = arm.upper.position;
         float upperLength = Vector3.Distance(origin, arm.lower.position);
@@ -220,6 +363,7 @@ public sealed class ShootingGrip
         Quaternion preferredLower = handRotation * Quaternion.Inverse(arm.handInLower);
         Vector3 neutralForearm = preferredLower * arm.lowerAxis;
         Vector3 bend = -Vector3.ProjectOnPlane(neutralForearm, along).normalized;
+        if(useHint)bend=Vector3.ProjectOnPlane(hint-origin,along).normalized;
         if (bend.sqrMagnitude < .001f) bend = Vector3.ProjectOnPlane(hint - origin, along).normalized;
         if (bend.sqrMagnitude < .001f) bend = Vector3.ProjectOnPlane(Vector3.down, along).normalized;
         if (elbowSwivel > 0f)

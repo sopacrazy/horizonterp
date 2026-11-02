@@ -109,6 +109,28 @@ test('rank 4 can only promote lower accounts to admins 1 or 2, with persistent a
    const ordinary=await chat(manager,'/stats');assert.equal(ordinary.status,200);
    assert.equal((await role(rollback)).admin_level,0);
   });
+  await t.test('admin can change only their own gender, visible immediately and persisted across reconnection',async()=>{
+   const originalStats=(await pool.query('SELECT row_to_json(s) AS state FROM hbrp.character_stats s WHERE character_id=$1',[normal.characterId])).rows[0];
+   const originalAppearance=(await pool.query('SELECT row_to_json(a) AS state FROM hbrp.character_appearance a WHERE character_id=$1',[normal.characterId])).rows[0];
+   assert.equal((await chat(manager,'/trocarsexo feminino')).status,403,'level 4 has only /adminpromov');
+   assert.equal((await chat(rollback,'/trocarsexo feminino')).status,403,'regular players cannot change gender');
+   assert.equal((await chat(normal,'/trocarsexo 18 feminino')).status,400,'another account cannot be targeted');
+   assert.equal((await chat(normal,'/trocarsexo feminino')).command.status,'gender');
+   const persisted=await request(normal,'GET','/v1/player');
+   assert.equal(persisted.status,200);assert.equal(persisted.state.gender,'female');
+   assert.equal(persisted.state.name,normal.firstName+' '+normal.lastName);
+   assert.equal((await pool.query('SELECT gender FROM hbrp.characters WHERE id=$1',[three.characterId])).rows[0].gender,'male');
+   const peer=await sync(three);
+   assert.equal(peer.peers.find(item=>item.characterId===normal.characterId)?.gender,'female','online peers see the new gender without a fresh login');
+   const alias=await administration.command(normal.token,{name:'trocarsexo',args:'male'},null);
+   assert.equal(alias.status,'gender');assert.equal(alias.gender,'male');
+   assert.equal((await request(normal,'GET','/v1/player')).state.gender,'male');
+   await assert.rejects(administration.command(normal.token,{name:'trocarsexo',args:'invalid'},null),error=>error.code==='COMMAND_USAGE');
+   assert.deepEqual((await pool.query('SELECT row_to_json(s) AS state FROM hbrp.character_stats s WHERE character_id=$1',[normal.characterId])).rows[0],originalStats);
+   assert.deepEqual((await pool.query('SELECT row_to_json(a) AS state FROM hbrp.character_appearance a WHERE character_id=$1',[normal.characterId])).rows[0],originalAppearance);
+   const audits=(await pool.query("SELECT details FROM hbrp.audit_events WHERE action='admin.trocarsexo' AND entity_id=$1 ORDER BY id",[normal.characterId])).rows;
+   assert.deepEqual(audits.map(row=>row.details.gender),['female','male']);
+  });
   await t.test('the ordinary administration API cannot mint the restricted rank',async()=>{
    const reply=await request(older,'POST','/v1/admin/players/'+rollback.uid,{characterId:rollback.characterId,action:'set_admin',adminLevel:4});
    assert.equal(reply.status,400);assert.equal(reply.code,'INVALID_ADMIN_LEVEL');

@@ -117,6 +117,26 @@ export function createPlayerAdmin({pool,session,transaction,removeSession}){
  async function command(token,{name,args},room){
   if(name==='adminpromov')return promote(token,args);
   const viewer=await actor(pool,token);
+  if(name==='trocarsexo'){
+   const selection=String(args||'').trim().toLocaleLowerCase('pt-BR');
+   const gender=new Map([['feminino','female'],['female','female'],['masculino','male'],['male','male']]).get(selection);
+   if(!gender)reject(400,'COMMAND_USAGE','Uso: /trocarsexo [feminino|masculino]');
+   const changed=await transaction(async client=>{
+    const initial=await actor(client,token);
+    await client.query('SELECT id FROM hbrp.accounts WHERE id=$1 FOR NO KEY UPDATE',[initial.id]);
+    const fresh=await actor(client,token);
+    await client.query('SELECT id FROM hbrp.sessions WHERE account_id=$1 ORDER BY id FOR UPDATE',[fresh.id]);
+    const character=(await client.query('SELECT id,gender FROM hbrp.characters WHERE account_id=$1 AND deleted_at IS NULL FOR UPDATE',[fresh.id])).rows[0];
+    if(!character)reject(409,'CHARACTER_REQUIRED','Crie seu personagem antes de trocar o sexo.');
+    if(character.gender!==gender)
+     await client.query('UPDATE hbrp.characters SET gender=$1 WHERE id=$2',[gender,character.id]);
+    await client.query("INSERT INTO hbrp.audit_events(actor_account_id,action,entity_type,entity_id,details) VALUES($1,'admin.trocarsexo','character',$2,$3::jsonb)",
+     [fresh.id,character.id,JSON.stringify({before:character.gender,gender,unchanged:character.gender===gender})]);
+    return {characterId:character.id,gender};
+   });
+   room?.setCharacterGender?.(changed.characterId,changed.gender);
+   return {name,status:'gender',gender:changed.gender,message:`Sexo do personagem alterado para ${changed.gender==='female'?'feminino':'masculino'}.`};
+  }
   if(name==='makeadmin'){
    if(viewer.admin_level<3)reject(403,'ADMIN_LEVEL_REQUIRED','/makeadmin exige nível 3.');
    const match=args.match(/^([1-9][0-9]{0,18})\s+([0-3])$/u);

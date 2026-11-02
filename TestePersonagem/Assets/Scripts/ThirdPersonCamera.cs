@@ -17,6 +17,8 @@ public class ThirdPersonCamera : MonoBehaviour
     public bool VehicleFollowActive {get;private set;}
     public bool AimActive {get;private set;}
     float aimPreviousDistance,aimPreviousPitch;
+    bool weaponAim;
+    bool restoringWeaponView;
 
     void Start()
     {
@@ -62,9 +64,14 @@ public class ThirdPersonCamera : MonoBehaviour
         lastMouse = mouse;
         if(!AimActive&&!(hud&&(hud.IsPanelOpen||hud.BlocksPointer(mouse))))
             distance = Mathf.Clamp(distance - Input.mouseScrollDelta.y * .35f, 2f, 6f);
+        if(!AimActive&&restoringWeaponView)
+        {
+            distance=Mathf.Lerp(distance,aimPreviousDistance,1-Mathf.Exp(-10f*Time.deltaTime));
+            if(Mathf.Abs(distance-aimPreviousDistance)<.01f){distance=aimPreviousDistance;restoringWeaponView=false;}
+        }
         if(AimActive)
         {
-            distance=.72f;
+            distance=Mathf.Lerp(distance,weaponAim?1.3f:.72f,1-Mathf.Exp(-12f*Time.deltaTime));
             pitch=Mathf.Clamp(pitch,-5f,20f);
         }
         Place(false);
@@ -84,10 +91,21 @@ public class ThirdPersonCamera : MonoBehaviour
         distance=.72f;pitch=3f;yaw=target.eulerAngles.y;Place(true);
     }
 
+    public void BeginWeaponAim()
+    {
+        if(AimActive)return;
+        AimActive=true;weaponAim=true;restoringWeaponView=false;aimPreviousDistance=distance;aimPreviousPitch=pitch;
+        // Keep the current heading; the over-shoulder view approaches smoothly.
+        pitch=Mathf.Clamp(pitch,-5f,20f);
+    }
+
     public void EndAim()
     {
         if(!AimActive)return;
-        AimActive=false;distance=Mathf.Clamp(aimPreviousDistance,2f,6f);pitch=aimPreviousPitch;Place(true);
+        bool smooth=weaponAim;AimActive=false;weaponAim=false;restoringWeaponView=smooth;
+        if(!smooth)distance=Mathf.Clamp(aimPreviousDistance,2f,6f);
+        pitch=aimPreviousPitch;
+        if(!smooth)Place(true);
     }
 
     public void BeginVehicleFollow(Transform vehicle,bool snap=true)

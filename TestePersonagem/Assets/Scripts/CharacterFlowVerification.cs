@@ -152,7 +152,7 @@ public sealed class CharacterFlowVerification : MonoBehaviour
               !CityEntryLoading.Active && !Visible(root.Q("character-create")),
             "Login com personagem salvo exige confirmação na apresentação existente");
         Check(root.Q<Label>("character-existing-name")?.text == "Ana-María" &&
-              root.Q<Image>("character-existing-image")?.image == Resources.Load<Texture2D>("Characters/Feminina"),
+              root.Q<Image>("character-existing-image")?.image == Resources.Load<Texture2D>("Characters/ByBeybyPreview"),
             "Preview existente apresenta nome completo e imagem feminina salvos");
         int beforeExistingPreview = requests.Count;
         yield return VerifyResponsiveLobby(true);

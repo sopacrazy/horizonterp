@@ -10,7 +10,7 @@ namespace Hbrp.Realtime
     // In-memory movement relay. Wallets, inventory, roles and commands stay authoritative in the API.
     public sealed class UtpRoomServer:IDisposable
     {
-        sealed class Peer {public NetworkConnection Connection;public RealtimeTicketClaims Identity;public UdpPose Pose;public long ConnectedAt,Window;public int Messages;}
+        sealed class Peer {public NetworkConnection Connection;public RealtimeTicketClaims Identity;public UdpPose Pose;public UdpWeaponPose Weapon;public bool WeaponCapable;public long ConnectedAt,Window;public int Messages;}
         readonly List<Peer> peers=new List<Peer>();
         readonly Dictionary<string,Tuple<NetworkConnection,long>> consumed=new Dictionary<string,Tuple<NetworkConnection,long>>();
         readonly string secret;
@@ -70,13 +70,21 @@ namespace Hbrp.Realtime
                 foreach(var p in peers)if(p!=peer&&p.Identity?.characterId==identity.characterId)throw new FormatException();
                 if(consumed.TryGetValue(identity.jti,out var used)&&used.Item1!=peer.Connection)throw new FormatException();
                 consumed[identity.jti]=Tuple.Create(peer.Connection,identity.exp);peer.Identity=identity;
-                if(driver.BeginSend(reliable,peer.Connection,out var reply)==0){UtpWire.Header(ref reply,PacketKind.Authenticated);driver.EndSend(reply);}return;
+                if(driver.BeginSend(reliable,peer.Connection,out var reply)==0){UtpWire.Header(ref reply,PacketKind.Authenticated);reply.WriteByte(1);driver.EndSend(reply);}return;
             }
             if(peer.Identity==null)throw new FormatException();
             if(kind==PacketKind.Move)
             {
                 var pose=UtpWire.Pose(ref reader);if(reader.GetBytesRead()!=reader.Length||pose.Sequence<=peer.Pose.Sequence)return;
                 pose.CharacterId=peer.Identity.characterId;pose.UpdatedAt=now;peer.Pose=pose;AcceptedMoves++;
+            }
+            else if(kind==PacketKind.WeaponMove)
+            {
+                var movement=UtpWire.Pose(ref reader);var pose=UtpWire.Weapon(ref reader);
+                if(reader.GetBytesRead()!=reader.Length||movement.Sequence!=pose.Sequence)throw new FormatException();
+                if(movement.Sequence<=peer.Pose.Sequence)return;
+                movement.CharacterId=peer.Identity.characterId;movement.UpdatedAt=now;peer.Pose=movement;AcceptedMoves++;
+                pose.CharacterId=peer.Identity.characterId;pose.UpdatedAt=now;peer.Weapon=pose;peer.WeaponCapable=true;
             }
             else if(kind==PacketKind.Ping&&reader.Length-reader.GetBytesRead()==8)
             {
@@ -90,11 +98,18 @@ namespace Hbrp.Realtime
             foreach(var peer in peers)
             {
                 if(peer.Identity==null||driver.BeginSend(unreliable,peer.Connection,out var writer)!=0)continue;
-                UtpWire.Header(ref writer,PacketKind.Snapshot);writer.WriteLong(now);
+                UtpWire.Header(ref writer,peer.WeaponCapable?PacketKind.WeaponSnapshot:PacketKind.Snapshot);writer.WriteLong(now);
                 var active=peers.FindAll(p=>p!=peer&&p.Identity!=null&&p.Pose.Sequence>0&&now-p.Pose.UpdatedAt<1000);
                 writer.WriteByte((byte)Math.Min(10,active.Count));
                 for(int i=0;i<active.Count&&i<10;i++)
-                {var p=active[i].Pose;UtpWire.Text(ref writer,p.CharacterId);writer.WriteLong(p.UpdatedAt);UtpWire.Pose(ref writer,p);}
+                {
+                    var source=active[i];var p=source.Pose;UtpWire.Text(ref writer,p.CharacterId);writer.WriteLong(p.UpdatedAt);UtpWire.Pose(ref writer,p);
+                    if(peer.WeaponCapable)
+                    {
+                        bool visual=source.WeaponCapable&&source.Weapon.Sequence==p.Sequence&&now-source.Weapon.UpdatedAt<1000;
+                        writer.WriteByte((byte)(visual?1:0));if(visual)UtpWire.Weapon(ref writer,source.Weapon);
+                    }
+                }
                 driver.EndSend(writer);
             }
         }

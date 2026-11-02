@@ -65,11 +65,23 @@ public partial class ThirdPersonPlayer : MonoBehaviour
     void Awake()
     {
         controller = GetComponent<CharacterController>();
+        groundStreaming = FindAnyObjectByType<GtaSaSectorStreaming>();
         if (!animator) animator = GetComponentInChildren<Animator>();
         animator.applyRootMotion=false;
         cuffedPose=animator.GetComponent<CuffedAvatarPose>();
         if(!cuffedPose)cuffedPose=animator.gameObject.AddComponent<CuffedAvatarPose>();
         Application.targetFrameRate = 60;
+    }
+
+    public void RebindVisual(Animator replacement)
+    {
+        if (!replacement) return;
+        var pose = replacement.GetComponent<CuffedAvatarPose>();
+        if (!pose) pose = replacement.gameObject.AddComponent<CuffedAvatarPose>();
+        pose.Cuffed = IsCuffed;
+        replacement.applyRootMotion = false;
+        animator = replacement;
+        cuffedPose = pose;
     }
 
     void Start()
@@ -82,6 +94,8 @@ public partial class ThirdPersonPlayer : MonoBehaviour
         MobilePerformance.Configure();
         MultiplayerWorld.Create(this);
         VoiceChat.Create(this);
+        RifleWeapon.Create(this);
+        PlayerLifeHud.Create(this);
         gameObject.AddComponent<PoliceDutyLabel>();
     }
 
@@ -99,6 +113,7 @@ public partial class ThirdPersonPlayer : MonoBehaviour
             CurrentSpeed=0;animator.SetBool("Jumping",false);animator.SetFloat("Speed",0);
             if(controller.enabled)
             {
+                if(WaitForStreamingGround(Vector3.zero))return;
                 if(controller.isGrounded&&verticalSpeed<0)verticalSpeed=-2;
                 verticalSpeed=Mathf.Max(verticalSpeed-Gravity*Time.deltaTime,-30);
                 controller.Move(Vector3.up*verticalSpeed*Time.deltaTime);
@@ -111,6 +126,7 @@ public partial class ThirdPersonPlayer : MonoBehaviour
             Vector3 delta=Vector3.ProjectOnPlane(custodyPosition-transform.position,Vector3.up);
             float custodySpeed=escorted?1.65f:2.5f;
             Vector3 horizontal=delta.magnitude>.03f?delta.normalized*Mathf.Min(custodySpeed,delta.magnitude/Mathf.Max(Time.deltaTime,.001f)):Vector3.zero;
+            if(WaitForStreamingGround(horizontal*Time.deltaTime))return;
             if(controller.isGrounded&&verticalSpeed<0)verticalSpeed=-2f;
             verticalSpeed=Mathf.Max(verticalSpeed-Gravity*Time.deltaTime,-30f);
             controller.Move((horizontal+Vector3.up*verticalSpeed)*Time.deltaTime);
@@ -140,8 +156,12 @@ public partial class ThirdPersonPlayer : MonoBehaviour
         Vector3 forward = Vector3.ProjectOnPlane(cameraTransform.forward, Vector3.up).normalized;
         Vector3 right = Vector3.ProjectOnPlane(cameraTransform.right, Vector3.up).normalized;
         Vector3 direction = forward * input.y + right * input.x;
-        float speed = input.magnitude * (run ? runSpeed * (DemoMode ? 1 : AdminSpeedMultiplier) : walkSpeed);
-        if (direction.sqrMagnitude > .001f)
+        bool rifleAiming=TryGetComponent<RifleWeapon>(out var rifle)&&rifle.Equipped&&rifle.Aiming;
+        float speed = input.magnitude * (run&&!rifleAiming ? runSpeed * (DemoMode ? 1 : AdminSpeedMultiplier) : walkSpeed);
+        if(WaitForStreamingGround(direction*speed*Time.deltaTime))return;
+        if(rifleAiming)
+            transform.rotation=Quaternion.RotateTowards(transform.rotation,Quaternion.LookRotation(forward),turnSpeed*Time.deltaTime);
+        else if (direction.sqrMagnitude > .001f)
             transform.rotation = Quaternion.RotateTowards(transform.rotation,
                 Quaternion.LookRotation(direction), turnSpeed * Time.deltaTime);
         if(IsJumping)
@@ -171,7 +191,7 @@ public partial class ThirdPersonPlayer : MonoBehaviour
         else animator.SetFloat("Speed", CurrentSpeed, .12f, Time.deltaTime);
         float fallLimit = NeighborhoodMap.Active && NeighborhoodMap.Active.isOfficialCity ? NeighborhoodMap.Active.minY : -10;
         if (transform.position.y < fallLimit) ResetPosition();
-        if (!DemoMode && Input.GetKeyDown(KeyCode.R) && !panelOpen) ResetPosition();
+        if (!DemoMode && Input.GetKeyDown(KeyCode.R) && !panelOpen && !(rifle&&rifle.Equipped)) ResetPosition();
     }
 
     public void ResetPosition()
@@ -187,6 +207,24 @@ public partial class ThirdPersonPlayer : MonoBehaviour
         animator.SetBool("Jumping",false);
         animator.Play("Locomocao",0,0);
         if(GameHud.Instance)GameHud.Instance.NotifyRespawn();
+    }
+
+    // Online callers must use the confirmed respawn event, never a client-supplied heal.
+    public void ApplyConfirmedRespawn(Vector3 position,float yaw)
+    {
+        Health=100;CurrentSpeed=0;combatLocked=false;verticalSpeed=0;
+        jumpRequested=jumpLaunched=IsJumping=false;
+        GetComponent<RifleWeapon>()?.SetEquipped(false);
+        if(policeCarExitRoutine!=null){StopCoroutine(policeCarExitRoutine);policeCarExitRoutine=null;}
+        IsCuffed=false;escorted=false;InPoliceCar=false;
+        if(cuffedPose)cuffedPose.Cuffed=false;
+        if(animator)
+        {
+            animator.GetComponent<CombatAvatarAnimation>()?.Clear();
+            animator.SetBool("Jumping",false);animator.SetFloat("Speed",0);
+            animator.Play("Locomocao",0,0);
+        }
+        TeleportTo(position,yaw);
     }
 
     public void TeleportTo(Vector3 destination)

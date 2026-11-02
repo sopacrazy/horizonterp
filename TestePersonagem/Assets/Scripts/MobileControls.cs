@@ -34,7 +34,7 @@ public sealed class MobileControls : MonoBehaviour
     public void ProcessTouch(int id, Vector2 position, Vector2 delta, TouchPhase phase)
     {
             var hud=GameHud.Instance;
-            if(InGameChat.Editing || (hud && hud.IsPanelOpen)){Clear();return;}
+            if(StartupLoader.IsLoading || AccountSession.InputBlocked || InGameChat.Editing || (hud && hud.IsPanelOpen)){Clear();return;}
             if(phase==TouchPhase.Began && !(hud && hud.BlocksPointer(position)))
             {
                 if(position.x<Screen.width*.5f && moveFinger<0){moveFinger=id;origin=position;}
@@ -48,7 +48,7 @@ public sealed class MobileControls : MonoBehaviour
             }
             if(id==lookFinger)
             {
-                if(ended)lookFinger=-1;
+                if(ended){lookFinger=-1;Look=Vector2.zero;}
                 else if(phase==TouchPhase.Moved)Look=delta*(720f/Screen.height);
             }
     }

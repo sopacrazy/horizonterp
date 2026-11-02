@@ -506,6 +506,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GtaSaMapPreview
   player: {fileID: 1774575648}
   integratedReview: 1
+  regionalReview: 0
   streaming: {fileID: 1711077966}
   reviewCameras:
   - {fileID: 1234129044}
@@ -2443,8 +2444,8 @@ MonoBehaviour:
     instances: 234
   - scene: GTASASector_p2_m6
     bounds:
-      m_Center: {x: 640.2229, y: 0, z: 1414.7573}
-      m_Extent: {x: 147.68628, y: 400, z: 162.15625}
+      m_Center: {x: 639.8168, y: 0, z: 1414.7573}
+      m_Extent: {x: 148.0924, y: 400, z: 162.15625}
     instances: 175
   - scene: GTASASector_p2_m7
     bounds:
@@ -3377,6 +3378,9 @@ MonoBehaviour:
   mapCameraHeight: 1100
   worldCode: gta_sa_modificado_local
   displayName: "San Andreas \xB7 integra\xE7\xE3o em avalia\xE7\xE3o"
+  restrictRegion: 0
+  regionMin: {x: 0, y: 0}
+  regionMax: {x: 0, y: 0}
 --- !u!4 &1711077968
 Transform:
   m_ObjectHideFlags: 0

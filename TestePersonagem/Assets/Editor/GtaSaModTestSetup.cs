@@ -230,11 +230,14 @@ public static class GtaSaModTestSetup
             }
             string sectorName = "GTASASector_" + KeyPart(sx) + "_" + KeyPart(sy);
             string sectorPath = ActiveSectorFolder + "/" + sectorName + ".unity";
+            if (!natanOnly) LosSantosGeometryRepair.ApplyForScene(scene, sectorName);
             var center = ToUnity(sx * 256 + 128, sy * 256 + 128, 0);
             var sectorBounds = new Bounds(new Vector3(center.x, 0, center.z), new Vector3(256, 800, 256));
             // SA terrain meshes often cross multiple 256 m cells; streaming must use their true extent.
             foreach (var renderer in root.GetComponentsInChildren<MeshRenderer>())
                 if (renderer.enabled) sectorBounds.Encapsulate(renderer.bounds);
+            if (!natanOnly) LosSantosStructureRepair.ApplyDuplicateOverrides(scene, sectorName);
+            if (!natanOnly) LosSantosCollisionPatchCatalog.ApplyForScene(scene, sectorName);
             EditorSceneManager.SaveScene(scene, sectorPath);
             sectorEntries.Add(new GtaSaSectorStreaming.Sector {
                 scene = sectorName, bounds = sectorBounds,
@@ -594,6 +597,10 @@ public static class GtaSaModTestSetup
 
     static int AddCollision(GameObject instance, string modelName)
     {
+        if (LosSantosPatrolStructureRepair.UsesVisualCollision(modelName))
+            return LosSantosPatrolStructureRepair.AddVisualCollision(instance);
+        if (LosSantosMarketCollisionRepair.UsesVisualCollision(modelName))
+            return LosSantosMarketCollisionRepair.AddVisualCollision(instance);
         if (!CollisionCache.TryGetValue(modelName, out var sidecar))
         {
             string path = CollisionFolder + "/" + modelName + ".collider.json";
@@ -638,14 +645,16 @@ public static class GtaSaModTestSetup
                     }
                 }
             }
-            if (sidecar.boxes != null) foreach (var box in sidecar.boxes)
+            if (sidecar.boxes != null) for (int boxIndex = 0; boxIndex < sidecar.boxes.Length; boxIndex++)
             {
+                var box = sidecar.boxes[boxIndex];
                 if (box.center == null || box.size == null || box.center.Length < 3 || box.size.Length < 3) continue;
                 var child = new GameObject("Colisão original GTA SA — caixa");
                 child.transform.SetParent(instance.transform, false);
                 var collider = child.AddComponent<BoxCollider>();
                 collider.center = new Vector3(box.center[0],box.center[1],box.center[2]);
                 collider.size = new Vector3(box.size[0],box.size[1],box.size[2]);
+                collider.enabled = !LosSantosPatrolGhostBoxRepair.SkipSourceBox(instance, modelName, boxIndex);
                 child.isStatic = true;
                 count++;
             }
@@ -674,6 +683,7 @@ public static class GtaSaModTestSetup
 
     static bool NeedsFallbackCollision(string modelName)
     {
+        if (LosSantosCollisionRepair.NeedsVisualCollision(modelName)) return true;
         string name = modelName.ToLowerInvariant();
         if (name.Contains("tree") || name.Contains("bush") || name.Contains("palm") ||
             name.Contains("veg_") || name.Contains("grass") || name.Contains("decal") ||

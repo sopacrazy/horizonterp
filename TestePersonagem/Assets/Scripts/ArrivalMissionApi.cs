@@ -20,7 +20,7 @@ public sealed partial class AccountSession
         // empty nested state for an absent JSON field; it is not a player save.
         if(CanApplyPlayerState(reply?.state))
         {
-            State=reply.state;
+            AdoptPlayerState(reply.state);
             if(player){if(long.TryParse(State.cashCents,out long cents))player.Cash=cents/100;float.TryParse(State.xp,out player.Experience);player.Level=State.level;}
             GameHud.Instance?.ApplyAccountIdentity();
         }

@@ -38,6 +38,24 @@ public sealed partial class AccountSession : MonoBehaviour
     public bool AuthVisible {get;private set;}
     public bool ReadyToEnterCity {get;private set;}
     public ApiPlayerState State {get;private set;}
+    string confirmedGender;
+    string confirmedGenderCharacterId;
+    public bool ApplyConfirmedGender(string gender)
+    {
+        if(!HasCharacter||(gender!="female"&&gender!="male"))return false;
+        confirmedGender=gender;
+        confirmedGenderCharacterId=State.characterId;
+        State.gender=gender;
+        return true;
+    }
+    internal void AdoptPlayerState(ApiPlayerState incoming)
+    {
+        // A checkpoint begun before /trocarsexo can finish after it. Keep the
+        // server-confirmed choice while adopting the rest of that old reply.
+        if(incoming!=null&&incoming.characterId==confirmedGenderCharacterId&&
+            !string.IsNullOrEmpty(confirmedGender))incoming.gender=confirmedGender;
+        State=incoming;
+    }
     internal bool CanApplyPlayerState(ApiPlayerState incoming) => incoming!=null&&
         !string.IsNullOrEmpty(incoming.characterId)&&
         (State==null||string.IsNullOrEmpty(State.characterId)||incoming.characterId==State.characterId);
@@ -94,7 +112,7 @@ public sealed partial class AccountSession : MonoBehaviour
         if(string.IsNullOrEmpty(result?.token)||(!result.needsCharacter&&(result.state==null||string.IsNullOrEmpty(result.state.characterId))))
         {SetGeneralMessage(string.IsNullOrEmpty(LastError)?"Não foi possível acessar sua conta. Tente novamente.":LastError,true);yield break;}
         ClearSecrets();
-        token=result.token;State=result.state;pending=null;leaving=false;SessionVault.Write(token);
+        token=result.token;confirmedGender=confirmedGenderCharacterId=null;State=result.state;pending=null;leaving=false;SessionVault.Write(token);
         RememberAccountUid(result,email.value.Trim());
         ShowAccountCharacter();
     }
@@ -119,7 +137,7 @@ public sealed partial class AccountSession : MonoBehaviour
         if(!Authenticated)yield break;
         if(reply?.state==null||string.IsNullOrEmpty(reply.state.characterId))
         {SetCharacterMessage(string.IsNullOrEmpty(LastError)?"Não foi possível salvar. Tente novamente.":LastError,true);yield break;}
-        State=reply.state;pending=null;EnterCity();
+        confirmedGender=confirmedGenderCharacterId=null;State=reply.state;pending=null;EnterCity();
     }
     void EnterCity()
     {
@@ -190,7 +208,7 @@ public sealed partial class AccountSession : MonoBehaviour
             yield return Request("GET","/v1/player",null,true,r=>current=r);
             if(CanApplyPlayerState(current?.state)&&Authenticated)
             {
-                State=current.state;
+                AdoptPlayerState(current.state);
                 // A newer server position can be an administrative reset. Never
                 // overwrite it with the stale checkpoint that just conflicted.
                 pending=null;
@@ -201,7 +219,7 @@ public sealed partial class AccountSession : MonoBehaviour
             }
         }
         busy=false;nextSave=Time.realtimeSinceStartup+15;
-        if(CanApplyPlayerState(reply?.state)){State=reply.state;pending=null;SaveStatus="Progresso salvo";}
+        if(CanApplyPlayerState(reply?.state)){AdoptPlayerState(reply.state);pending=null;SaveStatus="Progresso salvo";}
         else SaveStatus="Sem salvar: "+LastError;
     }
     public void Rename(string value){if(!busy&&HasCharacter)StartCoroutine(RenameRoutine(value));}
@@ -210,7 +228,7 @@ public sealed partial class AccountSession : MonoBehaviour
         busy=true;ApiReply reply=null;
         yield return Request("PUT","/v1/player/profile",JsonUtility.ToJson(new ProfileBody{firstName=value,lastName=State.lastName}),true,r=>reply=r);
         busy=false;
-        if(CanApplyPlayerState(reply?.state)){State=reply.state;GameHud.Instance.ApplyAccountIdentity();}
+        if(CanApplyPlayerState(reply?.state)){AdoptPlayerState(reply.state);GameHud.Instance.ApplyAccountIdentity();}
         if(GameHud.Instance)GameHud.Instance.ShowAccountMessage(reply?.state!=null?"Nome salvo na conta":LastError);
     }
     public void Logout(){if(!leaving)StartCoroutine(LogoutRoutine());}
@@ -221,7 +239,7 @@ public sealed partial class AccountSession : MonoBehaviour
         while(busy)yield return null;
         if(MultiplayerWorld.Instance)yield return MultiplayerWorld.Instance.Leave();
         busy=true;yield return Request("POST","/v1/auth/logout","{}",true,_=>{});busy=false;
-        SessionVault.Clear();HideRemembered();token=null;State=null;player=null;pending=null;leaving=false;ReadyToEnterCity=false;
+        SessionVault.Clear();HideRemembered();token=null;State=null;confirmedGender=confirmedGenderCharacterId=null;player=null;pending=null;leaving=false;ReadyToEnterCity=false;
         SceneManager.LoadScene("Entrada");
     }
     void OnApplicationPause(bool pause)
@@ -298,7 +316,7 @@ public sealed partial class AccountSession : MonoBehaviour
         // A delayed checkpoint/leave reply must never erase a still-valid remembered
         // access while the application is closing. It is revalidated on next launch.
         if(leaving){Debug.LogWarning("ACCOUNT_SESSION_INVALIDATION_IGNORED_WHILE_LEAVING error="+message);return;}
-        Debug.LogWarning("ACCOUNT_SESSION_INVALIDATED_EXTERNAL error="+message);SessionVault.Clear();token=null;State=null;pending=null;ReadyToEnterCity=false;if(document)ShowLogin(message);
+        Debug.LogWarning("ACCOUNT_SESSION_INVALIDATED_EXTERNAL error="+message);SessionVault.Clear();token=null;State=null;confirmedGender=confirmedGenderCharacterId=null;pending=null;ReadyToEnterCity=false;if(document)ShowLogin(message);
     }
     internal static bool IsBetaAccessDeniedCode(string code)=>code=="BETA_ACCESS_REQUIRED"||code=="BETA_ACCESS_REVOKED";
     internal static bool IsAccessRevokedCode(string code)=>code=="UNAUTHORIZED"||code=="CHARACTER_BLOCKED"||IsBetaAccessDeniedCode(code);

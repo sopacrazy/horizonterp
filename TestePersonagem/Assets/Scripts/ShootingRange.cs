@@ -292,22 +292,26 @@ public sealed class ShootingRange : MonoBehaviour
         overlay=new VisualElement{name="shooting-range-overlay"};overlay.style.position=Position.Absolute;
         overlay.style.left=overlay.style.right=overlay.style.top=overlay.style.bottom=0;overlay.pickingMode=PickingMode.Ignore;
         var cross=new Label("+"){name="shooting-crosshair"};cross.style.position=Position.Absolute;cross.style.left=Length.Percent(50);cross.style.top=Length.Percent(50);
-        cross.style.marginLeft=-15;cross.style.marginTop=-25;cross.style.width=30;cross.style.height=50;
-        cross.style.fontSize=32;cross.style.color=new Color(1f,.82f,.22f);cross.style.unityFontStyleAndWeight=FontStyle.Bold;
+        cross.style.marginLeft=-12;cross.style.marginTop=-20;cross.style.width=24;cross.style.height=40;
+        cross.style.fontSize=25;cross.style.color=new Color(.9f,.97f,.95f);cross.style.unityFontStyleAndWeight=FontStyle.Bold;
+        cross.style.unityTextOutlineWidth=.6f;cross.style.unityTextOutlineColor=new Color(0,0,0,.7f);
         cross.style.unityTextAlign=TextAnchor.MiddleCenter;cross.pickingMode=PickingMode.Ignore;overlay.Add(cross);
-        var card=new VisualElement{name="shooting-score"};card.style.position=Position.Absolute;card.style.left=Length.Percent(50);card.style.marginLeft=-150;card.style.top=62;
-        card.style.width=300;card.style.paddingLeft=card.style.paddingRight=18;card.style.paddingTop=card.style.paddingBottom=10;
-        card.style.backgroundColor=new Color(.015f,.025f,.04f,.82f);card.style.borderBottomLeftRadius=card.style.borderBottomRightRadius=10;
-        card.style.borderTopLeftRadius=card.style.borderTopRightRadius=10;card.pickingMode=PickingMode.Ignore;
-        status=new Label("MODO DE TREINO");status.style.color=new Color(1f,.78f,.18f);status.style.fontSize=13;status.style.unityFontStyleAndWeight=FontStyle.Bold;card.Add(status);
-        score=new Label("ACERTOS 0 / DISPAROS 0");score.style.color=Color.white;score.style.fontSize=16;score.style.marginTop=4;card.Add(score);overlay.Add(card);
-        fireButton=new Button{name="shooting-fire"};fireButton.RegisterCallback<PointerDownEvent>(_=>RequestFire());
-        fireButton.style.position=Position.Absolute;fireButton.style.right=34;fireButton.style.bottom=248;
-        fireButton.style.width=fireButton.style.height=92;fireButton.style.borderTopLeftRadius=fireButton.style.borderTopRightRadius=46;
-        fireButton.style.borderBottomLeftRadius=fireButton.style.borderBottomRightRadius=46;fireButton.style.backgroundColor=new Color(.055f,.065f,.08f,.94f);
-        fireButton.style.borderTopWidth=fireButton.style.borderBottomWidth=fireButton.style.borderLeftWidth=fireButton.style.borderRightWidth=2;
-        fireButton.style.borderTopColor=fireButton.style.borderBottomColor=fireButton.style.borderLeftColor=fireButton.style.borderRightColor=new Color(1f,.72f,.12f);
-        ammoLabel=new Label("12"){pickingMode=PickingMode.Ignore};ammoLabel.style.color=Color.white;ammoLabel.style.fontSize=24;ammoLabel.style.unityFontStyleAndWeight=FontStyle.Bold;
+        var card=new VisualElement{name="shooting-score"};card.style.position=Position.Absolute;card.style.left=Length.Percent(50);card.style.marginLeft=-140;card.style.top=78;
+        card.style.width=280;card.style.paddingLeft=card.style.paddingRight=14;card.style.paddingTop=card.style.paddingBottom=9;
+        HudPack.Skin(card,12);card.pickingMode=PickingMode.Ignore;
+        status=new Label("MODO DE TREINO"){name="shooting-status"};status.style.color=new Color(.63f,.84f,.76f);status.style.fontSize=11;status.style.unityFontStyleAndWeight=FontStyle.Bold;card.Add(status);
+        score=new Label("ACERTOS 0 / DISPAROS 0");score.style.color=Color.white;score.style.fontSize=13;score.style.marginTop=3;card.Add(score);overlay.Add(card);
+        foreach(var label in new[]{status,score}){label.style.unityTextOutlineWidth=.4f;label.style.unityTextOutlineColor=new Color(0,0,0,.75f);}
+        fireButton=new Button{name="shooting-fire",tooltip="Disparar"};
+        fireButton.RegisterCallback<PointerDownEvent>(_=>{RequestFire();fireButton.style.backgroundColor=new Color(.1f,.55f,.42f,.9f);});
+        fireButton.RegisterCallback<PointerUpEvent>(_=>HudPack.Skin(fireButton,44));
+        fireButton.RegisterCallback<PointerCancelEvent>(_=>HudPack.Skin(fireButton,44));
+        fireButton.RegisterCallback<PointerLeaveEvent>(_=>HudPack.Skin(fireButton,44));
+        fireButton.style.position=Position.Absolute;fireButton.style.right=24;fireButton.style.bottom=228;
+        fireButton.style.width=fireButton.style.height=88;HudPack.Skin(fireButton,44);
+        fireButton.style.alignItems=Align.Center;fireButton.style.justifyContent=Justify.Center;
+        var fireIcon=HudPack.Image("target");fireIcon.style.width=36;fireIcon.style.height=36;fireButton.Add(fireIcon);
+        ammoLabel=new Label("12 / 12"){pickingMode=PickingMode.Ignore};ammoLabel.style.color=new Color(.82f,.89f,.92f);ammoLabel.style.fontSize=10;ammoLabel.style.marginTop=3;
         ammoLabel.style.unityTextAlign=TextAnchor.MiddleCenter;fireButton.Add(ammoLabel);overlay.Add(fireButton);
         document.rootVisualElement.Add(overlay);GameHud.Instance.RegisterPointerBlocker(fireButton);overlay.style.display=DisplayStyle.None;
     }
@@ -315,7 +319,7 @@ public sealed class ShootingRange : MonoBehaviour
     void RefreshInterface()
     {
         if(score!=null)score.text="ACERTOS "+Hits+"  /  DISPAROS "+Shots;
-        if(ammoLabel!=null)ammoLabel.text=Ammo.ToString("D2")+"\nTIRO";
+        if(ammoLabel!=null)ammoLabel.text=Ammo.ToString("D2")+" / "+MagazineSize.ToString("D2");
     }
     void SetStatus(string value){if(status!=null)status.text=value;}
 

@@ -1,0 +1,20 @@
+Current rifle animation sources
+
+User-provided files in C:/SistemaAdr/gta/personagem:
+Idle.fbx <- mirando_parado.fbx (3.10 seconds)
+Run.fbx <- correndo_armado.fbx (0.50 seconds)
+Shoot.fbx <- atirando.fbx (1.1667 seconds)
+These three files retain the existing ByBeyby source skeleton mapping.
+They are user-provided content; the Unlicense below applies only to Walk.fbx.
+
+Walk.fbx <- ShotgunAnims/ShotgunAimWalk.fbx (two-handed aimed walking)
+ThirdPersonShooter-AnimationSets by ZenXChaos / UberSnip
+https://github.com/ZenXChaos/ThirdPersonShooter-AnimationSets
+Source revision: f19adc2ece4cab0f89c9236223abb97d4d2badea
+License: Unlicense (full text in LICENSE.txt)
+Walk retains its original Pelvis/Spine/L_/R_ skeleton.
+
+RifleAnimationImport.Prepare configures Humanoid retargeting and locks
+root translation/rotation for code-driven movement. Idle, Walk and Run
+loop. Shoot is a one-shot clip and does not loop. Clip names are
+RifleIdle, RifleWalk, RifleRun and RifleShoot.
