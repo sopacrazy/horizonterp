@@ -52,7 +52,6 @@ def public_backup():
             bad=z.testzip()
             if bad:raise RuntimeError('Archive CRC failed: '+bad)
         entry={'file':archive.name,'files':len(files),'bytes':archive.stat().st_size,'sha256':digest(archive)}
-        if entry['bytes']>=2*1024**3:raise RuntimeError('Split archive required: '+name)
         report['archives'].append(entry)
         (OUT/'manifest.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
         print('VERIFIED',name,entry['bytes'],flush=True)

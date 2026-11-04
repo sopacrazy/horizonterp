@@ -14,6 +14,10 @@ O Git contém o código atualizado. A release de backup contém ZIPs com os recu
 2. Clone o repositório, preferencialmente novamente em `C:\SistemaAdr\gta` para manter os caminhos dos scripts.
 3. Baixe todos os ZIPs da release de backup e o manifesto. Confira os SHA-256 com `Get-FileHash -Algorithm SHA256`.
 4. Extraia os ZIPs na raiz `C:\SistemaAdr\gta`. Cada ZIP já contém a pasta correspondente; não extraia dentro de uma pasta com o mesmo nome.
+
+   Alternativa com PowerShell 7: depois de baixar os arquivos para uma pasta, execute `pwsh -File tools/Restore-FormatBackup.ps1 -BackupFolder D:\BackupBaixado -Destination C:\SistemaAdr\gta`. O script confere tamanho e SHA-256 antes de extrair.
+
+   Se houver arquivos `.zip.part001`, `.zip.part002` etc., baixe todas as partes para a mesma pasta e use esse script: ele recompõe o ZIP antes da extração. As partes isoladas não são ZIPs independentes.
 5. No Hub, adicione a pasta **TestePersonagem**, não `Assets` nem `Scenes`. Abra `Assets/Scenes/Entrada.unity` para o fluxo de login/jogo.
 6. Aguarde a primeira importação. `Library`, `Temp`, `Logs`, `obj`, `node_modules`, builds e ferramentas instaláveis não fazem parte do snapshot e serão recriados.
 7. Para o backend, instale Node.js 22 ou superior e execute `npm ci` na pasta `Backend/api`. Não execute migrações ou provisionamento sobre a VPS existente apenas para restaurar este computador.
