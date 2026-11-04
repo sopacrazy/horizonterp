@@ -10,6 +10,16 @@ def sha(p):
 for entry in manifest['archives']:
  if entry['bytes']<1900*1024**2:continue
  file=root/entry['file'];parts=[]
+ existing=sorted(root.glob(file.name+'.part[0-9][0-9][0-9]'))
+ if existing and sum(p.stat().st_size for p in existing)==entry['bytes']:
+  joined=hashlib.sha256()
+  for part in existing:
+   with part.open('rb') as src:
+    for data in iter(lambda:src.read(2**20),b''):joined.update(data)
+   parts.append({'file':part.name,'bytes':part.stat().st_size,'sha256':sha(part)})
+  if joined.hexdigest()==entry['sha256']:
+   entry['parts']=parts;print('REUSED_VERIFIED_PARTS',entry['file'],len(parts),flush=True);continue
+  parts=[]
  with file.open('rb') as src:
   index=1
   while True:

@@ -27,6 +27,8 @@ O Git contém o código atualizado. A release de backup contém ZIPs com os recu
 
 Pasta preparada: `C:\Users\Adriano\Desktop\backup\Horizonte-privado-2026-11-04`.
 
+Também foram disponibilizados os pacotes públicos de fontes em `C:\Users\Adriano\Desktop\backup\Horizonte-fontes-2026-11-04` (aproximadamente 4,6 GB). Você pode copiar a pasta `backup` inteira para o HD para ter uma segunda cópia, além do GitHub. A disponibilização local usa hard links no mesmo disco para economizar espaço; só a cópia efetiva para o HD protege contra a formatação.
+
 **Copie essa pasta para o HD antes de formatar. Ela não está no GitHub público.** O manifesto privado lista os arquivos copiados e hashes. Ela contém a chave de assinatura original do Android, configurações locais do Vivox, certificados/chaves locais de teste e backups locais do banco. Preserve o keystore original para continuar atualizando os aplicativos já instalados.
 
 Os dados ativos dos jogadores e as configurações de produção continuam na VPS. Os dumps locais têm datas próprias e não devem substituir o banco atual sem análise. Senhas de contas externas, acesso à Hostinger, GitHub e Unity devem continuar acessíveis por sua conta/gerenciador de senhas; não estão incluídas neste repositório.

@@ -7,7 +7,7 @@ SKIP={'.git','Library','Temp','Logs','node_modules','__pycache__','.vs','.idea',
 PRIVATE_EXT={'.env','.pgpass','.key','.pfx','.p12','.keystore','.jks','.dump'}
 def private(p):
     s=p.as_posix().lower();n=p.name.lower()
-    return p.suffix.lower() in PRIVATE_EXT or '.env.' in n or n=='.env' or any(x in s.split('/') for x in ['credentials','backups']) or 'fixture' in n and p.suffix=='.json' or n=='assinatura-horizonte.zip'
+    return p.suffix.lower() in PRIVATE_EXT or '.env.' in n or n=='.env' or any(x in s.split('/') for x in ['credentials','backups','private']) or 'fixture' in n and p.suffix=='.json' or 'issuance' in n and p.suffix=='.json' or n=='assinatura-horizonte.zip'
 def walk(folder):
     for base,dirs,files in os.walk(folder):
         dirs[:]=sorted(d for d in dirs if d not in SKIP and not d.startswith('sync-backup'))
@@ -61,6 +61,7 @@ def private_backup(destination):
     selected=[]
     for base in [ROOT/'Backend/backups',ROOT/'tools/assinatura-horizonte',ROOT/'tools/release-071/credentials',ROOT/'tools/realtime-integration/credentials']:
         if base.exists():selected.extend(p for p in walk(base) if p.is_file())
+    selected.extend(p for p in [ROOT/'tools/release-071/known_hosts',ROOT/'tools/release-071/udp-server-ca.crt'] if p.is_file())
     for base,dirs,files in os.walk(ROOT):
         dirs[:]=[d for d in dirs if d not in SKIP and d not in {'android','blender-4.2.0-windows-x64','third_party','ssh_libs','format-backup-20261104','wuzimu-validation-project'}]
         for name in files:
