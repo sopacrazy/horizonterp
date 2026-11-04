@@ -1,0 +1,35 @@
+Atualize somente os limites de movimento e salvamento do bairro original HBRP com praça central. Use o acesso SSH que você já possui. Não gere APK nem altere arquivos Unity.
+
+Arquivos prontos no projeto C:\SistemaAdr\gta:
+- Backend\api\world-bounds.mjs (NOVO; obrigatório)
+- Backend\api\server.mjs
+- Backend\api\multiplayer.mjs
+- Backend\api\verify_api.py (teste HTTPS atualizado com interior e bordas)
+- Backend\api\README.md (contrato e operação)
+
+Leia os arquivos antes de publicar. Use a implementação pronta; se eles não estiverem disponíveis no seu ambiente, obtenha as versões atualizadas. Não recrie manualmente uma versão parcial com números espalhados.
+
+Destino: VPS 70.38.101.147; aplicação /srv/hbrp/api; serviço systemd hbrp-api; PostgreSQL HBRP interno 127.0.0.1:55432, database hbrp. Certificado e chave TLS atuais devem permanecer iguais, pois o Unity faz pinning.
+
+Contrato:
+- O mundo continua centro_teste, para preservar contas, personagens, saves e bots existentes.
+- Configuração única e imutável WORLD_BOUNDS.centro_teste: minX=-59, maxX=59, minY=-1, maxY=8, minZ=-59, maxZ=59; fronteiras inclusivas; valores em metros Unity.
+- Checkpoint e presença usam isPositionWithinWorld(world,position), com o mundo obtido do estado/identidade autenticada. O cliente não escolhe world/accountId/characterId no pacote.
+- O cenário tem 120 x 120 m e muros em ±59,5 m; o spawn (0,-0.1,0) continua livre e válido.
+- Rotação/câmera, velocidade/pulo, finanças, autenticação, versão/idempotência e proteção contra campos extras permanecem validados.
+- Não há migração SQL: character_positions já aceita coordenadas globais até ±1.000.000. Não ALTERAR o schema, aplicar migrações antigas, resetar tabelas, reatribuir world_id ou teleportar saves reais.
+- Não alterar roles/admin, capacidade da sala, chat, updater, dados/credenciais dos bots, portas, firewall, Nginx ou outros serviços.
+
+Procedimento:
+1. Registre serviço ativo, resposta health, versões das migrações e contagens/IDs de contas e personagens reais; registre uma comparação privada dos saves e saldos existentes sem imprimir credenciais ou dados pessoais.
+2. Execute /srv/hbrp/database/backup.sh e confirme sucesso antes de atualizar. Guarde cópia dos módulos atuais (server.mjs, multiplayer.mjs e world-bounds.mjs se já existir) em diretório de backup protegido, com owner/permissões preservados.
+3. Envie os três módulos de produção e o verify_api.py atualizado aos caminhos correspondentes em /srv/hbrp/api. Compare SHA-256 local/remoto e preserve permissões/owner esperados pelo serviço. player-admin.mjs e dependências já instaladas devem continuar intactos. Não enviar node_modules, credenciais ou backups locais.
+4. Execute node --check para server.mjs, multiplayer.mjs e world-bounds.mjs. Confira por importação local do módulo que a configuração tem exatamente os seis limites acima e é imutável. Não precisa npm install: nenhuma dependência nova foi adicionada.
+5. Reinicie somente hbrp-api. Confirme systemctl is-active e GET /health com o certificado atual como CA, sem desativar a verificação TLS. O health continua version 0.3.0; isso sozinho não comprova a atualização de limites.
+6. Execute python3 /srv/hbrp/api/verify_api.py como administrador PostgreSQL local. O teste usa contas temporárias @example.invalid e precisa de uma vaga na sala. Ele confirma cadastro/login/criação, rejeição de campos protegidos, idempotência, save e sync em (45,6,-45), (-59,-1,-59) e (59,8,59), rejeição além de cada uma das seis faces, preservação do saldo/vida e recuperação do save em novo login. O script limpa somente suas próprias fixtures em finally e grava /srv/hbrp/api/validation.json. Não imprimir senhas, tokens, DATABASE_URL ou chave TLS. Se a sala estiver cheia, não expulsar jogadores, não parar bots nem aumentar capacidade para testar; registrar o bloqueio e aguardar uma vaga.
+7. Confirme que não restaram as contas temporárias desta execução e que contas/personagens, posições, saldos e registros reais anteriores continuam preservados. Contas persistentes dos cinco bots não são fixtures descartáveis e não podem ser apagadas.
+8. Examine os logs do hbrp-api para erros. Se a atualização falhar, restaure o conjunto anterior dos módulos e reinicie somente hbrp-api. Não faça restauração destrutiva/reset do banco por causa deste ajuste de limites.
+
+Validação local já executada: node --test test/*.test.mjs; relatório Backend/api/test-results/bairro.tap. Ela usa HTTP real e PostgreSQL 18.6/PGlite em memória, com papel hbrp_app, cobrindo também regressões de autenticação, finanças, administração, capacidade e chat. A validação HTTPS na VPS continua necessária para confirmar a publicação no PostgreSQL 16 existente.
+
+Entregue arquivos/hashes publicados, backup confirmado, status/health, resultado dos testes de interior/bordas e persistência, confirmação de preservação dos dados antigos/bots e limpeza das fixtures. Não exponha credenciais. Não criar APK.

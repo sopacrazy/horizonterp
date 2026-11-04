@@ -123,6 +123,17 @@ public sealed class InGameChat : MonoBehaviour
         string text=(keyboard!=null?keyboard.text:input.value).Replace('\r',' ').Replace('\n',' ').Trim();
         if(string.IsNullOrEmpty(text)){input.Focus();return;}
         string localCommand=text.Split(' ')[0].ToLowerInvariant();
+        string skinCommand=text.Trim().ToLowerInvariant();
+        if (skinCommand=="/wuzimu" || skinCommand=="/skin wuzimu" || skinCommand=="/skin padrao")
+        {
+            var target=GameHud.Instance?GameHud.Instance.Player:null;
+            var visual=target?target.GetComponent<GangsterPlayerVisual>():null;
+            bool restored=skinCommand=="/skin padrao";
+            bool changed=visual&&visual.SwitchPreviewModel(restored?"padrao":"wuzimu");
+            input.value="";Close();
+            SystemLine(changed?(restored?"Personagem padrão restaurado.":"Wuzimu em prévia local com as animações atuais."):"Não foi possível trocar agora. Guarde a arma, fique a pé e aguarde terminar a ação atual.");
+            return;
+        }
         if(localCommand=="/arma"||localCommand=="/rifle"||localCommand=="/desarmar")
         {
             input.value="";Close();
@@ -304,14 +315,14 @@ public sealed class InGameChat : MonoBehaviour
             {
                 var row=new VisualElement{pickingMode=PickingMode.Ignore};row.AddToClassList("chat-message");
                 var author=new Label("[ADMIN] "+line.author+":"){enableRichText=false,pickingMode=PickingMode.Ignore};
-                author.AddToClassList("chat-line");author.AddToClassList("chat-author-admin");row.Add(author);
+                author.AddToClassList("chat-line");author.AddToClassList("chat-author-admin");ApplyChatOutline(author);row.Add(author);
                 var body=new Label(line.body){enableRichText=false,pickingMode=PickingMode.Ignore};
-                body.AddToClassList("chat-line");body.AddToClassList("chat-message-body");if(line.kind=="error")body.AddToClassList("chat-error");row.Add(body);
+                body.AddToClassList("chat-line");body.AddToClassList("chat-message-body");body.AddToClassList("chat-admin-message-body");if(line.kind=="error")body.AddToClassList("chat-error");ApplyChatOutline(body);row.Add(body);
                 last=row;
             }
             else
             {
-                var label=new Label(line.text){enableRichText=false,pickingMode=PickingMode.Ignore};label.AddToClassList("chat-line");
+                var label=new Label(line.text){enableRichText=false,pickingMode=PickingMode.Ignore};label.AddToClassList("chat-line");ApplyChatOutline(label);
                 if(line.kind=="system")label.AddToClassList("chat-system");
                 if(line.kind=="admin")label.AddToClassList("chat-admin");
                 if(line.kind=="error")label.AddToClassList("chat-error");
@@ -320,6 +331,22 @@ public sealed class InGameChat : MonoBehaviour
             feed.Add(last);
         }
         if(last!=null){var target=last;feed.schedule.Execute(()=>{if(feed.Contains(target))feed.ScrollTo(target);});}
+    }
+    static void ApplyChatOutline(Label label)
+    {
+        // Apply this inline as well as in ChatStyles.uss. UI Toolkit can retain an
+        // older computed text material while entering through the loading scene;
+        // the inline values make the border deterministic on every rebuilt line.
+        label.style.unityFont=HudPack.LabelFont;
+        label.style.unityFontStyleAndWeight=FontStyle.Bold;
+        label.style.unityTextOutlineColor=Color.black;
+        label.style.unityTextOutlineWidth=1.25f;
+        label.style.textShadow=new TextShadow
+        {
+            offset=Vector2.zero,
+            blurRadius=0f,
+            color=new Color(0f,0f,0f,0f)
+        };
     }
     public static bool BlocksPointer(Vector2 screen)
     {

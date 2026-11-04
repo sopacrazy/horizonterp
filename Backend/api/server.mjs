@@ -13,6 +13,7 @@ import {createPoliceCommands} from './police-commands.mjs';
 import {createRealtimeAccess,RealtimeError} from './realtime-access.mjs';
 import {createBetaAccess,BetaAccessError} from './beta-access.mjs';
 import {isBetaLoginIdentifier} from './beta-login-name.mjs';
+import {createCriminalEconomy,createCriminalEconomyRouteHandler,CriminalEconomyError} from './criminal-economy.mjs';
 
 const scrypt=promisify(scryptCb);
 const hash=x=>createHash('sha256').update(x).digest();
@@ -73,6 +74,12 @@ const administration=createPlayerAdmin({pool,session,transaction,removeSession:i
 const police=createPoliceCommands({pool,transaction,room});
 const playerCommands=createPlayerCommands({pool,transaction,room});
 const betaAccess=createBetaAccess({pool,session,transaction,makePassword,removeSession:id=>room.removeSession(id)});
+const criminalEconomy=createCriminalEconomy({pool,transaction,getPresence:identity=>{
+ const member=room.findOnline(identity.uid);
+ if(!member||member.characterId!==identity.characterId||Date.now()-member.seen>10000)return null;
+ return {x:member.x,y:member.y,z:member.z,world:member.world||identity.world,driving:member.driving===true};
+}});
+const handleCriminalEconomy=createCriminalEconomyRouteHandler(criminalEconomy);
 let cryptoJobs=0;
 async function derive(pass,salt){
  if(cryptoJobs>=2)fail(429,'Aguarde alguns segundos e tente novamente.','BUSY');
@@ -113,7 +120,7 @@ async function issueSession(client,accountId,betaVersion=null){
  await client.query('UPDATE hbrp.accounts SET last_login_at=now() WHERE id=$1',[accountId]);return token;
 }
 async function state(client,accountId){
- const result=await client.query(`SELECT a.id AS account_id,a.uid::text,a.account_role,a.admin_level,${betaRequired?"coalesce(ba.can_manage,false) AND ba.revoked_at IS NULL AND a.account_role='admin' AND a.admin_level>0 AND a.admin_level<>4":"false"} AS can_manage_beta,c.id AS character_id,c.name,c.first_name,c.last_name,c.gender,c.blocked_at,c.blocked_until,c.blocked_reason,
+ const result=await client.query(`SELECT a.id AS account_id,a.uid::text,a.account_role,a.admin_level,${betaRequired?"a.account_role='admin' AND (a.admin_level=1 OR (a.admin_level>1 AND a.admin_level<>4 AND coalesce(ba.can_manage,false) AND ba.revoked_at IS NULL))":"false"} AS can_manage_beta,c.id AS character_id,c.name,c.first_name,c.last_name,c.gender,c.blocked_at,c.blocked_until,c.blocked_reason,
  s.character_id AS stats_id,p.character_id AS position_id,v.character_id AS appearance_id,
  s.health::float,s.energy::float,s.hunger::float,s.thirst::float,s.level,s.xp::text,s.play_seconds::text,
  p.x,p.y,p.z,p.yaw,p.camera_yaw,p.camera_pitch,p.version::text,w.code AS world,
@@ -136,7 +143,7 @@ async function state(client,accountId){
  if(!r.stats_id||!r.position_id||!r.appearance_id||!r.world)fail(409,'Dados do personagem incompletos. Procure o suporte.','CHARACTER_INCOMPLETE');
  return {accountId:r.account_id,uid:r.uid,accountRole:r.account_role,adminLevel:r.admin_level,canManageBeta:r.can_manage_beta,characterId:r.character_id,name:r.name,firstName:r.first_name,lastName:r.last_name,gender:r.gender,organization:r.organization_code?{code:r.organization_code,name:r.organization_name,rank:r.organization_rank}:null,health:r.health,energy:r.energy,hunger:r.hunger,thirst:r.thirst,level:r.level,xp:r.xp,playSeconds:r.play_seconds,cashCents:r.cash_cents,bankCents:r.bank_cents,hzCoins:r.hz_coins,model:r.model_code,world:r.world,version:r.version,x:r.x,y:r.y,z:r.z,yaw:r.yaw,cameraYaw:r.camera_yaw,cameraPitch:r.camera_pitch};
 }
-async function playerReply(client,accountId){const current=await state(client,accountId);const account=(await client.query(`SELECT a.uid::text,a.account_role AS "accountRole",a.admin_level AS "adminLevel",${betaRequired?"coalesce(b.can_manage,false) AND b.revoked_at IS NULL AND a.account_role='admin' AND a.admin_level>0 AND a.admin_level<>4":"false"} AS "canManageBeta" FROM hbrp.accounts a ${betaRequired?'LEFT JOIN hbrp.beta_access b ON b.account_id=a.id':''} WHERE a.id=$1`,[accountId])).rows[0];return {state:current,needsCharacter:current===null,account};}
+async function playerReply(client,accountId){const current=await state(client,accountId);const account=(await client.query(`SELECT a.uid::text,a.account_role AS "accountRole",a.admin_level AS "adminLevel",${betaRequired?"a.account_role='admin' AND (a.admin_level=1 OR (a.admin_level>1 AND a.admin_level<>4 AND coalesce(b.can_manage,false) AND b.revoked_at IS NULL))":"false"} AS "canManageBeta" FROM hbrp.accounts a ${betaRequired?'LEFT JOIN hbrp.beta_access b ON b.account_id=a.id':''} WHERE a.id=$1`,[accountId])).rows[0];return {state:current,needsCharacter:current===null,account};}
 async function requireCharacter(client,accountId){const current=await state(client,accountId);if(!current)fail(409,'Crie seu personagem antes de entrar na cidade.','CHARACTER_REQUIRED');return current;}
 async function register(body){
  if(betaRequired)fail(403,'O cadastro público está fechado. Use o UID e a senha emitidos pelo painel da equipe beta.','REGISTRATION_CLOSED');
@@ -272,6 +279,12 @@ return async(req,res)=>{
    if(path==='/v1/services')return send(200,realtime.config(identity));
    return send(200,path==='/v1/realtime/ticket'?realtime.ticket(identity,auth,await readBody(req)):realtime.voiceToken(identity,auth,await readBody(req)));
   }
+  if(path==='/v1/criminal-economy'||path.startsWith('/v1/criminal-economy/')){
+   const auth=await session(pool,token);const identity=await requireCharacter(pool,auth.account_id);
+   const result=await handleCriminalEconomy({method:req.method,path,identity,
+    body:req.method==='POST'?await readBody(req):{}});
+   if(result!==null)return send(200,result);
+  }
   if(req.method==='GET'&&path==='/v1/missions/arrival')return send(200,await arrival.read(token));
   if(req.method==='POST'&&path==='/v1/missions/arrival')return send(200,await arrival.update(token,await readBody(req)));
   if(req.method==='POST'&&path==='/v1/admin/map-teleport')return send(200,await administration.mapTeleport(token,await readBody(req)));
@@ -345,7 +358,7 @@ return async(req,res)=>{
   fail(404,'Rota não encontrada.','NOT_FOUND');
  }catch(error){
   if(error.code==='23505')send(409,{error:'E-mail ou nome de personagem já cadastrado.',code:'ALREADY_EXISTS'});
-  else if(error instanceof ApiError||error instanceof RoomError||error instanceof AdminError||error instanceof ArrivalError||error instanceof RealtimeError||error instanceof BetaAccessError)send(error.status,{error:error.message,code:error.code,...(error instanceof BetaAccessError?error.details:{})});
+  else if(error instanceof ApiError||error instanceof RoomError||error instanceof AdminError||error instanceof ArrivalError||error instanceof RealtimeError||error instanceof BetaAccessError||error instanceof CriminalEconomyError)send(error.status,{error:error.message,code:error.code,...(error instanceof BetaAccessError?error.details:{})});
   else{errorLog(JSON.stringify({event:'request_error',requestId,code:error.code||'INTERNAL'}));send(500,{error:'Não foi possível concluir. Tente novamente.',code:'INTERNAL'});}
  }finally{if(path!=='/v1/multiplayer/sync'||status!==200)log(JSON.stringify({requestId,method:req.method,path,status,ms:Date.now()-started}));}
 };

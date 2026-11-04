@@ -13,12 +13,14 @@ const body=text=>({clientId,messageId:randomUUID(),text});
 test('level 4 is exclusive and does not inherit other administrative commands or aliases',()=>{
  assert.equal(adminHelp(4).length,1);assert.match(adminHelp(4)[0],/\/adminpromov/);
  for(const entry of ADMIN_COMMANDS)assert.equal(adminCommandAllowed(4,entry.name),entry.name==='adminpromov',entry.name);
- for(const level of [0,1,2,3,5])assert.equal(adminCommandAllowed(level,'adminpromov'),false);
+ for(const level of [0,2,3,5])assert.equal(adminCommandAllowed(level,'adminpromov'),false);
+ assert.equal(adminCommandAllowed(1,'adminpromov'),true);
  assert.equal(adminCommandAllowed(4,'myastats'),false);
  assert.equal(adminCommandAllowed(3,'makeadmin'),true);
- assert.equal(adminCommandAllowed(1,'goto'),true);
+ for(const entry of ADMIN_COMMANDS)assert.equal(adminCommandAllowed(1,entry.name),true,`level 1: ${entry.name}`);
+ assert.equal(adminCommandAllowed(1,'myastats'),true);
  const help=gameCommandHelp().find(entry=>entry.usage.startsWith('/adminpromov'));
- assert.equal(help.level,4);assert.match(help.permission,/Exclusivo/);
+ assert.equal(help.level,4);assert.match(help.permission,/nível 1.*nível 4/i);
 });
 
 test('the room rejects every unrelated admin command for level 4 before applying any mechanics',async()=>{

@@ -16,6 +16,7 @@ public sealed partial class GameHud
 
     void ResetMapRadar()
     {
+        ResetEconomyMapMarkers();
         mapDots.Clear();selectedRadarId=null;
         radarInfo=null;radarInfoName=radarInfoId=null;
     }
@@ -55,6 +56,7 @@ public sealed partial class GameHud
         var self=player.transform.position;
         float width=miniViewport.resolvedStyle.width;
         if(float.IsNaN(width)||width<=0)return;
+        RefreshEconomyMarkers(width);
         foreach(var peer in radarPlayers)
         {
             radarLive.Add(peer.characterId);

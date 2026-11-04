@@ -250,7 +250,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
    uid:identity.uid,name:identity.name,firstName:identity.firstName||identity.name.split(/\s+/u)[0],gender:identity.gender==='female'?'female':'male',model:identity.model,world:identity.world,
    policeDuty:isPolice,orgCode:identity.organization?.code||'',policeCarId:driven?.id||'',
    adminLevel:identity.accountRole==='admin'?identity.adminLevel:0,
-   invisible:identity.accountRole==='admin'&&identity.adminLevel>=3&&identity.adminLevel!==4&&(previous?.invisible||false),teleport:identity.adminLevel===4?null:previous?.teleport||null};
+   invisible:identity.accountRole==='admin'&&(identity.adminLevel===1||identity.adminLevel>=3)&&identity.adminLevel!==4&&(previous?.invisible||false),teleport:identity.adminLevel===4?null:previous?.teleport||null};
   // Keep a small recovery window for clients polling at different phases or over mobile jitter.
   // Legacy voice/radioVoice fields remain unchanged for installed clients.
   const sameSource=previous?.sessionId===sessionId&&previous?.clientId===body.clientId;
@@ -521,7 +521,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
  function target(uid,actor,protect=true){
   const found=online(uidArg(uid));
   if(!found)reject(404,'PLAYER_NOT_ONLINE','Jogador não está online nesta sala.');
-  if(protect&&(found.characterId===actor.characterId||found.adminLevel>=actor.adminLevel))
+  if(protect&&(found.characterId===actor.characterId||(actor.adminLevel!==1&&found.adminLevel>=actor.adminLevel)))
    reject(403,'ADMIN_HIERARCHY','Você só pode alterar jogadores de nível inferior.');
   return found;
  }
@@ -535,7 +535,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
   if(identity.accountRole!=='admin'||!Number.isInteger(identity.adminLevel)||identity.adminLevel<1)
    reject(403,'ADMIN_ONLY','Este comando é exclusivo da administração.');
   if(identity.adminLevel===4&&definition.name!=='adminpromov')reject(403,'ADMIN_ROLE_RESTRICTED','O cargo administrativo nível 4 permite somente /adminpromov [ID/nick] [1|2].');
-  if(definition.name==='adminpromov'&&identity.adminLevel!==4)reject(403,'ADMIN_LEVEL_REQUIRED','/adminpromov é exclusivo do cargo administrativo nível 4.');
+  if(definition.name==='adminpromov'&&![1,4].includes(identity.adminLevel))reject(403,'ADMIN_LEVEL_REQUIRED','/adminpromov exige administrador nível 1 ou cargo nível 4.');
   if(!adminCommandAllowed(identity.adminLevel,definition.name))reject(403,'ADMIN_LEVEL_REQUIRED',`/${definition.name} exige nível ${definition.level}.`);
  }
  function command(identity,sessionId,body,member,name,args,externalAction){
@@ -582,9 +582,9 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
   const usage=()=>reject(400,'COMMAND_USAGE','Uso: '+definition.usage);
   if(definition.missing)return {name,status:'not_implemented',message:`/${name} aguarda o sistema de ${definition.missing}.`};
   if(name==='ahelp'){
-   if(parts.length>1||parts.length===1&&!/^[123]$/.test(parts[0]))usage();
+   if(parts.length>1||parts.length===1&&!/^[1-4]$/.test(parts[0]))usage();
    const level=parts.length?Number(parts[0]):identity.adminLevel;
-   if(level>identity.adminLevel)reject(403,'ADMIN_LEVEL_REQUIRED','Você não pode consultar um nível acima do seu.');
+   if(identity.adminLevel!==1&&level>identity.adminLevel)reject(403,'ADMIN_LEVEL_REQUIRED','Você não pode consultar um nível acima do seu.');
    return ok(`Comandos disponíveis até o nível ${level}:`,{lines:adminHelp(level)});
   }
   if(name==='helpadmin'){

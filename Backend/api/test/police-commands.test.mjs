@@ -59,7 +59,8 @@ test('police calls, tickets and restricted broadcasts validate before changing d
  assert.ok(statements.some(x=>x.sql.includes('INSERT INTO hbrp.police_tickets')&&x.values[2]===15000));
  await police.command({name:'proc',args:'55',identity:officer});
  assert.ok(statements.some(x=>x.sql.includes("SET status='accepted'")));
- await assert.rejects(police.command({name:'gov',args:'Aviso',identity:{...officer,adminLevel:1}}),e=>e.code==='GOV_PERMISSION');
+ await police.command({name:'gov',args:'Aviso',identity:{...officer,adminLevel:1}});
+ await assert.rejects(police.command({name:'gov',args:'Aviso',identity:{...officer,adminLevel:0}}),e=>e.code==='GOV_PERMISSION');
  await police.command({name:'gov',args:'Aviso oficial',identity:officer});
  assert.ok(sent.some(x=>x[0]==='broadcast'&&x[2]==='government'));
 });

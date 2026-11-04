@@ -7,7 +7,7 @@ public sealed partial class GameHud : MonoBehaviour
 {
     public static GameHud Instance { get; private set; }
     public bool IsPanelOpen => VehicleHud.MenuOpen|| !string.IsNullOrEmpty(CurrentPanel)||(AdminPlayerPanel.Instance&&AdminPlayerPanel.Instance.IsOpen)||
-        (AdminHelpPanel.Instance&&AdminHelpPanel.Instance.IsOpen);
+        (AdminHelpPanel.Instance&&AdminHelpPanel.Instance.IsOpen)||CriminalEconomyPilotPanel.IsOpen;
     public bool SprintRequested { get; private set; }
     public string CurrentPanel { get; private set; }
     public VisualElement Root => root;

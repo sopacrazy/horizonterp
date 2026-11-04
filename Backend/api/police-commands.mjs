@@ -28,7 +28,7 @@ export function createPoliceCommands({pool,transaction,room}){
   if(['m','f','d','gov'].includes(name)){
    const text=args.normalize('NFC').trim();
    if(!text||Array.from(text).length>160)error(400,'COMMAND_USAGE',`Uso: /${name} [MENSAGEM] (até 160 caracteres)`);
-   if(name==='gov'&&(!Number.isInteger(identity.adminLevel)||identity.adminLevel<2))
+   if(name==='gov'&&(!Number.isInteger(identity.adminLevel)||(identity.adminLevel!==1&&identity.adminLevel<2)))
     error(403,'GOV_PERMISSION','Comunicados governamentais exigem administrador nível 2 ou superior.');
    return room.broadcast(identity,{m:'megaphone',f:'faction',d:'departments',gov:'government'}[name],text);
   }

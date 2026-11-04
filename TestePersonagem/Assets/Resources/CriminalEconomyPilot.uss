@@ -1,0 +1,146 @@
+.economy-launcher {
+    position: absolute;
+    right: 22px;
+    top: 226px;
+    height: 34px;
+    padding-left: 14px;
+    padding-right: 14px;
+    border-radius: 9px;
+    background-color: rgba(8, 18, 24, .82);
+    border-width: 1px;
+    border-color: rgba(62, 225, 171, .72);
+    color: rgb(136, 255, 213);
+    font-size: 11px;
+    -unity-font-style: bold;
+}
+
+.economy-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, .62);
+}
+
+.economy-panel {
+    width: 900px;
+    max-width: 92%;
+    height: 650px;
+    max-height: 90%;
+    padding: 22px;
+    border-radius: 18px;
+    border-width: 1px;
+    border-color: rgba(81, 224, 175, .45);
+    background-color: rgba(8, 15, 21, .97);
+    color: rgb(237, 244, 247);
+}
+
+.economy-header,
+.economy-tabs,
+.economy-card,
+.economy-stock-row {
+    flex-direction: row;
+    align-items: center;
+}
+
+.economy-header { justify-content: space-between; }
+.economy-titles { flex-grow: 1; }
+.economy-eyebrow { color: rgb(77, 228, 174); font-size: 10px; letter-spacing: 2px; -unity-font-style: bold; }
+.economy-title { font-size: 28px; -unity-font-style: bold; margin-top: 3px; }
+.economy-organization { color: rgb(180, 194, 201); font-size: 11px; margin-top: 5px; }
+.economy-close { width: 42px; height: 42px; border-radius: 21px; font-size: 25px; background-color: rgba(38, 52, 61, .8); color: white; }
+
+.economy-notice {
+    margin-top: 16px;
+    padding: 11px 14px;
+    border-left-width: 3px;
+    border-left-color: rgb(255, 194, 70);
+    background-color: rgba(255, 194, 70, .08);
+}
+.economy-notice-title { color: rgb(255, 202, 93); font-size: 11px; -unity-font-style: bold; }
+.economy-notice-text { color: rgb(211, 217, 221); font-size: 11px; margin-top: 3px; white-space: normal; }
+
+.economy-organizations { flex-direction: row; margin-top: 12px; }
+.economy-organization-button {
+    flex-grow: 1;
+    height: 34px;
+    margin-right: 6px;
+    border-radius: 8px;
+    background-color: rgba(24, 38, 46, .94);
+    border-width: 1px;
+    border-color: rgba(109, 226, 186, .3);
+    color: rgb(219, 231, 235);
+    font-size: 10px;
+    -unity-font-style: bold;
+}
+.economy-organization-button:hover { background-color: rgba(44, 79, 80, .96); color: white; }
+
+.economy-tabs { margin-top: 16px; margin-bottom: 14px; }
+.economy-tab {
+    flex-grow: 1;
+    height: 38px;
+    margin-right: 6px;
+    border-radius: 8px;
+    background-color: rgba(28, 42, 50, .92);
+    color: rgb(199, 212, 218);
+    -unity-font-style: bold;
+}
+.economy-tab:hover { background-color: rgba(46, 79, 82, .95); color: white; }
+.economy-selected {
+    background-color: rgb(41, 92, 78);
+    border-width: 1px;
+    border-color: rgb(77, 228, 174);
+    color: white;
+}
+
+.economy-body {
+    flex-grow: 1;
+    padding: 16px;
+    border-radius: 12px;
+    background-color: rgba(15, 26, 33, .92);
+    overflow: hidden;
+}
+.economy-section-title { font-size: 20px; -unity-font-style: bold; color: white; }
+.economy-copy { color: rgb(165, 181, 188); font-size: 12px; margin-top: 5px; margin-bottom: 13px; white-space: normal; }
+
+.economy-card,
+.economy-stock-row,
+.economy-recipe,
+.economy-summary,
+.economy-audit-row {
+    margin-bottom: 8px;
+    padding: 12px;
+    border-radius: 9px;
+    background-color: rgba(31, 47, 56, .88);
+}
+.economy-card-copy,
+.economy-stock-copy { flex-grow: 1; }
+.economy-card-title,
+.economy-stock-name,
+.economy-recipe-title { color: white; font-size: 13px; -unity-font-style: bold; }
+.economy-card-description,
+.economy-stock-value { color: rgb(160, 179, 186); font-size: 11px; margin-top: 4px; }
+.economy-recipe-requirements { color: rgb(100, 237, 189); font-size: 12px; margin-top: 8px; margin-bottom: 4px; }
+
+.economy-primary,
+.economy-secondary {
+    height: 34px;
+    border-radius: 8px;
+    -unity-font-style: bold;
+    font-size: 10px;
+}
+.economy-primary { background-color: rgb(50, 207, 154); color: rgb(5, 22, 18); padding-left: 16px; padding-right: 16px; }
+.economy-secondary { background-color: rgba(51, 72, 82, .95); color: white; margin-left: 7px; }
+.economy-summary-title { color: rgb(255, 199, 78); font-size: 10px; -unity-font-style: bold; margin-bottom: 5px; }
+.economy-summary-item { color: rgb(216, 226, 230); font-size: 11px; margin-top: 3px; }
+.economy-audit-row { color: rgb(200, 215, 221); font-size: 11px; }
+.economy-status { color: rgb(91, 232, 180); font-size: 11px; margin-top: 10px; white-space: normal; }
+.economy-footer { flex-direction: row; flex-wrap: wrap; margin-top: 9px; }
+.economy-point { color: rgb(255, 202, 93); font-size: 11px; white-space: normal; margin-bottom: 10px; }
+.economy-quantity { width: 65px; margin-left: 5px; margin-right: 5px; }
+.economy-batches { width: 190px; margin-bottom: 9px; }
+.economy-audit-row { white-space: normal; }
+.economy-primary:disabled { opacity: .4; }

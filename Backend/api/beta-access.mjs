@@ -29,14 +29,14 @@ const columns=`a.uid::text,b.label,b.revoked_at,b.created_at,a.last_login_at,a.a
 function view(row,viewer){
  return {uid:row.uid,label:row.label,active:row.revoked_at===null,createdAt:row.created_at,lastLoginAt:row.last_login_at,
   hasCharacter:row.has_character,accountRole:row.account_role,adminLevel:row.admin_level,
-  isSelf:row.uid===viewer.uid,canManage:row.uid!==viewer.uid&&row.admin_level<viewer.admin_level};
+  isSelf:row.uid===viewer.uid,canManage:row.uid!==viewer.uid&&(viewer.admin_level===1||row.admin_level<viewer.admin_level)};
 }
 export async function readBetaManager(client,accountId,{bootstrap=false}={}){
  const row=(await client.query(`SELECT a.id,a.uid::text,a.account_role,a.admin_level,coalesce(b.can_manage,false) AS can_manage,b.revoked_at FROM hbrp.accounts a
   LEFT JOIN hbrp.beta_access b ON b.account_id=a.id
   WHERE a.id=$1 AND a.status='active' AND NOT EXISTS(SELECT 1 FROM hbrp.characters c WHERE c.account_id=a.id
    AND c.deleted_at IS NULL AND c.blocked_at IS NOT NULL AND (c.blocked_until IS NULL OR c.blocked_until>now()))`,[accountId])).rows[0];
- if(row?.account_role!=='admin'||row.admin_level<1||row.admin_level===4||(!bootstrap&&(!row.can_manage||row.revoked_at)))
+ if(row?.account_role!=='admin'||row.admin_level<1||row.admin_level===4||(!bootstrap&&row.admin_level!==1&&(!row.can_manage||row.revoked_at)))
   reject(403,'BETA_MANAGEMENT_REQUIRED','A emissão de acessos beta exige autorização administrativa específica.');
  return row;
 }
@@ -101,7 +101,7 @@ export function createBetaAccess({pool,session,transaction,makePassword=hashBeta
    const actor=await manager(client,token);
    const current=(await client.query('SELECT admin_level,status FROM hbrp.accounts WHERE id=$1',[target.id])).rows[0];
    if(current?.status!=='active')reject(404,'BETA_ACCOUNT_NOT_FOUND','Conta não encontrada.');
-   if(current.admin_level>=actor.admin_level)reject(403,'ADMIN_HIERARCHY','Só é permitido gerenciar acessos de níveis inferiores.');
+   if(actor.admin_level!==1&&current.admin_level>=actor.admin_level)reject(403,'ADMIN_HIERARCHY','Só é permitido gerenciar acessos de níveis inferiores.');
    const prior=await priorRequest(client,actor.id,body.requestId,action,payload);if(prior)return {...prior,revokedSessions:[]};
    const old=(await client.query('SELECT * FROM hbrp.beta_access WHERE account_id=$1 FOR UPDATE',[target.id])).rows[0];
    if(action==='approve'&&old?.revoked_at===null)reject(409,'BETA_ACCESS_EXISTS','Esta conta já possui acesso beta. Use redefinir senha.');

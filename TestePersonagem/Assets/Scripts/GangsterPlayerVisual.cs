@@ -11,6 +11,8 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
     public static bool IsFemale(string gender) => string.Equals(gender, "female", StringComparison.OrdinalIgnoreCase);
     const string FemalePath = "Characters/ByBeyby";
     const string MalePath = "GangsterMusculo/GangsterMusculo";
+    const string WuzimuPath = "Characters/Wuzimu/Wuzimu";
+    string previewModel;
     static bool maleReferenceReady;
     static float maleReferenceHeight,maleReferenceGround;
     string installedGender;
@@ -98,10 +100,17 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
 
     // Returns false while another action owns the avatar, so callers can retry later.
     public bool SwitchGender(string gender)
+        => SwitchVisual(gender, null);
+
+    // Local test selection only; never changes the saved gender or account identity.
+    public bool SwitchPreviewModel(string model)
+        => SwitchVisual(AccountSession.Instance?.State?.gender ?? installedGender ?? "male", model == "wuzimu" ? WuzimuPath : null);
+
+    bool SwitchVisual(string gender, string modelPath)
     {
         if (!string.Equals(gender, "male", StringComparison.OrdinalIgnoreCase) &&
             !string.Equals(gender, "female", StringComparison.OrdinalIgnoreCase)) return false;
-        if (string.Equals(installedGender, gender, StringComparison.OrdinalIgnoreCase)) return true;
+        if (string.Equals(installedGender, gender, StringComparison.OrdinalIgnoreCase) && previewModel == modelPath) return true;
         if (string.Equals(failedGender,gender,StringComparison.OrdinalIgnoreCase)&&
             Time.unscaledTime<nextVisualRetry) return false;
 
@@ -111,19 +120,22 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
             player.InPoliceCar || player.CombatLocked || player.IsJumping || player.IsTeleporting ||
             MissionVehicle.Driver == player || PoliceVehicleController.BlocksPlayer(player) ||
             (ShootingRange.Instance && ShootingRange.Instance.IsActive)) return false;
+        if (player.GetComponent<RifleWeapon>()?.Equipped == true) return false;
 
         bool female = IsFemale(gender);
-        var source = Resources.Load<GameObject>(female ? FemalePath : MalePath);
+        var source = Resources.Load<GameObject>(modelPath ?? (female ? FemalePath : MalePath));
         if (!source){DeferVisualRetry(gender);return false;}
 
         var previous = player.animator;
         var state = previous.GetCurrentAnimatorStateInfo(0);
         float speed = player.CurrentSpeed;
         var visual = Instantiate(source, transform, false);
-        visual.name = female ? "ByBeyby feminina" : "Gangster Musculo";
+        visual.name = modelPath != null ? "Wuzimu • prévia local" : female ? "ByBeyby feminina" : "Gangster Musculo";
         try
         {
-            var animator = PrepareVisual(visual, female);
+            var animator = PrepareVisual(visual, modelPath == null && female, modelPath);
+            var normalizedScale=visual.transform.localScale;
+            var normalizedPosition=visual.transform.localPosition;
             animator.runtimeAnimatorController = previous.runtimeAnimatorController;
             animator.applyRootMotion = false;
             animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
@@ -133,11 +145,21 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
             if (state.fullPathHash != 0)
                 animator.Play(state.fullPathHash, 0, state.normalizedTime % 1f);
             animator.Update(0f);
+            if (modelPath != null)
+            {
+                visual.transform.localRotation = Quaternion.identity;
+                visual.transform.localScale=normalizedScale;
+                visual.transform.localPosition=normalizedPosition;
+                // The imported bind pose differs from the evaluated Humanoid pose.
+                // Size the visible body only after the actual controller has evaluated.
+                CharacterSkinSizing.Match(visual,maleReferenceHeight,maleReferenceGround);
+            }
 
             player.RebindVisual(animator);
             previous.gameObject.SetActive(false);
             Destroy(previous.gameObject);
             installedGender = female ? "female" : "male";
+            previewModel = modelPath;
             ClearVisualRetry();
             return true;
         }
@@ -172,11 +194,11 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
         catch{Destroy(visual);throw;}
     }
 
-    static Animator PrepareVisual(GameObject visual,bool female)
+    static Animator PrepareVisual(GameObject visual,bool female,string modelPath=null)
     {
         var importedAnimator=visual.GetComponentInChildren<Animator>();
         var avatar=importedAnimator?importedAnimator.avatar:
-            Resources.LoadAll<Avatar>(female?FemalePath:MalePath).FirstOrDefault(candidate=>candidate&&candidate.isValid);
+            Resources.LoadAll<Avatar>(modelPath ?? (female?FemalePath:MalePath)).FirstOrDefault(candidate=>candidate&&candidate.isValid);
         var animator=visual.GetComponent<Animator>()??visual.AddComponent<Animator>();
         if(importedAnimator&&importedAnimator!=animator)
         {importedAnimator.enabled=false;Destroy(importedAnimator);}
@@ -186,10 +208,16 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
         animator.applyRootMotion=false;
         animator.cullingMode=AnimatorCullingMode.AlwaysAnimate;
         foreach(var collider in visual.GetComponentsInChildren<Collider>(true))collider.enabled=false;
-        if(!female)ApplyMaleMaterials(visual);
+        if(!female && modelPath == null)ApplyMaleMaterials(visual);
         foreach(var child in visual.GetComponentsInChildren<Transform>(true))child.gameObject.layer=2;
         visual.transform.localPosition=Vector3.zero;
-        if(female)MatchFemaleHeight(visual);
+        if (modelPath != null) visual.transform.localRotation = Quaternion.identity;
+        if(modelPath != null)
+        {
+            EnsureMaleReference();
+            CharacterSkinSizing.Match(visual,maleReferenceHeight,maleReferenceGround);
+        }
+        else if(female)MatchFemaleHeight(visual);
         else
         {
             var renderers=visual.GetComponentsInChildren<Renderer>();
