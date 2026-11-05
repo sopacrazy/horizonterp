@@ -37,6 +37,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
     public bool CombatAvailable {get;private set;}
     public bool CombatReady {get;private set;}
     public bool WeaponStateAvailable {get;private set;}
+    public bool PistolStateAvailable {get;private set;}
     public bool RifleDamageAvailable {get;private set;}
     public bool RespawnAvailable {get;private set;}
     public float RespawnDeadline {get;private set;}
@@ -125,6 +126,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
                 var state=new WeaponVisualFrame {weaponEquipped=rifle&&rifle.Equipped,weaponAiming=rifle&&rifle.Aiming,
                     weaponShotSequence=rifle?rifle.ShotSequence:0,weaponAimPitch=rifle?rifle.AimPitch:0};
                 json=json.Substring(0,json.Length-1)+","+JsonUtility.ToJson(state).Substring(1);
+                if(PistolStateAvailable)json=json.Substring(0,json.Length-1)+",\"weaponType\":\""+(rifle&&rifle.IsPistol?"pistol":"rifle")+"\"}";
             }
             if(RespawnAvailable)json=json.Substring(0,json.Length-1)+",\"afterRespawn\":"+lastRespawnSequence+"}";
             if(police&&PoliceVehicleAvailable)json=json.Substring(0,json.Length-1)+",\"policeCarId\":\""+police.Id+"\"}";
@@ -168,6 +170,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
                 PoliceVehicleAvailable=reply.policeVehicleAvailable;
                 CombatAvailable=reply.combatAvailable;
                 WeaponStateAvailable=reply.weaponStateAvailable;
+                PistolStateAvailable=reply.pistolStateAvailable;
                 RifleDamageAvailable=reply.rifleDamageAvailable;RespawnAvailable=reply.respawnAvailable;
                 CombatReady=reply.combatAvailable&&combatClient;
                 // Refresh permission changes for this authenticated character without
@@ -292,7 +295,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
     public void FireRifle(string shotId,Vector3 origin,Vector3 direction,string targetUid="")
     {
         if(!Connected||!CombatReady||!RifleDamageAvailable||paused)return;
-        foreach(var remote in remotes.Values)if(remote.Uid==targetUid)remote.PredictHit(shotId);
+        foreach(var remote in remotes.Values)if(remote.Uid==targetUid)remote.PredictHit(shotId,1);
         StartCoroutine(SendRifleShot(new RifleShotBody{clientId=clientId,shotId=shotId,targetUid=targetUid??"",
             originX=origin.x,originY=origin.y,originZ=origin.z,directionX=direction.x,directionY=direction.y,directionZ=direction.z}));
     }
@@ -483,7 +486,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
         public bool CanPredictHit=>root&&avatar.activeInHierarchy&&combatClient&&combat&&combat.Ready&&!combat.Dead&&
             !driving&&!inPoliceCar&&Time.unscaledTime-lastCombatSync<1.5f&&
             !(world.policeCarWorld&&world.policeCarWorld.HasSeatedVisual(Uid));
-        public void PredictHit(string attackId){combat?.PredictHit(attackId);}
+        public void PredictHit(string attackId,int reactions=3){combat?.PredictHit(attackId,reactions);}
         public void CancelPredictedHit(string attackId){combat?.CancelPredictedHit(attackId);}
         public Remote(MultiplayerWorld world,ThirdPersonPlayer local,MultiplayerPeer peer)
         {
@@ -552,6 +555,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
         }
         public void Apply(MultiplayerPeer peer,long serverTime,float roundTrip)
         {
+            if(rifle)rifle.SetPistolMode(peer.weaponType=="pistol");
             weaponEquipped=peer.weaponEquipped&&!peer.cuffed&&!peer.driving&&!peer.inPoliceCar;
             weaponAiming=peer.weaponAiming;
             weaponShotSequence=peer.weaponShotSequence;weaponAimPitch=peer.weaponAimPitch;

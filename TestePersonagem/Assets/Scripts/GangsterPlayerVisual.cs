@@ -12,7 +12,17 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
     const string FemalePath = "Characters/ByBeyby";
     const string MalePath = "GangsterMusculo/GangsterMusculo";
     const string WuzimuPath = "Characters/Wuzimu/Wuzimu";
+    const string RunClipName = "Correr_FastRunEnviado";
+    const string TestRunPath = "GangsterMusculo/Animations/Gangster_Corrida_Base";
     string previewModel;
+    RuntimeAnimatorController previewOriginalController;
+    bool saLocomotionApplied;
+    float nextSaLocomotionRetry;
+    AnimatorOverrideController runOverrides;
+    AnimationClip originalRunClip;
+    bool testRunActive;
+    float runLabelUntil;
+    string runLabel;
     static bool maleReferenceReady;
     static float maleReferenceHeight,maleReferenceGround;
     string installedGender;
@@ -51,10 +61,10 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
             overrides.GetOverrides(clips);
             var replacements = new Dictionary<string, string>
             {
-                { "IdleRetarget", "GangsterMusculo/GangsterMusculo" },
-                { "Andar_WalkingOriginal", "GangsterMusculo/Animations/Walking" },
-                { "Correr_FastRunEnviado", "GangsterMusculo/Animations/Running" },
-                { "JumpRetarget", "GangsterMusculo/Animations/Jump" }
+                { "IdleRetarget", female ? "GangsterMusculo/GangsterMusculo" : "Characters/Wuzimu/Animations/ParadoSA" },
+                { "Andar_WalkingOriginal", female ? "GangsterMusculo/Animations/Walking" : "Characters/Wuzimu/Animations/AndarSA" },
+                { RunClipName, female ? "GangsterMusculo/Animations/Running" : "Characters/Wuzimu/Animations/CorrerSA" },
+                { "JumpRetarget", female ? "GangsterMusculo/Animations/Jump" : "Characters/Wuzimu/Animations/PuloSA_Personagem" }
             };
             for (int i = 0; i < clips.Count; i++)
             {
@@ -69,7 +79,9 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
             }
             if (replacements.Count != 0)
                 throw new InvalidOperationException("Clipes do controlador não encontrados: " + string.Join(", ", replacements.Keys));
+            originalRunClip = clips.First(pair => pair.Key && pair.Key.name == RunClipName).Value;
             overrides.ApplyOverrides(clips);
+            runOverrides = overrides;
             animator.runtimeAnimatorController = overrides;
             animator.applyRootMotion = false;
             animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
@@ -78,6 +90,8 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
             player.animator = animator;
             Destroy(original.gameObject);
             installedGender = female ? "female" : "male";
+            saLocomotionApplied = !female;
+            ShowRunLabel(female ? "Corrida original (F8 para trocar)" : "Parado, andar, correr e pular SA ativos");
             ClearVisualRetry();
             if (!GetComponent<FighterCombo>()) gameObject.AddComponent<FighterCombo>();
         }
@@ -91,11 +105,76 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
 
     void Update()
     {
+        ApplySaLocomotionToCurrentVisual();
+        if (Input.GetKeyDown(KeyCode.F8) && !InGameChat.Editing &&
+            !(GameHud.Instance && GameHud.Instance.IsPanelOpen))
+            ToggleRunAnimation();
         // A command can finish while the player is driving or in the firing range.
         // Apply the confirmed gender as soon as those animations are no longer using this avatar.
         var gender = AccountSession.Instance?.State?.gender;
         if (!string.IsNullOrEmpty(gender) && !string.Equals(installedGender, gender, StringComparison.OrdinalIgnoreCase))
             SwitchGender(gender);
+    }
+
+    // Also updates an existing Play session after the editor reloads scripts.
+    // It replaces clips on the current Animator without instantiating a skin.
+    void ApplySaLocomotionToCurrentVisual()
+    {
+        if (saLocomotionApplied || previewModel != null || Time.unscaledTime < nextSaLocomotionRetry) return;
+        if (!player) player = GetComponent<ThirdPersonPlayer>();
+        if (!player || !player.animator || !player.animator.runtimeAnimatorController || IsFemale(installedGender)) return;
+        if (player.InPoliceCar || player.CombatLocked || player.IsJumping || player.IsTeleporting ||
+            (ShootingRange.Instance && ShootingRange.Instance.IsActive) || GetComponent<RifleWeapon>()?.Equipped == true) return;
+        nextSaLocomotionRetry = Time.unscaledTime + 3;
+        try
+        {
+            var overrides = CreateSaPreviewController(player.animator.runtimeAnimatorController);
+            player.animator.runtimeAnimatorController = overrides;
+            player.animator.applyRootMotion = false;
+            runOverrides = overrides;
+            saLocomotionApplied = true;
+            ShowRunLabel("Parado, andar, correr e pular SA ativos");
+        }
+        catch (Exception e) { Debug.LogWarning("Animacoes SA aguardando importacao: " + e.Message); }
+    }
+
+    void ToggleRunAnimation()
+    {
+        if (!runOverrides || !originalRunClip || !player || !player.animator) return;
+        if (!testRunActive)
+        {
+            var testClip = Resources.LoadAll<AnimationClip>(TestRunPath)
+                .FirstOrDefault(candidate => candidate && candidate.length > 0 && candidate.humanMotion &&
+                    !candidate.name.StartsWith("__preview"));
+            if (!testClip)
+            {
+                ShowRunLabel("Corrida de teste indisponível; confira a importação do FBX");
+                Debug.LogError("Corrida de teste: clipe Humanoid ausente em " + TestRunPath);
+                return;
+            }
+            runOverrides[RunClipName] = testClip;
+            testRunActive = true;
+            ShowRunLabel("Corrida Blender ativa (F8 para voltar)");
+        }
+        else
+        {
+            runOverrides[RunClipName] = originalRunClip;
+            testRunActive = false;
+            ShowRunLabel("Corrida original ativa (F8 para trocar)");
+        }
+    }
+
+    void ShowRunLabel(string message)
+    {
+        runLabel = message;
+        runLabelUntil = Time.unscaledTime + 5f;
+        Debug.Log(message);
+    }
+
+    void OnGUI()
+    {
+        if (Time.unscaledTime < runLabelUntil && !string.IsNullOrEmpty(runLabel))
+            GUI.Box(new Rect(16f, Screen.height - 58f, 390f, 38f), runLabel);
     }
 
     // Returns false while another action owns the avatar, so callers can retry later.
@@ -104,7 +183,8 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
 
     // Local test selection only; never changes the saved gender or account identity.
     public bool SwitchPreviewModel(string model)
-        => SwitchVisual(AccountSession.Instance?.State?.gender ?? installedGender ?? "male", model == "wuzimu" ? WuzimuPath : null);
+        => SwitchVisual(AccountSession.Instance?.State?.gender ?? installedGender ?? "male",
+            model == "wuzimu" || model == "sa" ? WuzimuPath : null);
 
     bool SwitchVisual(string gender, string modelPath)
     {
@@ -130,13 +210,14 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
         var state = previous.GetCurrentAnimatorStateInfo(0);
         float speed = player.CurrentSpeed;
         var visual = Instantiate(source, transform, false);
-        visual.name = modelPath != null ? "Wuzimu • prévia local" : female ? "ByBeyby feminina" : "Gangster Musculo";
+        visual.name = modelPath != null ? "Personagem SA • teste local" : female ? "ByBeyby feminina" : "Gangster Musculo";
         try
         {
             var animator = PrepareVisual(visual, modelPath == null && female, modelPath);
             var normalizedScale=visual.transform.localScale;
             var normalizedPosition=visual.transform.localPosition;
-            animator.runtimeAnimatorController = previous.runtimeAnimatorController;
+            var originalController = previewOriginalController ? previewOriginalController : previous.runtimeAnimatorController;
+            animator.runtimeAnimatorController = modelPath != null ? CreateSaPreviewController(originalController) : originalController;
             animator.applyRootMotion = false;
             animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
             animator.Rebind();
@@ -159,6 +240,8 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
             previous.gameObject.SetActive(false);
             Destroy(previous.gameObject);
             installedGender = female ? "female" : "male";
+            saLocomotionApplied = false;
+            previewOriginalController = modelPath != null ? originalController : null;
             previewModel = modelPath;
             ClearVisualRetry();
             return true;
@@ -192,6 +275,37 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
             return visual;
         }
         catch{Destroy(visual);throw;}
+    }
+
+    static AnimatorOverrideController CreateSaPreviewController(RuntimeAnimatorController original)
+    {
+        var result = new AnimatorOverrideController(original);
+        var clips = new List<KeyValuePair<AnimationClip, AnimationClip>>();
+        if (original is AnimatorOverrideController previousOverrides)
+        {
+            previousOverrides.GetOverrides(clips);
+            result.ApplyOverrides(clips);
+            clips.Clear();
+        }
+        result.GetOverrides(clips);
+        var paths = new Dictionary<string, string>
+        {
+            { "IdleRetarget", "Characters/Wuzimu/Animations/ParadoSA" },
+            { "Andar_WalkingOriginal", "Characters/Wuzimu/Animations/AndarSA" },
+            { RunClipName, "Characters/Wuzimu/Animations/CorrerSA" },
+            { "JumpRetarget", "Characters/Wuzimu/Animations/PuloSA_Personagem" }
+        };
+        for (int i = 0; i < clips.Count; i++)
+        {
+            if (!clips[i].Key || !paths.TryGetValue(clips[i].Key.name, out string path)) continue;
+            var clip = Resources.LoadAll<AnimationClip>(path).FirstOrDefault(c => c && c.humanMotion && !c.name.StartsWith("__preview"));
+            if (!clip) throw new InvalidOperationException("Animacao SA de teste ausente: " + path);
+            clips[i] = new KeyValuePair<AnimationClip, AnimationClip>(clips[i].Key, clip);
+            paths.Remove(clips[i].Key.name);
+        }
+        if (paths.Count != 0) throw new InvalidOperationException("Controlador sem os clipes de locomocao SA: " + string.Join(", ", paths.Keys));
+        result.ApplyOverrides(clips);
+        return result;
     }
 
     static Animator PrepareVisual(GameObject visual,bool female,string modelPath=null)

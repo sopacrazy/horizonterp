@@ -124,17 +124,17 @@ public sealed class InGameChat : MonoBehaviour
         if(string.IsNullOrEmpty(text)){input.Focus();return;}
         string localCommand=text.Split(' ')[0].ToLowerInvariant();
         string skinCommand=text.Trim().ToLowerInvariant();
-        if (skinCommand=="/wuzimu" || skinCommand=="/skin wuzimu" || skinCommand=="/skin padrao")
+        if (skinCommand=="/wuzimu" || skinCommand=="/skin wuzimu" || skinCommand=="/skin sa" || skinCommand=="/skin padrao")
         {
             var target=GameHud.Instance?GameHud.Instance.Player:null;
             var visual=target?target.GetComponent<GangsterPlayerVisual>():null;
             bool restored=skinCommand=="/skin padrao";
-            bool changed=visual&&visual.SwitchPreviewModel(restored?"padrao":"wuzimu");
+            bool changed=visual&&visual.SwitchPreviewModel(restored?"padrao":"sa");
             input.value="";Close();
-            SystemLine(changed?(restored?"Personagem padrão restaurado.":"Wuzimu em prévia local com as animações atuais."):"Não foi possível trocar agora. Guarde a arma, fique a pé e aguarde terminar a ação atual.");
+            SystemLine(changed?(restored?"Personagem padrão restaurado.":"Personagem SA em teste local: parado e caminhada. Use /skin padrao para voltar."):"Não foi possível trocar agora. Guarde a arma, fique a pé e aguarde terminar a ação atual.");
             return;
         }
-        if(localCommand=="/arma"||localCommand=="/rifle"||localCommand=="/desarmar")
+        if(localCommand=="/arma"||localCommand=="/rifle"||localCommand=="/pistola"||localCommand=="/desarmar")
         {
             input.value="";Close();
             var player=GameHud.Instance?GameHud.Instance.Player:null;
@@ -142,8 +142,9 @@ public sealed class InGameChat : MonoBehaviour
             {
                 var weapon=RifleWeapon.Create(player);
                 bool equipped=localCommand!="/desarmar"&&!weapon.Equipped;
-                if(weapon.SetEquipped(equipped))SystemLine(equipped?
-                    "Rifle equipado. Mouse direito: mirar · esquerdo/F: atirar · R: recarregar · /arma: guardar.":"Arma guardada.");
+                bool changed=localCommand=="/pistola"?weapon.SetWeaponType(true):localCommand=="/rifle"||localCommand=="/arma"&&!weapon.Equipped?weapon.SetWeaponType(false):weapon.SetEquipped(equipped);
+                if(changed)SystemLine(weapon.Equipped?
+                    (weapon.IsPistol?"Pistola equipada.":"Rifle equipado.")+" Mouse direito: mirar · esquerdo/F: atirar · R: recarregar · /arma: guardar.":"Arma guardada.");
             }
             input.value="";Close();return;
         }

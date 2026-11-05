@@ -14,12 +14,17 @@ public sealed class RifleAvatar : MonoBehaviour
     bool gripReady;
     bool equipped,aiming;
     bool receivedState;
-    public bool Visible=>weapon&&weapon.gameObject.activeSelf;
-    public Transform Muzzle=>muzzle;
-    public float GripError=>grip!=null?grip.RifleGripError:float.PositiveInfinity;
-    public bool Ready=>animator&&animator.isHuman&&carryLayer>=0&&armsLayer>=0&&weapon&&gripReady;
+    bool nativeRifle;
+    int legacyCarry=-1,legacyArms=-1,legacyFire=-1;
+    PistolAvatar pistol;
+    bool pistolMode;
+    public bool Visible=>pistolMode?pistol&&pistol.Visible:weapon&&weapon.gameObject.activeSelf;
+    public Transform Muzzle=>pistolMode?pistol?.Muzzle:muzzle;
+    public float GripError=>pistolMode?pistol?pistol.GripSurfaceGap:float.PositiveInfinity:grip!=null?grip.RifleGripError:float.PositiveInfinity;
+    public bool Ready=>pistolMode?pistol&&pistol.Ready:animator&&animator.isHuman&&carryLayer>=0&&(nativeRifle||armsLayer>=0)&&weapon&&gripReady;
     public int ShotAnimationStarts {get;private set;}
-    public float LowReadyAngle=>35f*Mathf.SmoothStep(0,1,lowReady);
+    public float LowReadyAngle=>nativeRifle?0:35f*Mathf.SmoothStep(0,1,lowReady);
+    public float PistolReloadDuration=>pistol?pistol.ReloadDuration:1.5f;
 
     public void Configure(Animator target,Transform root)
     {
@@ -27,6 +32,9 @@ public sealed class RifleAvatar : MonoBehaviour
         Clear();animator=target;owner=root;
         if(!animator||!animator.isHuman||!owner)return;
         carryLayer=animator.GetLayerIndex("Rifle");armsLayer=animator.GetLayerIndex("RifleArms");fireLayer=animator.GetLayerIndex("RifleFire");
+        legacyCarry=carryLayer;legacyArms=armsLayer;legacyFire=fireLayer;
+        int revised=animator.GetLayerIndex("SARifle");nativeRifle=revised>=0;
+        if(nativeRifle){carryLayer=revised;armsLayer=-1;fireLayer=animator.GetLayerIndex("SARifleFire");}
         var prefab=Resources.Load<GameObject>("Weapons/Rifle/Rifle");
         if(!prefab)return;
         weapon=Instantiate(prefab,owner,false).transform;weapon.name="Rifle equipado";
@@ -37,8 +45,9 @@ public sealed class RifleAvatar : MonoBehaviour
         weapon.gameObject.SetActive(false);
     }
 
-    public void Apply(bool equipped,bool aiming,int shotSequence,float pitch,float speed)
+    public void Apply(bool equipped,bool aiming,int shotSequence,float pitch,float speed,float reloadProgress=-1f)
     {
+        if(pistolMode){pistol?.Apply(equipped,aiming,pitch,speed,reloadProgress);this.equipped=false;lastShot=shotSequence;receivedState=true;return;}
         this.equipped=equipped;this.aiming=aiming;
         this.pitch=Mathf.Clamp(pitch,-60,60);this.speed=Mathf.Max(0,speed);
         if(!receivedState){lastShot=shotSequence;receivedState=true;}
@@ -50,6 +59,7 @@ public sealed class RifleAvatar : MonoBehaviour
 
     public void PlayShot(int sequence=-1)
     {
+        if(pistolMode)return;
         if(sequence>=0)
         {
             if(receivedState&&sequence<=lastShot)return;
@@ -64,7 +74,7 @@ public sealed class RifleAvatar : MonoBehaviour
         {
             // Advance the current shot even while its layer is hidden by the
             // moving gait. Stopping cannot reveal a shot left from an old burst.
-            animator.Play("RifleFire.Shot",fireLayer,FireStart);
+            animator.Play(nativeRifle?"SARifleFire.Shot":"RifleFire.Shot",fireLayer,FireStart);
             animator.SetLayerWeight(fireLayer,speed<.2f?1:0);ShotAnimationStarts++;
         }
     }
@@ -72,10 +82,21 @@ public sealed class RifleAvatar : MonoBehaviour
     void Update()=>PrepareAnimationFrame(Time.deltaTime);
     public void PrepareAnimationFrame(float delta)
     {
+        if(pistolMode){pistol?.PrepareFrame(delta);return;}
         if(!animator||!owner||!weapon)return;
         delta=Mathf.Clamp(delta,0,.1f);fireAge+=delta;recoilAge+=delta;
         bool busy=animator.TryGetComponent<CombatAvatarAnimation>(out var combat)&&combat.Busy;
         bool active=equipped&&!busy&&gripReady;
+        if(nativeRifle)
+        {
+            foreach(int index in new[]{legacyCarry,legacyArms,legacyFire})if(index>=0)animator.SetLayerWeight(index,0);
+            bool allowed=active&&!animator.GetBool("Jumping");
+            weapon.gameObject.SetActive(allowed);weight=busy?0:Mathf.MoveTowards(weight,allowed?1:0,delta*9f);
+            animator.SetLayerWeight(carryLayer,allowed?weight:0);animator.SetBool("SARifleAim",aiming||recoilAge<.30f);
+            animator.SetFloat("SARifleSpeed",speed,.09f,Mathf.Max(.001f,delta));
+            if(fireLayer>=0)animator.SetLayerWeight(fireLayer,allowed?Mathf.Clamp01((FireActiveLength-fireAge)/.07f):0);
+            return;
+        }
         weapon.gameObject.SetActive(active);
         weight=Mathf.MoveTowards(weight,active?1:0,delta*9f);
         bool relaxed=active&&!aiming&&recoilAge>.30f&&speed<.2f&&!animator.GetBool("Jumping");
@@ -99,6 +120,7 @@ public sealed class RifleAvatar : MonoBehaviour
     void LateUpdate()=>ApplyAttachmentPose();
     public void ApplyAttachmentPose()
     {
+        if(pistolMode){pistol?.Attach();return;}
         if(!Ready||!weapon.gameObject.activeSelf)return;
         float recoil=recoilAge<.045f?Mathf.Clamp01(recoilAge/.045f):1-Mathf.Clamp01((recoilAge-.045f)/.13f);
         if(aiming||recoil>0)
@@ -130,4 +152,16 @@ public sealed class RifleAvatar : MonoBehaviour
         weapon=muzzle=null;grip=null;weight=lowReady=0;gripReady=false;
     }
     void OnDestroy()=>Clear();
+    public void SetPistolMode(bool value)
+    {
+        if(pistolMode==value&&(!value||pistol))return;
+        pistolMode=value;
+        if(animator)
+        {
+            foreach(int index in new[]{carryLayer,armsLayer,fireLayer})if(index>=0)animator.SetLayerWeight(index,0);
+            if(weapon)weapon.gameObject.SetActive(false);
+            if(value){pistol=GetComponent<PistolAvatar>()??gameObject.AddComponent<PistolAvatar>();pistol.Configure(animator,owner);}
+            else if(pistol){pistol.Apply(false,false,0,0);pistol.PrepareFrame(.1f);}
+        }
+    }
 }

@@ -14,7 +14,7 @@ using UnityEngine.Networking;
 }
 [Serializable] public class MultiplayerPeer
 {
-    public string characterId,uid,name,firstName,gender,model,policeCarId;
+    public string characterId,uid,name,firstName,gender,model,policeCarId,weaponType;
     public int sequence;
     public int adminLevel;
     public long updatedAt;
@@ -83,6 +83,7 @@ using UnityEngine.Networking;
     public bool policeVehicleAvailable;
     public bool combatAvailable;
     public bool weaponStateAvailable;
+    public bool pistolStateAvailable;
     public bool rifleDamageAvailable,respawnAvailable;
     public CombatState selfCombat;
     public CombatPeerState[] combatPeers;

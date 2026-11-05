@@ -62,14 +62,29 @@ public sealed class ShootingGrip
             return Mathf.Max(rightError,leftError);
         }
     }
+    public float PistolGripSurfaceGap
+    {
+        get
+        {
+            if(right==null||!weapon)return float.PositiveInfinity;
+            float gap=float.MaxValue;var palm=right.hand.TransformPoint(right.palmCenter);
+            foreach(var skin in weapon.GetComponentsInChildren<SkinnedMeshRenderer>())
+            {
+                var mesh=new Mesh();
+                try{skin.BakeMesh(mesh);foreach(var v in mesh.vertices)gap=Mathf.Min(gap,Vector3.Distance(palm,PistolAvatar.BakedWeaponPoint(skin,v)));}
+                finally{if(Application.isPlaying)Object.Destroy(mesh);else Object.DestroyImmediate(mesh);}
+            }
+            return gap;
+        }
+    }
 
-    public bool Configure(Animator animator, Transform pistol, Transform muzzle, Transform playerRoot)
+    public bool Configure(Animator animator, Transform pistol, Transform muzzle, Transform playerRoot, bool applyLegacyPistolSeat=true)
     {
         if (!animator || !animator.isHuman || !pistol || !playerRoot) return false;
         root = playerRoot;
         weapon = pistol;
         var model = pistol.Find("Colt Pocket Hammer");
-        if (model)
+        if (model && applyLegacyPistolSeat)
         {
             // The magazine marker is ahead of the actual backstrap. Seat the
             // physical handle in the palm, below the slide and behind the trigger.
@@ -106,6 +121,27 @@ public sealed class ShootingGrip
         return animator.avatar.name+"|"+right.upper.name+"|"+right.lower.name+"|"+right.hand.name;
     }
 
+    public RifleSocketPose CaptureAuthoredPistol(Animator animator,Quaternion rotation)
+        =>new RifleSocketPose{avatarKey=AuthoredAvatarKey(animator),weaponInRightHand=Quaternion.Inverse(right.hand.rotation)*rotation,
+            leftHandInWeapon=Quaternion.Inverse(rotation)*left.hand.rotation};
+
+    public bool ConfigureAuthoredPistol(Animator animator,Transform pistol,Transform playerRoot)
+    {
+        if(!Configure(animator,pistol,pistol?pistol.Find("Muzzle"):null,playerRoot,false))return false;
+        var json=Resources.Load<TextAsset>("SAExpanded/PistolSockets");
+        var data=json?JsonUtility.FromJson<RifleSocketCalibrationData>(json.text):null;
+        authoredSocket=data?.entries==null?null:System.Array.Find(data.entries,p=>p.avatarKey==AuthoredAvatarKey(animator));
+        return authoredSocket!=null;
+    }
+    public void ApplyAuthoredPistol(bool aiming,float pitch,float recoil)
+    {
+        if(authoredSocket==null||right==null||!weapon)return;
+        var rotation=right.hand.rotation*authoredSocket.weaponInRightHand;
+        weapon.SetPositionAndRotation(right.hand.TransformPoint(right.palmCenter),rotation);
+        // colt45_fire is a one-handed pistol track. Its free arm remains authored.
+        foreach(var finger in right.fingers)PoseFinger(finger);
+    }
+
     // Called on an isolated avatar sampled in the authored idle pose. This is
     // a fixed socket calibration, never a replacement for the right arm pose.
     public RifleSocketPose CaptureAuthoredRifle(Animator animator,Quaternion weaponWorldRotation)
@@ -127,7 +163,7 @@ public sealed class ShootingGrip
     {
         authoredSocket=null;authoredSupport=null;
         if(!Configure(animator,rifle,rifle?rifle.Find("Muzzle"):null,playerRoot))return false;
-        var json=Resources.Load<TextAsset>("Weapons/Rifle/SocketCalibration");
+        var json=Resources.Load<TextAsset>("SAExpanded/RifleSockets")??Resources.Load<TextAsset>("Weapons/Rifle/SocketCalibration");
         if(!json)return false;
         var data=JsonUtility.FromJson<RifleSocketCalibrationData>(json.text);
         string key=AuthoredAvatarKey(animator);

@@ -7,6 +7,7 @@ public sealed class RifleWeapon : MonoBehaviour
 {
     public static RifleWeapon Instance {get;private set;}
     public bool Equipped {get;private set;}
+    public bool IsPistol {get;private set;}
     public bool Aiming {get;private set;}
     public int ShotSequence {get;private set;}
     public float AimPitch=>orbit?orbit.pitch:0;
@@ -20,7 +21,7 @@ public sealed class RifleWeapon : MonoBehaviour
     Label counter;
     bool heldFire,mobileAim;
     int firePointer=-1;
-    float nextShot,reloadUntil;
+    float nextShot,reloadStarted,reloadUntil;
     AudioSource audioSource;
     AudioClip shotSound;
 
@@ -51,6 +52,13 @@ public sealed class RifleWeapon : MonoBehaviour
             visual=player.animator.GetComponent<RifleAvatar>()??player.animator.gameObject.AddComponent<RifleAvatar>();
             visual.Configure(player.animator,player.transform);
         }
+        visual.SetPistolMode(IsPistol);
+    }
+    public bool SetWeaponType(bool pistol)
+    {
+        if(Blocked)return false;
+        if(Equipped)SetEquipped(false);
+        IsPistol=pistol;return SetEquipped(true);
     }
     void Update()
     {
@@ -59,11 +67,12 @@ public sealed class RifleWeapon : MonoBehaviour
         if(player.Health<=0||player.IsCuffed||player.InPoliceCar||PoliceVehicleController.BlocksPlayer(player)||
             MissionVehicle.Driver==player||(ShootingRange.Instance&&ShootingRange.Instance.IsActive))
         {SetEquipped(false);return;}
+        if(reloadUntil>0&&!Reloading){Ammo=30;reloadUntil=0;}
         bool blocked=Blocked;
         if(blocked)heldFire=false;
         bool mouseAim=!MobileControls.HasTouches&&Input.GetMouseButton(1)&&
             (!GameHud.Instance||!GameHud.Instance.BlocksPointer(Input.mousePosition));
-        SetAiming(!blocked&&(mouseAim||mobileAim||heldFire||Time.unscaledTime-nextShot<.12f));
+        SetAiming(!blocked&&!(IsPistol&&Reloading)&&(mouseAim||mobileAim||heldFire||Time.unscaledTime-nextShot<.12f));
         if(!blocked)
         {
             if(Input.GetKeyDown(KeyCode.R))Reload();
@@ -71,8 +80,8 @@ public sealed class RifleWeapon : MonoBehaviour
                 (!GameHud.Instance||!GameHud.Instance.BlocksPointer(Input.mousePosition));
             if(heldFire||mouseFire||Input.GetKeyDown(KeyCode.F))RequestFire();
         }
-        if(reloadUntil>0&&!Reloading){Ammo=30;reloadUntil=0;}
-        visual?.Apply(Equipped,Aiming,ShotSequence,AimPitch,player.CurrentSpeed);
+        float reloadProgress=IsPistol&&Reloading?Mathf.Clamp01((Time.unscaledTime-reloadStarted)/(reloadUntil-reloadStarted)):-1f;
+        visual?.Apply(Equipped,Aiming,ShotSequence,AimPitch,player.CurrentSpeed,reloadProgress);
         Refresh();
     }
     void SetAiming(bool value)
@@ -115,7 +124,16 @@ public sealed class RifleWeapon : MonoBehaviour
     }
     static Material tracerMaterial;
     static Material TracerMaterial=>tracerMaterial?tracerMaterial:(tracerMaterial=new Material(Shader.Find("Sprites/Default")));
-    public void Reload(){if(Equipped&&!Blocked&&!Reloading&&Ammo<30){reloadUntil=Time.unscaledTime+1.5f;heldFire=false;Refresh();}}
+    public void Reload()
+    {
+        if(!Equipped||Blocked||Reloading||Ammo>=30)return;
+        EnsureVisual();
+        reloadStarted=Time.unscaledTime;
+        reloadUntil=reloadStarted+(IsPistol&&visual?visual.PistolReloadDuration:1.5f);
+        heldFire=false;
+        if(IsPistol)SetAiming(false);
+        Refresh();
+    }
     void BuildInterface()
     {
         overlay=new VisualElement{name="rifle-controls",pickingMode=PickingMode.Ignore};
@@ -160,7 +178,7 @@ public sealed class RifleWeapon : MonoBehaviour
         foreach(var control in new VisualElement[]{fireButton,aimButton,reloadButton})
             if(control!=null)control.style.display=show?DisplayStyle.Flex:DisplayStyle.None;
         if(cross!=null)cross.style.display=Aiming?DisplayStyle.Flex:DisplayStyle.None;
-        if(counter!=null)counter.text=Reloading?"RECARREGANDO":"RIFLE  ·  "+Ammo.ToString("D2")+" / 30";
+        if(counter!=null)counter.text=Reloading?"RECARREGANDO":(IsPistol?"PISTOLA":"RIFLE")+"  ·  "+Ammo.ToString("D2")+" / 30";
     }
     void CreateSound()
     {
@@ -170,6 +188,6 @@ public sealed class RifleWeapon : MonoBehaviour
         shotSound=AudioClip.Create("Rifle · disparo",samples.Length,1,rate,false);shotSound.SetData(samples,0);
     }
     void OnApplicationFocus(bool focused){if(!focused){heldFire=mobileAim=false;SetAiming(false);}}
-    void OnDisable(){heldFire=mobileAim=false;SetAiming(false);Equipped=false;visual?.Apply(false,false,ShotSequence,0,0);Refresh();}
+    void OnDisable(){heldFire=mobileAim=false;reloadUntil=0;SetAiming(false);Equipped=false;visual?.Apply(false,false,ShotSequence,0,0);Refresh();}
     void OnDestroy(){if(Instance==this)Instance=null;if(overlay!=null)overlay.RemoveFromHierarchy();if(shotSound)Destroy(shotSound);}
 }

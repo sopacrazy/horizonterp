@@ -37,6 +37,16 @@ public static class AndroidSetup
         PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.Android,false);
         PlayerSettings.SetGraphicsAPIs(BuildTarget.Android,new[]{GraphicsDeviceType.OpenGLES3});
         PlayerSettings.Android.useCustomKeystore=false;
+        var releaseKeystore=Environment.GetEnvironmentVariable("HORIZONTE_ANDROID_KEYSTORE");
+        if(!string.IsNullOrEmpty(releaseKeystore))
+        {
+            if(!File.Exists(releaseKeystore))throw new FileNotFoundException("Chave de assinatura Android ausente.",releaseKeystore);
+            PlayerSettings.Android.useCustomKeystore=true;
+            PlayerSettings.Android.keystoreName=releaseKeystore;
+            PlayerSettings.Android.keystorePass="android";
+            PlayerSettings.Android.keyaliasName="androiddebugkey";
+            PlayerSettings.Android.keyaliasPass="android";
+        }
         EditorUserBuildSettings.buildAppBundle=false;
         Directory.CreateDirectory("Builds/Android");
         var report=BuildPipeline.BuildPlayer(new BuildPlayerOptions{

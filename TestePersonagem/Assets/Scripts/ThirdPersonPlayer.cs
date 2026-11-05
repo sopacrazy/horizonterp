@@ -186,7 +186,10 @@ public partial class ThirdPersonPlayer : MonoBehaviour
         if(landed)
         {
             animator.SetFloat("Speed",CurrentSpeed);
-            animator.CrossFadeInFixedTime("Locomocao",.06f,0);
+            float landingBlend = .06f;
+            foreach (var info in animator.GetCurrentAnimatorClipInfo(0))
+                if (info.clip && info.clip.name == "PuloSA") landingBlend = .18f;
+            animator.CrossFadeInFixedTime("Locomocao",landingBlend,0);
         }
         else animator.SetFloat("Speed", CurrentSpeed, .12f, Time.deltaTime);
         float fallLimit = NeighborhoodMap.Active && NeighborhoodMap.Active.isOfficialCity ? NeighborhoodMap.Active.minY : -10;

@@ -23,8 +23,20 @@ public static class CombatAnimationImport
     }
 
     static string PathFor(string name)=>"Assets/Resources/Combat/"+name+".fbx";
-    static AnimationClip Clip(string name)=>AssetDatabase.LoadAllAssetsAtPath(PathFor(name))
-        .OfType<AnimationClip>().FirstOrDefault(clip=>clip.name==name);
+    static AnimationClip Clip(string name)
+    {
+        if(name=="HitReaction")
+        {
+            var reaction=AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/Resources/SAExpanded/HitReaction_Personagem.anim");
+            if(reaction&&reaction.humanMotion)return reaction;
+        }
+        if(name=="PunchCombo")
+        {
+            var fightB=AssetDatabase.LoadAssetAtPath<AnimationClip>("Assets/Resources/Combat/FightBCombo_Personagem.anim");
+            if(fightB&&fightB.humanMotion)return fightB;
+        }
+        return AssetDatabase.LoadAllAssetsAtPath(PathFor(name)).OfType<AnimationClip>().FirstOrDefault(clip=>clip.name==name);
+    }
 
     static void Prepare(string name)
     {

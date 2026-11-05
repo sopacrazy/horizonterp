@@ -6,6 +6,8 @@ parser.add_argument('--version',default='0.4.0')
 parser.add_argument('--version-code',type=int,default=6)
 parser.add_argument('--log',default='horizonte-online-040-android.log')
 parser.add_argument('--apk',type=Path,default=None)
+parser.add_argument('--previous-apk',type=Path,help='Previously published APK used to verify update compatibility')
+parser.add_argument('--android-tools',type=Path,help='AndroidPlayer directory with SDK and OpenJDK')
 parser.add_argument('--chat',action='store_true')
 parser.add_argument('--updater',action='store_true')
 parser.add_argument('--stairs',action='store_true')
@@ -22,6 +24,7 @@ parser.add_argument('--realtime',action='store_true')
 parser.add_argument('--female-character',action='store_true')
 parser.add_argument('--rifle',action='store_true')
 parser.add_argument('--named-access',action='store_true')
+parser.add_argument('--sa-animations',action='store_true',help='Verify new San Andreas character and weapon clips in the APK')
 args=parser.parse_args()
 assert re.fullmatch(r'\d+\.\d+\.\d+',args.version)
 verify_female=args.female_character or tuple(map(int,args.version.split('.'))) >= (0,7,4)
@@ -32,8 +35,8 @@ rifle_feature=named_access=None
 
 root=Path(__file__).resolve().parents[1]
 apk=args.apk.resolve() if args.apk else root/'TestePersonagem/Builds/Android/TestePersonagem.apk'
-old=root/'TestePersonagem/Builds/Android/HorizonteBrasil-0.5.9.apk'
-android_tools=root/'tools/android'
+old=args.previous_apk.resolve() if args.previous_apk else root/'TestePersonagem/Builds/Android/HorizonteBrasil-0.5.9.apk'
+android_tools=args.android_tools or root/'tools/android'
 if not (android_tools/'SDK').is_dir():
     android_tools=Path(r'C:\Program Files\Unity\Hub\Editor\6000.6.7f1-x86_64\Editor\Data\PlaybackEngines\AndroidPlayer')
 sdk=android_tools/'SDK/build-tools/36.0.0'
@@ -113,6 +116,15 @@ with zipfile.ZipFile(apk) as archive:
     if verify_named_feature:
         from verify_apk_character import verify_named_access
         named_access=verify_named_access(metadata)
+    if args.sa_animations:
+        assert 'environment' in globals(),'Animation verification requires Unity asset data'
+        clips={obj.peek_name() for obj in environment.objects if obj.type.name=='AnimationClip'}
+        required={'ParadoSA','AndarSA','CorrerSA','PuloSA','PunchCombo','HitReactionSA',
+                  'PistolIdle','PistolWalk','PistolRun','PistolAim','PistolAimWalk','PistolReload',
+                  'RifleIdle','RifleWalk','RifleRun','RifleAim','RifleAimWalk','RifleShoot'}
+        assert required<=clips,'Missing animation clips: '+', '.join(sorted(required-clips))
+        for feature in [b'SAPistolReloadProgress',b'PistolAvatar',b'hitReactions']:
+            assert feature in metadata,'Missing animation integration: '+str(feature)
     if args.realtime:
         for feature in [b'RealtimeMovement',b'UtpMovementClient',b'UnreliableSequencedPipelineStage',b'VivoxVoice',b'IVivoxTokenProvider',b'VoicePcmBuffer',b'MinimapHeading']:
             assert feature in metadata,'Missing realtime integration: '+str(feature)
