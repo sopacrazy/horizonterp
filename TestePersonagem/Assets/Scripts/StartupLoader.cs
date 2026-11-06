@@ -15,7 +15,7 @@ public sealed class StartupLoader : MonoBehaviour
     static StartupLoader activeLoader;
     float started,opacity=1;
     string status="PREPARANDO A CIDADE";
-    GUIStyle label,percent,version;
+    string detail="Carregando o cenário";
 
     void Awake()
     {
@@ -38,41 +38,40 @@ public sealed class StartupLoader : MonoBehaviour
             yield return SceneManager.LoadSceneAsync(cityScene,LoadSceneMode.Single);
             IsLoading=false;Music.Stop();Destroy(gameObject);yield break;
         }
-        // Display the artwork before starting the asynchronous scene load.
-        yield return null;
+        yield return new WaitForSecondsRealtime(.75f);
         bool verifySession=System.Array.IndexOf(System.Environment.GetCommandLineArgs(),"--verify-sa-session")>=0;
         if(verifySession)RememberedCityEntryVerification.Install();
         else
         {
             var updater=gameObject.AddComponent<GameUpdater>();
-            yield return updater.Check((message,value)=>{status=message;Progress=value;Music.volume=.6f;});
+            yield return updater.Check((message,value)=>{status="DADOS DO JOGO";detail=message;Progress=value;Music.volume=.6f;});
         }
-        status="PREPARANDO A CIDADE";Progress=0;
+        status="PREPARANDO A CIDADE";detail="Carregando o cenário";Progress=0;
         var load=SceneManager.LoadSceneAsync(cityScene,LoadSceneMode.Single);
         if(load==null){status="NÃO FOI POSSÍVEL CARREGAR A CIDADE";yield break;}
         load.allowSceneActivation=false;
         while(load.progress<.9f || Time.realtimeSinceStartup-started<minimumSeconds)
         {
             float elapsed=Time.realtimeSinceStartup-started;
-            Progress=Mathf.Min(Mathf.Clamp01(elapsed/minimumSeconds),Mathf.Clamp01(load.progress/.9f))*.94f;
+            Progress=Mathf.Clamp01(load.progress/.9f);
             Music.volume=Mathf.Min(elapsed/.4f,1)*.6f;
             yield return null;
         }
         Music.volume=.6f;
         yield return AccountSession.Ensure().RequireLogin(loginArtwork ? loginArtwork : artwork);
         var transition=CityEntryLoading.Show();
-        float entering=Time.realtimeSinceStartup;
+        transition.Progress=.90f;
         status="FINALIZANDO";Progress=.96f;
-        transition.Progress=.15f;
         load.allowSceneActivation=true;
         while(!load.isDone)yield return null;
         // Let Awake/Start, the HUD and the first gameplay render finish behind the artwork.
         yield return null;
         yield return new WaitForEndOfFrame();
+        transition.Detail="Preparando as ruas e o ponto de chegada";
+        transition.Progress=.96f;
         while (IntegratedMapEntry.Loading) yield return null;
         Progress=1;status="TUDO PRONTO";
-        while(Time.realtimeSinceStartup-entering<1.6f)
-        {transition.Progress=Mathf.Lerp(.35f,1,Mathf.Clamp01((Time.realtimeSinceStartup-entering)/1.6f));yield return null;}
+        transition.Detail="Tudo pronto";
         transition.Progress=1;
         float fade=0;
         while(fade<.45f)
@@ -93,40 +92,8 @@ public sealed class StartupLoader : MonoBehaviour
     {
         if(CityEntryLoading.Active || (AccountSession.Instance && AccountSession.Instance.AuthVisible))return;
         GUI.depth=-1000;
-        GUI.color=new Color(1,1,1,opacity);
-        float scale=Screen.height/720f;
-        var screen=new Rect(0,0,Screen.width,Screen.height);
-        GUI.DrawTexture(screen,Texture2D.blackTexture);
-        var artRect=screen;
-        if(artwork)
-        {
-            float artScale=Mathf.Min(Screen.width/(float)artwork.width,Screen.height/(float)artwork.height);
-            artRect=new Rect((Screen.width-artwork.width*artScale)*.5f,(Screen.height-artwork.height*artScale)*.5f,artwork.width*artScale,artwork.height*artScale);
-            GUI.DrawTexture(artRect,artwork,ScaleMode.StretchToFill);
-        }
-        Rect safe=Screen.safeArea;
-        float width=Mathf.Min(safe.width-48*scale,artRect.width*.34f);
-        float left=artRect.center.x-width/2;
-        // Place the bar immediately below BRASIL RP in the supplied artwork.
-        float barY=artRect.y+artRect.height*.862f;
-        if(label==null)
-        {
-            label=new GUIStyle(GUI.skin.label){fontStyle=FontStyle.Normal};
-            label.normal.textColor=new Color(.88f,.88f,.88f);
-            percent=new GUIStyle(label){alignment=TextAnchor.UpperRight};
-            version=new GUIStyle(label){alignment=TextAnchor.UpperCenter};
-        }
-        label.fontSize=percent.fontSize=version.fontSize=Mathf.Max(10,Mathf.RoundToInt(11*scale));
-        GUI.color=new Color(1,1,1,opacity);
-        GUI.Label(new Rect(left,barY-22*scale,width,20*scale),status,label);
-        GUI.Label(new Rect(left,barY-22*scale,width,20*scale),$"{Mathf.FloorToInt(Progress*100)}%",percent);
-        GUI.color=new Color(.12f,.035f,.045f,opacity*.95f);
-        GUI.DrawTexture(new Rect(left,barY,width,5*scale),Texture2D.whiteTexture);
-        GUI.color=new Color(.91f,.075f,.11f,opacity);
-        GUI.DrawTexture(new Rect(left,barY,width*Progress,5*scale),Texture2D.whiteTexture);
-        GUI.color=new Color(1,1,1,opacity);
-        GUI.Label(new Rect(left,barY+12*scale,width,22*scale),"v"+Application.version,version);
-        GUI.color=Color.white;
+        bool splash=Time.realtimeSinceStartup-started<.75f;
+        HorizonteEntryVisuals.DrawLoading(splash?"Carregando o launcher":status,detail,Progress,opacity,splash);
     }
     void OnDestroy(){if(activeLoader==this){activeLoader=null;IsLoading=false;}}
 }

@@ -101,10 +101,13 @@ public sealed class AdminHelpPanel : MonoBehaviour
             var top = Box("help-row-top", row);
             Text(item.usage ?? "/?", "help-usage", top);
             var permissionState=AccountSession.Instance.State;
+            bool policeMember=permissionState.organization?.code=="pm"&&permissionState.adminLevel!=4;
+            bool policeAccess=policeMember||AdminPermissions.CanUseTools(permissionState);
             bool locked = item.group=="Administração"
                 ?!AdminPermissions.CanUseAdminCommand(permissionState,item.usage,item.level)
-                :permissionState.adminLevel!=1&&(item.level>permissionState.adminLevel||(item.group=="Polícia"&&!AdminPermissions.CanUseTools(permissionState)));
-            bool offDuty = item.group == "Polícia" && !AdminPlayerPanel.PoliceDuty;
+                :item.group=="Polícia"&&(!policeAccess||(item.usage??"").StartsWith("/gov ",StringComparison.Ordinal)&&permissionState.adminLevel<1);
+            bool offDuty=item.group=="Polícia"&&!AdminPlayerPanel.PoliceDuty&&
+                (item.permission??"").Contains("em serviço");
             string state = !item.available ? "EM PREPARAÇÃO" : locked ? "NÍVEL INSUFICIENTE" : offDuty ? "FORA DE SERVIÇO" : "DISPONÍVEL";
             var badge = Text(state, "help-badge", top);
             if (item.available && !locked && !offDuty) badge.AddToClassList("help-badge-ready");

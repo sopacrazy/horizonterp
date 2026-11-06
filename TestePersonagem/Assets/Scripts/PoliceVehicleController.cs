@@ -32,6 +32,10 @@ public sealed class PoliceVehicleController : MonoBehaviour
     bool exiting,exitPending,exitReplyLost,oldCombat,oldController,oldVisible;
     Vector3 exitPoint;
     Quaternion exitRotation;
+    Light redBeacon,blueBeacon;
+    AudioSource emergencyAudio;
+    bool lightbarEnabled;
+    static AudioClip emergencyClip;
     public void Initialize(string id,PoliceCarRig model,PoliceSeatAvatar avatar)
     {
         Id=id;rig=model;seat=avatar;
@@ -42,6 +46,7 @@ public sealed class PoliceVehicleController : MonoBehaviour
     }
     public void ApplyState(PoliceCarState state,ThirdPersonPlayer owner=null,string selfCarId=null,Vector3? serverPosition=null)
     {
+        ApplyEmergencyEquipment(state.lightbar,state.siren);
         if(LocalPreview||selfCarId==null||!AccountSession.HasCharacter)return;
         bool ours=selfCarId==Id&&state.driverUid==AccountSession.Instance.State.uid;
         // A sync can confirm a successful action even when its HTTP reply was lost.
@@ -54,6 +59,72 @@ public sealed class PoliceVehicleController : MonoBehaviour
             if(exitPending)StartCoroutine(FinishExit(ResolveExit(serverPosition)));
             else if(!Busy)Abort();
         }
+    }
+    void ApplyEmergencyEquipment(bool lightbar,bool siren)
+    {
+        lightbarEnabled=lightbar;
+        if(lightbar&&!redBeacon)
+        {
+            redBeacon=CreateBeacon("Giroflex vermelho",new Color(1f,.035f,.02f),-.33f);
+            blueBeacon=CreateBeacon("Giroflex azul",new Color(.04f,.32f,1f),.33f);
+        }
+        if(redBeacon)
+        {
+            redBeacon.enabled=lightbar;
+            blueBeacon.enabled=lightbar;
+        }
+        if(siren&&!emergencyAudio)
+        {
+            emergencyAudio=gameObject.AddComponent<AudioSource>();
+            emergencyAudio.playOnAwake=false;
+            emergencyAudio.loop=true;
+            emergencyAudio.spatialBlend=1f;
+            emergencyAudio.minDistance=3f;
+            emergencyAudio.maxDistance=65f;
+            emergencyAudio.volume=.36f;
+            emergencyAudio.clip=GetEmergencyClip();
+        }
+        if(!emergencyAudio)return;
+        if(siren&&!emergencyAudio.isPlaying)emergencyAudio.Play();
+        if(!siren&&emergencyAudio.isPlaying)emergencyAudio.Stop();
+    }
+
+    Light CreateBeacon(string label,Color color,float side)
+    {
+        var beacon=new GameObject(label);
+        beacon.transform.SetParent(transform,false);
+        beacon.transform.localPosition=new Vector3(side,rig.Dimensions.y+.12f,0);
+        var lamp=beacon.AddComponent<Light>();
+        lamp.type=LightType.Point;
+        lamp.color=color;
+        lamp.range=10f;
+        return lamp;
+    }
+
+    static AudioClip GetEmergencyClip()
+    {
+        if(emergencyClip)return emergencyClip;
+        const int rate=16000;
+        var samples=new float[rate*2];
+        double phase=0;
+        for(int i=0;i<samples.Length;i++)
+        {
+            double pitch=690+245*Math.Sin(2*Math.PI*i/samples.Length);
+            phase+=2*Math.PI*pitch/rate;
+            samples[i]=(float)(Math.Sin(phase)*.6+Math.Sin(phase*2)*.12);
+        }
+        emergencyClip=AudioClip.Create("Sirene PM",samples.Length,1,rate,false);
+        emergencyClip.SetData(samples,0);
+        return emergencyClip;
+    }
+
+    void LateUpdate()
+    {
+        if(driver&&!exiting&&!exitPending)driver.transform.SetPositionAndRotation(transform.position,transform.rotation);
+        if(!lightbarEnabled||!redBeacon)return;
+        bool red=(Mathf.FloorToInt(Time.unscaledTime*7f)&1)==0;
+        redBeacon.intensity=red?5f:0f;
+        blueBeacon.intensity=red?0f:5f;
     }
     public void RequestEnter(ThirdPersonPlayer player)
     {
@@ -190,7 +261,6 @@ public sealed class PoliceVehicleController : MonoBehaviour
         float distance=Vector3.ProjectOnPlane(transform.position-before,Vector3.up).magnitude;
         rig.RotateWheels(distance*Mathf.Sign(Speed),input.x);
     }
-    void LateUpdate(){if(driver&&!exiting&&!exitPending)driver.transform.SetPositionAndRotation(transform.position,transform.rotation);}
     void RestorePlayer()
     {
         if(driver)

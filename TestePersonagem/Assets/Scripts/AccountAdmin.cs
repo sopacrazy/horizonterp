@@ -51,7 +51,7 @@ public sealed partial class AccountSession
                 if(reply?.code=="CHARACTER_BLOCKED")InvalidateSession(reply.error);
                 else if(request.responseCode==401)yield return ConfirmSessionAfterUnauthorized(requestToken);
             }
-            if(reply?.code=="ADMIN_REQUIRED"&&State!=null){State.accountRole="user";State.adminLevel=0;}
+            if(reply?.code=="ADMIN_REQUIRED"&&State!=null&&path.StartsWith("/v1/admin/",StringComparison.Ordinal)){State.accountRole="user";State.adminLevel=0;}
             if(request.result!=UnityWebRequest.Result.Success&&string.IsNullOrEmpty(reply?.code))
                 reply=new AdminReply{code="CONNECTION_LOST",error="A resposta não chegou. Atualize a lista para confirmar o resultado."};
             done(reply??new AdminReply{code="CONNECTION_LOST",error="Não foi possível consultar os jogadores."});

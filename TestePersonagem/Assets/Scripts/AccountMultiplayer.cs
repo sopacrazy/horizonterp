@@ -50,7 +50,9 @@ using UnityEngine.Networking;
 [Serializable] public class VoicePacket {public int sequence;public string data;}
 [Serializable] public class AdminCommandReply
 {
-    public string name,status,message,uid,gender;
+    public string name,status,message,uid,gender,weapon,cashCents;
+    public PoliceDispatchCall[] policeCalls;
+    public PoliceFine[] policeFines;
     public string[] lines;
     public AdminHelpEntry[] help;
     public WantedEntry[] wanted;
@@ -69,16 +71,21 @@ using UnityEngine.Networking;
     public int stars;
 }
 [Serializable] public class AdminTeleport {public int id;public float x,y,z;}
+[Serializable] public class PoliceDispatchCall {public string uid,message,status;}
+[Serializable] public class PoliceFine {public string id,amount,reason,status;}
 [Serializable] public class PoliceCarState
 {
     public string id,ownerUid,occupantUid,occupantName,driverUid,driverName;
+    public bool lightbar,siren;
     public float x,y,z,yaw;
 }
 [Serializable] public class MultiplayerReply
 {
     public string room,error,code,chatEpoch;
     public int capacity,count,sequence,serverHour;
-    public bool hourOverride,selfCuffed,selfInPoliceCar;
+    public bool hourOverride,selfCuffed,selfInPoliceCar,selfPoliceDuty,selfPoliceDutyAvailable;
+    public long selfJailUntil;
+    public ApiOrganization selfOrganization;
     public bool voiceStateAvailable;
     public bool policeVehicleAvailable;
     public bool combatAvailable;

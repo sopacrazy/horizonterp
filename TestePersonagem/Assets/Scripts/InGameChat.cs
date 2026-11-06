@@ -140,6 +140,8 @@ public sealed class InGameChat : MonoBehaviour
             var player=GameHud.Instance?GameHud.Instance.Player:null;
             if(player)
             {
+                if(AdminPlayerPanel.PoliceDuty&&localCommand!="/desarmar")
+                {SystemLine("Use /arsenal na delegacia para retirar uma arma da PM.");return;}
                 var weapon=RifleWeapon.Create(player);
                 bool equipped=localCommand!="/desarmar"&&!weapon.Equipped;
                 bool changed=localCommand=="/pistola"?weapon.SetWeaponType(true):localCommand=="/rifle"||localCommand=="/arma"&&!weapon.Equipped?weapon.SetWeaponType(false):weapon.SetEquipped(equipped);
@@ -148,7 +150,16 @@ public sealed class InGameChat : MonoBehaviour
             }
             input.value="";Close();return;
         }
-        if(!VerifyingSend&&(!MultiplayerWorld.Instance||!MultiplayerWorld.Instance.Connected)){ShowHint("Aguarde a conexão com a sala.");return;}
+        QueueMessage(text);
+    }
+    internal void SendCommand(string command)
+    {
+        if(AccountSession.HasCharacter)QueueMessage(command);
+    }
+    void QueueMessage(string text)
+    {
+        if(!VerifyingSend&&(!MultiplayerWorld.Instance||!MultiplayerWorld.Instance.Connected))
+        {if(Editing)ShowHint("Aguarde a conexão com a sala.");else GameHud.Instance?.ShowToast("Aguarde a conexão com a sala.");return;}
         if(outgoing.Count>=20){ShowHint("Muitas mensagens na fila. Aguarde um instante.");return;}
         string id=Guid.NewGuid().ToString();bool command=text.StartsWith("/");
         bool admin=AccountSession.Instance.State.accountRole=="admin"&&AccountSession.Instance.State.adminLevel>0;
@@ -203,12 +214,33 @@ public sealed class InGameChat : MonoBehaviour
     void ShowHint(string value){hint.text=value;hint.style.display=string.IsNullOrEmpty(value)?DisplayStyle.None:DisplayStyle.Flex;}
     void HandleCommand(AdminCommandReply command)
     {
+        var player=GameHud.Instance?GameHud.Instance.Player:null;
         if(command.status=="open_help"&&GameHud.Instance)
             AdminHelpPanel.Open(GameHud.Instance,command.help);
         else if(command.name=="wanted"&&command.status=="ok"&&GameHud.Instance)
             WantedListPanel.Open(GameHud.Instance,command.wanted);
+        else if(command.status=="police_dispatch")
+            GameHud.Instance?.ShowPoliceDispatch(command.policeCalls);
+        else if(command.status=="police_fines")
+            GameHud.Instance?.ShowPoliceFines(command.policeFines);
+        else if(command.status=="police_map")
+            GameHud.Instance?.ShowPoliceWaypoint(new Vector3(command.x,command.y,command.z),command.name=="delegacia"?"DELEGACIA":"OCORRÊNCIA 190");
+        else if(command.status=="police_weapon"&&player)
+        {
+            var weapon=RifleWeapon.Create(player);
+            if(command.weapon=="guardar")weapon.SetEquipped(false);
+            else weapon.SetWeaponType(command.weapon=="pistola");
+        }
         else if(command.lines!=null)foreach(string line in command.lines){if(IsPlayerCommand(command.name))SystemLine(line);else AdminLine(line,IsPoliceCommand(command.name));}
-        var player=GameHud.Instance?GameHud.Instance.Player:null;
+        if((command.name=="proc"||command.name=="encerrar190")&&GameHud.Instance?.CurrentPanel=="police-dispatch")
+            SendCommand("/chamados");
+        if(command.name=="pagarmulta"&&GameHud.Instance?.CurrentPanel=="police-fines")
+            SendCommand("/minhasmultas");
+        if(player&&long.TryParse(command.cashCents,out long cash))
+        {
+            player.Cash=cash/100;
+            if(AccountSession.HasCharacter)AccountSession.Instance.State.cashCents=command.cashCents;
+        }
         if(command.status=="player_panel"&&GameHud.Instance)
         {
             string panel=command.name=="gps"?"map":command.name=="quests"?"missions":command.name=="stats"?"player":command.name=="phone"?"phone":"animations";
@@ -267,14 +299,17 @@ public sealed class InGameChat : MonoBehaviour
         var camera=FindAnyObjectByType<ThirdPersonCamera>();
         if(camera&&player){camera.target=player.transform;camera.ResetView();}
     }
-    static bool IsPlayerCommand(string name)=>name=="s"||name=="w"||name=="me"||name=="do"||name=="try"||name=="j"||name=="stats"||name=="myreports"||name=="report"||name=="gps"||name=="phone"||name=="mask"||name=="healme"||name=="house"||name=="biz"||name=="daily"||name=="quests"||name=="v"||name=="headmove"||name=="anim"||name=="ajuda";
+    static bool IsPlayerCommand(string name)=>name=="s"||name=="w"||name=="me"||name=="do"||name=="try"||name=="j"||name=="stats"||name=="myreports"||name=="report"||name=="gps"||name=="phone"||name=="mask"||name=="healme"||name=="house"||name=="biz"||name=="daily"||name=="quests"||name=="v"||name=="headmove"||name=="anim"||name=="ajuda"||name=="minhasmultas"||name=="pagarmulta"||name=="cancelar190";
     void LateUpdate()
     {
         if(!headMotionStopped||!fixedHead)return;
         var combat=fixedHead.GetComponentInParent<CombatAvatarAnimation>();
         if(!combat||!combat.Busy)fixedHead.localRotation=fixedHeadRotation;
     }
-    static bool IsPoliceCommand(string name)=>name=="ide"||name=="wanted"||name=="su"||name=="clear"||name=="cuff"||name=="uncuff"||name=="follow"||name=="stay"||name=="put"||name=="eject"||name=="carpolicia"||name=="ticket"||name=="proc"||name=="megaphone"||name=="faction"||name=="departments"||name=="government";
+    static bool IsPoliceCommand(string name)=>name=="ide"||name=="wanted"||name=="su"||name=="clear"||name=="cuff"||name=="uncuff"||name=="follow"||name=="stay"||name=="put"||name=="eject"||name=="carpolicia"||name=="ticket"||name=="proc"||name=="megaphone"||name=="faction"||name=="departments"||name=="government"||
+        name=="servico"||name=="pmrecrutar"||name=="pmpatente"||name=="pmdemitir"||name=="delegacia"||name=="prender"||
+        name=="ocorrencias"||name=="chamados"||name=="despachar190"||name=="gpsocorrencia"||name=="encerrar190"||name=="cancelarmulta"||name=="revistar"||
+        name=="documentos"||name=="placa"||name=="apreender"||name=="arsenal"||name=="giroflex"||name=="sirene";
     void AdminLine(string text,bool police=false)
     {lines.Add(new ChatLine{text=(police?"[POLÍCIA] ":"[ADMIN] ")+text,kind="admin"});TrimLines();Render();}
     public void Receive(ChatMessage message)

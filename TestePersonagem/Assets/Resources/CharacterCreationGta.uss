@@ -1,0 +1,58 @@
+.character-lobby.character-create-mode .character-garage-shade { background-color: rgba(3, 7, 13, .24); }
+.character-lobby.character-create-mode .character-shell { max-width: none; width: 100%; min-height: 100%; padding: 12px 28px 12px; }
+.character-lobby.character-create-mode .character-header { min-height: 42px; align-items: flex-start; }
+.character-lobby.character-create-mode .character-header-title { display: none; }
+.character-lobby.character-create-mode .character-body { flex-grow: 1; align-items: stretch; }
+.character-lobby.character-create-mode .character-stage { min-height: 420px; margin-right: 0; overflow: hidden; }
+.character-lobby.character-create-mode .character-stage-image { top: 0; bottom: 0; }
+.character-stage-index { position: absolute; top: 25px; left: 25px; color: rgb(250, 221, 145); font-size: 11px; letter-spacing: 2px; -unity-font-style: bold; }
+.character-stage-title { position: absolute; top: 48px; left: 20px; color: rgba(255, 255, 255, .19); font-size: 68px; -unity-font-style: bold-and-italic; letter-spacing: -3px; }
+.character-lobby.character-create-mode .character-preview-name { bottom: 18px; left: 25px; max-width: 80%; padding: 8px 16px; border-left-width: 5px; border-left-color: rgb(245, 46, 52); border-bottom-width: 0; border-radius: 0; background-color: rgba(3, 6, 11, .82); font-size: 17px; letter-spacing: 1px; }
+.character-lobby.character-create-mode .character-identity { width: 42%; max-width: 560px; min-width: 375px; margin: 0; padding: 16px 22px 14px; flex-shrink: 0; justify-content: flex-start; background-color: rgba(3, 8, 15, .89); border-width: 0; border-left-width: 5px; border-left-color: rgb(237, 45, 53); border-radius: 0; }
+.character-create-kicker { color: rgb(255, 199, 67); font-size: 10px; letter-spacing: 2px; -unity-font-style: bold; margin-bottom: 5px; }
+.character-create-title { color: white; font-size: 34px; -unity-font-style: bold-and-italic; letter-spacing: -1px; margin-bottom: 2px; }
+.character-create-subtitle { color: rgb(187, 199, 215); font-size: 11px; white-space: normal; margin-bottom: 12px; }
+.character-lobby.character-create-mode .character-section { color: white; font-size: 13px; letter-spacing: 2px; padding-left: 0; border-left-width: 0; margin: 0 0 8px; }
+.character-lobby.character-create-mode .character-field-group { margin: 0 0 9px; }
+.character-lobby.character-create-mode .character-field-label { color: rgb(255, 200, 76); font-size: 10px; letter-spacing: 2px; margin-bottom: 4px; }
+.character-lobby.character-create-mode .character-input { height: 43px; }
+.character-lobby.character-create-mode .character-input > .unity-text-field__input { height: 43px; padding: 7px 12px; background-color: rgba(15, 22, 32, .92); border-width: 0; border-bottom-width: 2px; border-bottom-color: rgb(93, 106, 125); border-radius: 0; color: white; font-size: 17px; }
+.character-lobby.character-create-mode .character-input > .unity-text-field__input:focus { border-bottom-color: rgb(247, 195, 65); background-color: rgba(21, 30, 42, .98); }
+.character-lobby.character-create-mode .character-choices { border-top-width: 1px; border-top-color: rgba(189, 201, 216, .23); margin-top: 1px; padding-top: 10px; }
+.character-lobby.character-create-mode .character-cards { flex-direction: row; }
+.character-lobby.character-create-mode .character-card { position: relative; flex-direction: column; height: 76px; min-height: 76px; margin-right: 8px; padding: 8px 12px; justify-content: flex-end; align-items: flex-start; background-color: rgba(17, 25, 37, .92); border-width: 1px; border-color: rgb(77, 89, 106); border-radius: 0; overflow: hidden; }
+.character-lobby.character-create-mode .character-card-last { margin-right: 0; }
+.character-lobby.character-create-mode .character-card:hover, .character-lobby.character-create-mode .character-card:focus { border-color: rgb(255, 205, 74); background-color: rgba(37, 42, 44, .97); }
+.character-lobby.character-create-mode .character-card.selected { border-color: rgb(255, 205, 74); border-bottom-width: 5px; background-color: rgba(62, 49, 27, .96); }
+.character-gender-number { position: absolute; top: 9px; left: 12px; color: rgb(255, 205, 75); font-size: 12px; -unity-font-style: bold; }
+.character-lobby.character-create-mode .character-gender-icon { position: absolute; top: 3px; right: 10px; margin: 0; font-size: 27px; color: rgb(214, 223, 238); }
+.character-lobby.character-create-mode .character-card-name { color: white; font-size: 16px; letter-spacing: 1px; margin: 0; -unity-font-style: bold; }
+.character-lobby.character-create-mode .character-card-check { position: absolute; top: 8px; right: 38px; border-radius: 0; background-color: rgb(247, 198, 65); color: rgb(17, 20, 27); }
+.character-lobby.character-create-mode .character-selection { color: rgb(178, 190, 207); font-size: 10px; margin-top: 8px; }
+.character-lobby.character-create-mode .character-dock { padding-top: 8px; }
+.character-lobby.character-create-mode #character-test-animations { height: 28px; margin: 0 0 5px; padding: 0 10px; background-color: rgba(28, 39, 54, .76); color: rgb(215, 225, 236); border-width: 0; border-left-width: 3px; border-left-color: rgb(255, 202, 65); border-radius: 0; font-size: 10px; letter-spacing: 1px; }
+.character-lobby.character-create-mode .character-dock .character-primary { height: 51px; min-height: 51px; width: 100%; background-color: rgb(218, 30, 43); color: white; border-width: 0; border-radius: 0; font-size: 18px; -unity-font-style: bold-and-italic; letter-spacing: 1px; }
+.character-lobby.character-create-mode .character-dock .character-primary:hover { background-color: rgb(247, 51, 62); }
+.character-lobby.character-create-mode .character-message { margin-top: 5px; }
+.character-short.character-create-mode .character-shell { padding-top: 8px; padding-bottom: 8px; }
+.character-short.character-create-mode .character-header { min-height: 35px; }
+.character-short.character-create-mode .character-stage { min-height: 380px; }
+.character-short.character-create-mode .character-identity { padding: 11px 17px 10px; }
+.character-short .character-create-title { font-size: 28px; }
+.character-short .character-create-subtitle { display: none; }
+.character-short.character-create-mode .character-field-group { margin-bottom: 7px; }
+.character-short.character-create-mode .character-input, .character-short.character-create-mode .character-input > .unity-text-field__input { height: 37px; }
+.character-short.character-create-mode .character-card { height: 62px; min-height: 62px; }
+.character-short.character-create-mode .character-dock .character-primary { height: 43px; min-height: 43px; font-size: 15px; }
+.character-short.character-create-mode .character-dock { padding-top: 5px; }
+.character-narrow.character-create-mode .character-body { flex-direction: column; }
+.character-narrow.character-create-mode .character-stage { min-height: 270px; margin: 0; }
+.character-narrow.character-create-mode .character-identity { width: 100%; min-width: 0; max-width: none; margin: 0; padding: 18px; }
+.character-narrow .character-stage-title { font-size: 43px; }
+.character-phone.character-create-mode .character-shell { padding: 10px; }
+.character-phone.character-create-mode .character-stage { min-height: 230px; }
+.character-phone.character-create-mode .character-identity { padding: 13px; }
+.character-phone .character-create-title { font-size: 27px; }
+.character-phone.character-create-mode .character-name-fields { flex-direction: column; }
+.character-phone.character-create-mode .character-field-group { margin-right: 0; }
+.character-phone.character-create-mode .character-card-name { font-size: 13px; }

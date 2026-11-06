@@ -1,10 +1,59 @@
 using System;
 using System.Collections.Generic;
+using System.Collections;
+using System.IO;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 public sealed partial class GameHud : MonoBehaviour
 {
+    AudioSource phoneAudio;
+    bool takingPhonePhoto;
+
+    void PlayPhoneSound(string clipName)
+    {
+        var clip = Resources.Load<AudioClip>("RealCityAudio/" + clipName);
+        if (!clip) return;
+        if (!phoneAudio)
+        {
+            phoneAudio = gameObject.AddComponent<AudioSource>();
+            phoneAudio.playOnAwake = false;
+            phoneAudio.spatialBlend = 0;
+            phoneAudio.volume = .4f;
+        }
+        phoneAudio.clip = clip;
+        phoneAudio.Play();
+    }
+
+    IEnumerator TakePhonePhoto()
+    {
+        if (takingPhonePhoto) yield break;
+        takingPhonePhoto = true;
+        ClosePanel();
+        yield return new WaitForEndOfFrame();
+
+        Texture2D photo = null;
+        try
+        {
+            string folder = Path.Combine(Application.persistentDataPath, "Fotos");
+            Directory.CreateDirectory(folder);
+            string path = Path.Combine(folder, DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss-fff") + ".png");
+            photo = ScreenCapture.CaptureScreenshotAsTexture();
+            File.WriteAllBytes(path, photo.EncodeToPNG());
+            PlayPhoneSound("photosound");
+            ShowToast("Foto salva na pasta Fotos do jogo.");
+        }
+        catch (Exception error)
+        {
+            Debug.LogWarning("Não foi possível salvar a foto: " + error.Message);
+            ShowToast("Não foi possível salvar a foto.");
+        }
+        finally
+        {
+            if (photo) Destroy(photo);
+            takingPhonePhoto = false;
+        }
+    }
     public static GameHud Instance { get; private set; }
     public bool IsPanelOpen => VehicleHud.MenuOpen|| !string.IsNullOrEmpty(CurrentPanel)||(AdminPlayerPanel.Instance&&AdminPlayerPanel.Instance.IsOpen)||
         (AdminHelpPanel.Instance&&AdminHelpPanel.Instance.IsOpen)||CriminalEconomyPilotPanel.IsOpen;
@@ -29,7 +78,7 @@ public sealed partial class GameHud : MonoBehaviour
     CityDayNight dayNight;
     UIDocument document;
     VisualElement root,drawer,content,toast,speedFill,miniViewport,mapArea,coordinatePanel;
-    Label avatarLabel,playerNameLabel,uidLabel,speedLabel,motionLabel,coordinates,clock,heading,drawerTitle,toastLabel,cloudSaveLabel,minimapNorth;
+    Label avatarLabel,playerNameLabel,uidLabel,speedLabel,motionLabel,coordinates,clock,heading,drawerTitle,toastLabel,cloudSaveLabel,minimapNorth,hzCoinsLabel;
     Label distanceMetric,timeMetric,topSpeedMetric;
     Button sprint,adminButton,microphoneButton;
     VisualElement microphoneRing;
@@ -37,6 +86,7 @@ public sealed partial class GameHud : MonoBehaviour
     Label latencyLabel;
     HudIcon miniMarker,mapMarker;
     Image sprintArtwork;
+    VisualElement minimapHealth, minimapEnergy;
     Label levelLabel,cashLabel,dateLabel,healthLabel,energyLabel,waterLabel;
     HudStatusRing healthRing,energyRing,waterRing;
     VisualElement xpFill;
@@ -65,6 +115,7 @@ public sealed partial class GameHud : MonoBehaviour
         PlayerName=AccountSession.Authenticated?PlayerDisplayName.From(AccountSession.Instance.State):PlayerDisplayName.From(null,PlayerPrefs.GetString("hud.playerName","ADRIANO"));
         orbit.sensitivity=PlayerPrefs.GetFloat("hud.sensitivity",1);
         orbit.distance=PlayerPrefs.GetFloat("hud.distance",4.2f);
+        AudioListener.volume=Mathf.Clamp01(PlayerPrefs.GetFloat("hud.masterVolume",1));
         lastPosition=player.transform.position;
         document=gameObject.AddComponent<UIDocument>();
         document.panelSettings=Resources.Load<PanelSettings>("HudPanel");
@@ -81,6 +132,9 @@ public sealed partial class GameHud : MonoBehaviour
         CreateMapCameras();Build();InGameChat.Create(this);PoliceRadio.Create(this);
         var modernStyles=Resources.Load<StyleSheet>("HudModernStyles");
         if(modernStyles)root.styleSheets.Add(modernStyles);
+        root.styleSheets.Add(Resources.Load<StyleSheet>("RealCityHud/Hud"));
+        var menuStyles=Resources.Load<StyleSheet>("PlayerMenu");
+        if(menuStyles)root.styleSheets.Add(menuStyles);
         var version=Text("v"+Application.version,"",root);version.name="game-version";
         version.style.position=Position.Absolute;version.style.left=14;version.style.bottom=5;
         version.style.fontSize=10;version.style.color=new Color(.8f,.82f,.85f,.8f);
@@ -109,41 +163,34 @@ public sealed partial class GameHud : MonoBehaviour
         return button;
     }
     void Block(VisualElement e)=>pointerBlockers.Add(e);
+
+    Image RealCityImage(string asset)
+        => new Image
+        {
+            image=Resources.Load<Texture2D>("RealCityHud/"+asset),
+            scaleMode=ScaleMode.ScaleToFit,
+            pickingMode=PickingMode.Ignore
+        };
+
+    Button RealCityButton(string asset,string css,string tooltip,Action action,VisualElement parent)
+    {
+        var button=new Button(action){tooltip=tooltip};
+        button.AddToClassList(css);
+        button.Add(RealCityImage(asset));
+        parent.Add(button);
+        return button;
+    }
     public void RegisterPointerBlocker(VisualElement element)
     {
         if(element!=null&&!pointerBlockers.Contains(element))pointerBlockers.Add(element);
-    }
-
-    Button AtlasButton(string asset,string css,string tooltip,Action action,VisualElement parent)
-    {
-        var button=new Button(action){tooltip=tooltip,name="atlas-"+asset};button.AddToClassList("atlas-button");button.AddToClassList(css);
-        if(asset=="h2_fist"||asset=="h2_sprint")
-        {
-            var combat=CombatIcon(asset=="h2_fist"?0:2);
-            if(combat!=null){button.Add(combat);parent.Add(button);return button;}
-        }
-        var modernName=asset=="h2_menu"?"home":asset=="h2_tasks"?"missions":asset=="h2_phone"?"phone":
-            asset=="h2_inventory"?"bag":asset=="h2_store"?"store":asset=="h2_microphone"?"microphone":
-            asset=="h2_camera"?"camera":asset=="h2_fist"?"fist":asset=="h2_sprint"?"run":null;
-        var modern=modernName==null?null:HudPack.Texture(modernName);
-        var artwork=modern?HudPack.Image(modernName):HudAtlas.Image(asset);
-        if(css=="h2-top-button"||css=="h2-nav-button"||css=="h2-microphone"||css=="h2-camera")artwork.scaleMode=ScaleMode.ScaleToFit;
-        button.Add(artwork);parent.Add(button);return button;
-    }
-
-    Image CombatIcon(int index)
-    {
-        var artwork=Resources.Load<Texture2D>("HudMinimal/CombatIcon"+index);
-        if(!artwork)return null;
-        var icon=new Image{image=artwork,scaleMode=ScaleMode.ScaleToFit,pickingMode=PickingMode.Ignore};
-        icon.AddToClassList("combat-icon");return icon;
     }
 
     void StatusRing(string icon,string title,Color color,out HudStatusRing ring,out Label value,VisualElement parent)
     {
         var cell=Element("status-cell",parent);cell.tooltip=title;
         ring=new HudStatusRing(color);cell.Add(ring);
-        var symbol=HudPack.Image(icon);symbol.AddToClassList("status-symbol");ring.Add(symbol);
+        var symbol=icon=="health"?HudPack.Image(icon):RealCityImage(icon=="hunger"?"food":icon);
+        symbol.AddToClassList("status-symbol");ring.Add(symbol);
         value=Text("100","status-value",ring);value.name="stat-"+icon+"-value";
         Text(title.ToUpperInvariant(),"status-caption",cell);
     }
@@ -153,8 +200,8 @@ public sealed partial class GameHud : MonoBehaviour
         var identity=Element("h2-identity");identity.style.display=DisplayStyle.None;
         playerNameLabel=Text(PlayerName.ToUpperInvariant(),"",identity);avatarLabel=Text("","",identity);
         var wallet=Element("h2-wallet");Block(wallet);
-        var walletIcon=HudPack.Image("cash");walletIcon.tintColor=new Color(.4f,.9f,.6f);walletIcon.AddToClassList("h2-currency");wallet.Add(walletIcon);
-        Text("R$","h2-cash-prefix",wallet);cashLabel=Text("0","h2-cash",wallet);
+        cashLabel=Text("0","h2-cash",wallet);
+        var walletIcon=RealCityImage("money");walletIcon.AddToClassList("h2-currency");wallet.Add(walletIcon);
         var level=Element("h2-level");Block(level);var levelIcon=HudPack.Image("level");levelIcon.AddToClassList("h2-trophy");level.Add(levelIcon);
         levelLabel=Text("LVL 1 | EXP 0/100","h2-level-text",level);
         xpFill=Element("h2-xp-hidden",level);xpFill.style.display=DisplayStyle.None;
@@ -169,47 +216,52 @@ public sealed partial class GameHud : MonoBehaviour
         miniViewport=Element("mini-viewport",miniButton);
         if(cityMapAtlas)BuildCityMinimap();
         else {miniImage=new Image{image=miniTexture,pickingMode=PickingMode.Ignore};miniImage.AddToClassList("mini-image");miniViewport.Add(miniImage);}
-        miniMarker=new HudIcon("arrow");miniMarker.AddToClassList("marker");miniMarker.SetInk(PlayerMapBlue);miniViewport.Add(miniMarker);
+        miniMarker=new HudIcon("arrow");miniMarker.AddToClassList("marker");miniMarker.SetInk(Color.white);miniViewport.Add(miniMarker);
         minimapNorth=Text("N","h2-north",miniButton);
+        var meters=Element("realcity-minimap-meters",miniButton);meters.pickingMode=PickingMode.Ignore;
+        minimapHealth=Element("realcity-minimap-health",Element("realcity-minimap-track",meters));
+        minimapEnergy=Element("realcity-minimap-energy",Element("realcity-minimap-track",meters));
 
         var nav=Element("h2-nav");Block(nav);
-        AtlasButton("h2_menu","h2-nav-button","Menu [Tab]",()=>OpenPanel("menu"),nav).name="nav-menu";
-        AtlasButton("h2_tasks","h2-nav-button","Missões",()=>OpenPanel("missions"),nav).name="nav-session";
-        AtlasButton("h2_phone","h2-nav-button","Celular",()=>OpenPanel("phone"),nav).name="nav-phone";
-        AtlasButton("h2_inventory","h2-nav-button","Inventário",()=>OpenPanel("inventory"),nav).name="nav-inventory";
+        RealCityButton("menu","h2-nav-button","Menu [Tab]",()=>OpenPanel("menu"),nav).name="nav-menu";
+        RealCityButton("phone","h2-nav-button","Celular",()=>OpenPanel("phone"),nav).name="nav-phone";
+        RealCityButton("backpack","h2-nav-button","Inventário",()=>OpenPanel("inventory"),nav).name="nav-inventory";
+        RealCityButton("dance","h2-nav-button","Animações",()=>OpenPanel("animations"),nav).name="nav-animations";
         var top=Element("h2-top");Block(top);
-        adminButton=IconButton("admin","h2-top-button h2-admin","Painel administrativo",()=>AdminPlayerPanel.Open(this),top);
-        adminButton.name="action-admin";
-        var adminGlyph=adminButton.Q<HudIcon>();
-        if(adminGlyph!=null)adminGlyph.SetInk(new Color(1f,.82f,.28f));
+        adminButton=new Button(()=>AdminPlayerPanel.Open(this)){name="action-admin",text="TEST PANEL",tooltip="Painel administrativo"};
+        adminButton.AddToClassList("realcity-admin");root.Add(adminButton);Block(adminButton);
         IconButton("settings","h2-top-button","Configurações",()=>OpenPanel("settings"),top).name="top-settings";
-        var store=AtlasButton("h2_store","h2-top-button","Loja ainda indisponível",()=>{},top);store.SetEnabled(false);
-        var tools=Element("h2-tools");Block(tools);
-        microphoneButton=AtlasButton("h2_microphone","h2-microphone","Ligar/desligar microfone",()=>VoiceChat.Instance?.Toggle(),tools);
+        IconButton("missions","h2-top-button","Missões",()=>OpenPanel("missions"),top).name="nav-session";
+        var store=IconButton("store","h2-top-button","Loja ainda indisponível",()=>{},top);
+        store.name="atlas-h2_store";store.SetEnabled(false);
+        microphoneButton=RealCityButton("mic","h2-microphone","Ligar/desligar microfone",()=>VoiceChat.Instance?.Toggle(),root);Block(microphoneButton);
         microphoneRing=new VisualElement {pickingMode=PickingMode.Ignore};
         microphoneRing.AddToClassList("h2-microphone-ring");
         microphoneButton.Add(microphoneRing);
-        AtlasButton("h2_camera","h2-camera","Centralizar câmera [C]",()=>TriggerAction("camera"),tools).name="action-camera";
-        IconButton("chat","h2-camera","Abrir chat",()=>InGameChat.Instance?.Open(),tools).name="action-chat";
+        var camera=RealCityButton("camera","realcity-camera","Centralizar câmera [C]",()=>TriggerAction("camera"),root);camera.name="action-camera";Block(camera);
+        var chat=RealCityButton("chat","realcity-chat","Abrir chat",()=>InGameChat.Instance?.Open(),root);chat.name="action-chat";Block(chat);
 
         var actions=Element("h2-actions");Block(actions);
-        AtlasButton("h2_fist","h2-fist","Soco [F]",()=>TriggerAction("attack"),actions).name="action-list";
-        sprint=AtlasButton("h2_sprint","h2-sprint","Ativar/desativar corrida [Shift]",()=>TriggerAction("sprint"),actions);
+        var fist=RealCityButton("fist","h2-fist","Soco [F]",()=>TriggerAction("attack"),root);fist.name="action-list";Text("PUNHO","realcity-weapon",fist);Block(fist);
+        sprint=RealCityButton("run","h2-sprint","Ativar/desativar corrida [Shift]",()=>TriggerAction("sprint"),actions);
         sprint.AddToClassList("sprint-button");sprint.name="action-sprint";sprintArtwork=(Image)sprint[0];
-        var jump=IconButton("jump","h2-jump","Pular [Espaço]",()=>TriggerAction("jump"),root);jump.name="action-jump";Block(jump);
-        var jumpArtwork=CombatIcon(1);if(jumpArtwork!=null){jump.Clear();jump.Add(jumpArtwork);}
+        var jump=RealCityButton("jump","h2-jump","Pular [Espaço]",()=>TriggerAction("jump"),root);jump.name="action-jump";Block(jump);
+        SetupActionLayout(fist,jump,microphoneButton,sprint);
 
         var safe=Element("h2-safe");safe.tooltip="Zona segura";safe.pickingMode=PickingMode.Ignore;
         safe.Add(HudPack.Image("safe"));Text("ZONA SEGURA","h2-safe-label",safe);
         var footer=Element("h2-footer");Block(footer);
         var room=Element("h2-chip h2-room",footer);room.tooltip="Sala de testes";
         Text(AccountSession.Authenticated?"CONECTANDO":"LOCAL","",room).name="multiplayer-status";
-        var id=Element("h2-chip h2-id",footer);uidLabel=Text(AccountSession.Authenticated?"ID: "+AccountSession.Instance.State.uid:"TESTE","",id);
+        var playerInfo=Element("realcity-info");Block(playerInfo);
+        var id=Element("h2-chip h2-id",playerInfo);uidLabel=Text(AccountSession.Authenticated?"ID: "+AccountSession.Instance.State.uid:"TESTE","",id);
         id.style.flexDirection=FlexDirection.Row;id.style.alignItems=Align.Center;
         idMicrophone=new HudIcon("microphone"){name="id-microphone"};
         idMicrophone.style.width=16;idMicrophone.style.height=18;idMicrophone.style.marginLeft=5;
         idMicrophone.SetInk(new Color(.18f,1f,.5f));idMicrophone.style.display=DisplayStyle.None;id.Add(idMicrophone);
-        var time=Element("h2-chip h2-time",footer);clock=Text(DateTime.Now.ToString("HH:mm"),"",time);
+        var time=Element("h2-chip h2-time",playerInfo);time.Add(RealCityImage("clock"));clock=Text(DateTime.Now.ToString("HH:mm"),"",time);
+        var coins=Element("h2-chip realcity-coins",playerInfo);Text("HZ","realcity-coin-symbol",coins);
+        hzCoinsLabel=Text("0","",coins);
         var latency=Element("h2-chip h2-latency",footer);
         latencyLabel=Text("PING —","",latency);latencyLabel.name="network-latency";
         // These existing hooks remain available to menus without occupying the HUD.
@@ -226,10 +278,13 @@ public sealed partial class GameHud : MonoBehaviour
         copyCoordinates.AddToClassList("coordinate-copy");coordinatePanel.Add(copyCoordinates);
         coordinatePanel.style.display=DisplayStyle.None;
 
+        menuShade=Element("player-menu-shade");menuShade.style.display=DisplayStyle.None;Block(menuShade);
+        menuShade.RegisterCallback<ClickEvent>(_=>{if(CurrentPanel=="phone")ClosePanel();});
         drawer=Element("drawer");drawer.name="hud-drawer";Block(drawer);drawer.style.display=DisplayStyle.None;
         var header=Element("drawer-header",drawer);var titleGroup=Element("drawer-titles",header);
         Text("CENTRAL DO JOGADOR","eyebrow",titleGroup);drawerTitle=Text("Menu","drawer-title",titleGroup);
         IconButton("close","close","Fechar [Esc]",ClosePanel,header).name="close-panel";
+        menuTabs=Element("player-menu-tabs",drawer);
         content=Element("drawer-content",drawer);
         content.RegisterCallback<GeometryChangedEvent>(OnCityMapLayout);
         var back=new Button(ClosePanel){name="drawer-back",text="VOLTAR AO JOGO"};back.AddToClassList("primary");drawer.Add(back);
@@ -239,10 +294,14 @@ public sealed partial class GameHud : MonoBehaviour
 
     public void OpenPanel(string panel)
     {
+        if (actionEditor != null) return;
+        CriminalEconomyPilotPanel.CloseOverlay();
         AdminPlayerPanel.Instance?.Close();
         if(InGameChat.Editing)InGameChat.Instance.Close();
         SetVisible(true);
         if(CurrentPanel==panel){ClosePanel();return;}
+        if(CurrentPanel=="animations")root.Q("animation-test-wheel")?.RemoveFromHierarchy();
+        if(CurrentPanel=="phone"&&phoneAudio)phoneAudio.Stop();
         if(CurrentPanel=="map")CancelCityMapSelection();
         CurrentPanel=panel;drawer.style.display=DisplayStyle.Flex;
         drawer.EnableInClassList("menu-home",panel=="menu");
@@ -252,6 +311,7 @@ public sealed partial class GameHud : MonoBehaviour
         root.Q("hud-compass").style.display=DisplayStyle.None;
         root.Q("hud-motion").style.display=DisplayStyle.None;
         content.Clear();distanceMetric=timeMetric=topSpeedMetric=null;mapArea=null;mapMarker=null;mapImage=null;
+        UpdateMenuChrome(panel);
         switch(panel)
         {
             case "menu":
@@ -259,22 +319,35 @@ public sealed partial class GameHud : MonoBehaviour
                 BuildHomeMenu();
                 break;
             case "animations":
-                drawerTitle.text="Animações";
-                Text("GESTOS EM PREPARAÇÃO","panel-description",content);
-                Text("As animações de interação serão adicionadas a este menu. Caminhada, corrida e pulo continuam nos controles normais.","muted",content);
+                drawer.style.display=DisplayStyle.None;
+                AnimationTestWheel.Open(root,player.animator,onClose:() =>
+                {
+                    if(this&&CurrentPanel=="animations")ClosePanel();
+                },playInWorld:clip =>
+                {
+                    ClosePanel();
+                    if (player.IsGrounded && !player.InPoliceCar && !player.IsCuffed)
+                        AnimationTestWheel.PlayInWorld(player,clip);
+                    else ShowToast("Pare em terra firme para testar a animação.");
+                });
                 break;
             case "inventory":
                 drawerTitle.text="Inventário";
-                Text("Documentos de teste conquistados no tutorial.","panel-description",content);
-                var documents=TutorialJourney.Instance;
-                if(documents&&documents.HasRG)Metric("RG","Emitido na Prefeitura (teste)");
-                if(documents&&documents.HasCNH)Metric("CNH","Emitida na Autoescola (teste)");
-                if(!documents||!documents.HasRG)Text("NENHUM DOCUMENTO AINDA","inventory-empty",content);
+                BuildInventoryMenu(null,"Consultando itens do personagem...");
+                if(AccountSession.HasCharacter)StartCoroutine(RefreshInventoryMenu());
                 break;
             case "session":
                 drawerTitle.text="Sua sessão";
                 Text("Explore a Rua do Centro no seu ritmo.","panel-description",content);
                 distanceMetric=Metric("Distância percorrida","0 m");timeMetric=Metric("Tempo de exploração","00:00");topSpeedMetric=Metric("Maior velocidade","0 m/s");
+                break;
+            case "police-dispatch":
+                drawerTitle.text="Central 190";
+                BuildPoliceDispatch();
+                break;
+            case "police-fines":
+                drawerTitle.text="Minhas multas";
+                BuildPoliceFines();
                 break;
             case "missions":
                 drawerTitle.text="Central de Missões";
@@ -282,16 +355,11 @@ public sealed partial class GameHud : MonoBehaviour
                 break;
             case "wallet":
                 drawerTitle.text="Carteira";
-                Text("Moedas e doações do tutorial valem apenas nesta sessão de teste.","panel-description",content);
-                Metric("Saldo da conta","R$ "+player.Cash.ToString("N0"));
-                Metric("HZ Coins de teste",(TutorialJourney.Instance?TutorialJourney.Instance.DemoCoins:0).ToString("N0"));
-                Metric("Doações de teste","R$ "+(TutorialJourney.Instance?TutorialJourney.Instance.DemoDonations:0).ToString("N0"));
+                BuildWalletMenu();
                 break;
             case "phone":
                 drawerTitle.text="Celular";
-                MenuItem("map","Mapa","Sua localização na área",()=>OpenPanel("map"));
-                MenuItem("person","Personagem","Seus dados e nome",()=>OpenPanel("player"));
-                MenuItem("settings","Configurações","Ajustes da câmera",()=>OpenPanel("settings"));
+                BuildPhoneHome();
                 break;
             case "vehicles":
                 drawerTitle.text="Veículos";
@@ -334,10 +402,7 @@ public sealed partial class GameHud : MonoBehaviour
                 break;
             case "settings":
                 drawerTitle.text="Configurações";
-                Text("Uma câmera confortável faz diferença.","panel-description",content);
-                Slider("SENSIBILIDADE DA CÂMERA",.4f,2f,orbit.sensitivity,v=>{orbit.sensitivity=v;PlayerPrefs.SetFloat("hud.sensitivity",v);});
-                Slider("DISTÂNCIA DA CÂMERA",2f,6f,orbit.distance,v=>{orbit.distance=v;PlayerPrefs.SetFloat("hud.distance",v);});
-                var reset=new Button(()=>{PlayerPrefs.DeleteKey("hud.sensitivity");PlayerPrefs.DeleteKey("hud.distance");orbit.sensitivity=1;orbit.distance=4.2f;ClosePanel();ShowToast("Configurações de câmera restauradas");}){text="RESTAURAR PADRÕES"};reset.AddToClassList("primary");content.Add(reset);
+                BuildSettingsMenu("camera");
                 break;
             case "help":
                 drawerTitle.text="Como jogar";
@@ -349,6 +414,7 @@ public sealed partial class GameHud : MonoBehaviour
                 break;
             default: ClosePanel();break;
         }
+        ScrollSimpleMenu(panel);
     }
 
     void MenuItem(string icon,string title,string description,Action action)
@@ -357,12 +423,50 @@ public sealed partial class GameHud : MonoBehaviour
         var text=new VisualElement{pickingMode=PickingMode.Ignore};button.Add(text);
         Text(title,"item-title",text);Text(description,"item-description",text);
     }
+    void BuildPhoneHome()
+    {
+        var phone=Element("phone-screen",content);
+        var wallpaper=Resources.Load<Texture2D>("RealCityHud/PhoneWallpaperNew");
+        if(wallpaper)phone.style.backgroundImage=new StyleBackground(wallpaper);
+        var status=Element("phone-status",phone);
+        Text(DateTime.Now.ToString("HH:mm"),"phone-time",status);
+        Text("●  4G  ▰","phone-signal",status);
+        var island=Element("phone-island",phone);
+        var hero=Element("phone-hero",phone);
+        Text(DateTime.Now.ToString("dd"),"phone-day",hero);
+        Text(DateTime.Now.ToString("dddd",new System.Globalization.CultureInfo("pt-BR")).ToUpperInvariant(),"phone-weekday",hero);
+        Text("HORIZONTE","phone-brand",hero);
+        var grid=Element("phone-app-grid",phone);
+        PhoneApp(grid,"camera","Câmera",new Color(.18f,.2f,.23f),()=>StartCoroutine(TakePhonePhoto()));
+        PhoneApp(grid,"user","Personagem",new Color(.54f,.28f,.86f),()=>OpenPanel("player"));
+        PhoneApp(grid,"clock","Relógio",new Color(.95f,.4f,.2f),()=>PlayPhoneSound("alarm"));
+        PhoneApp(grid,"cash","Carteira",new Color(.12f,.66f,.43f),()=>OpenPanel("wallet"));
+        PhoneApp(grid,"settings","Ajustes",new Color(.42f,.46f,.52f),()=>OpenPanel("settings"));
+        PhoneApp(grid,"missions","Missões",new Color(.91f,.3f,.29f),()=>OpenPanel("missions"));
+        PhoneApp(grid,"phone","Toques",new Color(.18f,.72f,.38f),()=>PlayPhoneSound("ringtone"));
+        var dock=Element("phone-dock",phone);
+        PhoneDockApp(dock,"phone","Telefone",new Color(.16f,.76f,.34f),()=>PlayPhoneSound("ringtone"));
+        PhoneDockApp(dock,"chat","Mensagens",new Color(.2f,.7f,.4f),()=>ShowToast("Mensagens estarão disponíveis em breve."));
+        PhoneDockApp(dock,"camera","Câmera",new Color(.35f,.38f,.43f),()=>StartCoroutine(TakePhonePhoto()));
+        var home=new Button(ClosePanel){name="phone-home",tooltip="Fechar celular"};home.AddToClassList("phone-home");phone.Add(home);
+    }
+    void PhoneApp(VisualElement parent,string icon,string title,Color color,Action action)
+    {
+        var app=new Button(action){tooltip=title};app.AddToClassList("phone-app");parent.Add(app);
+        var badge=Element("phone-app-icon",app);badge.style.backgroundColor=color;badge.Add(HudPack.Image(icon));
+        Text(title,"phone-app-name",app);
+    }
+    void PhoneDockApp(VisualElement parent,string icon,string title,Color color,Action action)
+    {
+        var app=new Button(action){tooltip=title};app.AddToClassList("phone-dock-app");parent.Add(app);
+        app.style.backgroundColor=color;app.Add(HudPack.Image(icon));
+    }
     void BuildHomeMenu()
     {
         var introduction=Element("home-intro",content);
-        Text("PAINEL DE ACESSO","home-kicker",introduction);
-        Text("Para onde vamos agora?","home-headline",introduction);
-        Text("Escolha uma área para continuar sua jornada.","home-subtitle",introduction);
+        Text("ATALHOS DA CIDADE","home-kicker",introduction);
+        Text("Central do jogador","home-headline",introduction);
+        Text("Acesse seu personagem, serviços e ferramentas da cidade.","home-subtitle",introduction);
         var scroll=new ScrollView(ScrollViewMode.Vertical);scroll.AddToClassList("home-scroll");content.Add(scroll);
         var grid=Element("home-grid",scroll);
         HomeTile(grid,"person","Personagem","PERFIL",()=>OpenPanel("player"));
@@ -372,7 +476,10 @@ public sealed partial class GameHud : MonoBehaviour
         HomeTile(grid,"list","Minha sessão","PROGRESSO",()=>OpenPanel("session"));
         HomeTile(grid,"mission","Missões","JORNADA",()=>OpenPanel("missions"));
         HomeTile(grid,"wallet","Carteira","SALDO",()=>OpenPanel("wallet"));
+        HomeTile(grid,"cash","Economia","ORGANIZAÇÕES",()=>CriminalEconomyPilotPanel.OpenSection("activity"));
         HomeTile(grid,"phone","Celular","ATALHOS",()=>OpenPanel("phone"));
+        if(AdminPlayerPanel.PoliceDuty||AccountSession.Instance?.State?.organization?.code=="pm")
+            HomeTile(grid,"safe","Polícia Militar","SERVIÇO",()=>OpenPanel("police-dispatch"));
         HomeTile(grid,"settings","Configurações","AJUSTES",()=>OpenPanel("settings"));
         HomeTile(grid,"help","Como jogar","CONTROLES",()=>OpenPanel("help"));
         var footer=Element("home-footer",content);
@@ -382,6 +489,11 @@ public sealed partial class GameHud : MonoBehaviour
     void HomeTile(VisualElement parent,string icon,string title,string category,Action action)
     {
         var tile=new Button(action){name="home-"+icon,tooltip=title};tile.AddToClassList("home-tile");parent.Add(tile);
+        tile.RegisterCallback<GeometryChangedEvent>(_=>
+        {
+            float side=tile.resolvedStyle.width;
+            if(side>0&&Mathf.Abs(tile.resolvedStyle.height-side)>1)tile.style.height=side;
+        });
         var top=Element("home-tile-top",tile);
         var badge=Element("home-tile-badge",top);badge.Add(new HudIcon(icon));
         Text(category,"home-tile-category",top);
@@ -390,22 +502,7 @@ public sealed partial class GameHud : MonoBehaviour
     }
     void BuildMissionPanel()
     {
-        Text("TUTORIAL OBRIGATÓRIO","eyebrow",content);
-        Text("As três primeiras etapas já são jogáveis. As demais estão cadastradas e serão ativadas quando seus sistemas ficarem prontos.","panel-description",content);
-        var scroll=new ScrollView(ScrollViewMode.Vertical);content.Add(scroll);
-        string phase=TutorialJourney.Instance?TutorialJourney.Instance.Phase:"available";
-        foreach(var mission in MissionCatalog.Data.missions)
-        {
-            var card=Element("metric-row",scroll);
-            string prefix=mission.category=="tutorial"?"TUTORIAL "+mission.order.ToString("00"):"NORMAL "+mission.order.ToString("00");
-            Text(prefix+" · "+mission.title.ToUpperInvariant(),"item-title",card);
-            string status=MissionStatus(mission,phase);
-            Text(status,"muted",card);
-            string prize=mission.rewardXp+" XP"+(mission.rewardCashCents>0?" + R$ "+(mission.rewardCashCents/100):"");
-            Text("RECOMPENSA · "+prize,"eyebrow",card);
-        }
-        if(MissionCatalog.Data.daily.Length==0||MissionCatalog.Data.weekly.Length==0)
-            Text("MISSÕES DIÁRIAS E SEMANAIS · aguardando conteúdo","muted",scroll);
+        BuildMissionMenu("tutorial");
     }
     static string MissionStatus(MissionDefinition mission,string phase)
     {
@@ -418,12 +515,6 @@ public sealed partial class GameHud : MonoBehaviour
     Label Metric(string title,string value)
     {
         var row=Element("metric-row",content);Text(title,"muted",row);return Text(value,"metric-value",row);
-    }
-    void Slider(string title,float low,float high,float value,Action<float> change)
-    {
-        Text(title,"field-label",content);
-        var slider=new UnityEngine.UIElements.Slider(low,high){value=value,showInputField=true};slider.AddToClassList("settings-slider");
-        slider.RegisterValueChangedCallback(e=>{change(e.newValue);PlayerPrefs.Save();});content.Add(slider);
     }
     void Help(string key,string meaning)
     {
@@ -474,10 +565,14 @@ public sealed partial class GameHud : MonoBehaviour
     public void ShowAccountMessage(string message)=>ShowToast(message);
     public void ClosePanel()
     {
+        if(actionEditor!=null){FinishActionEditor(false);return;}
         if(AdminPlayerPanel.Instance&&AdminPlayerPanel.Instance.IsOpen&&AdminPlayerPanel.Instance.Busy)return;
+        root.Q("animation-test-wheel")?.RemoveFromHierarchy();
+        if(CurrentPanel=="phone"&&phoneAudio)phoneAudio.Stop();
         AdminPlayerPanel.Instance?.Close();
         if(CurrentPanel=="map")CancelCityMapSelection();
         CurrentPanel=null;drawer.style.display=DisplayStyle.None;
+        UpdateMenuChrome(null);
         drawer.RemoveFromClassList("menu-home");
         drawer.RemoveFromClassList("city-map-fullscreen");
         root.RemoveFromClassList("menu-home-open");
@@ -606,6 +701,8 @@ public sealed partial class GameHud : MonoBehaviour
             .ToString("N0",System.Globalization.CultureInfo.GetCultureInfo("pt-BR"));
         xpFill.style.width=Length.Percent(Mathf.Clamp01(player.Experience/100f)*100);
         healthRing.SetValue(player.Health);healthLabel.text=Mathf.RoundToInt(player.Health).ToString();
+        minimapHealth.style.width=Length.Percent(Mathf.Clamp(player.Health,0,100));
+        minimapEnergy.style.width=Length.Percent(Mathf.Clamp(player.Energy,0,100));
         if(cloudSaveLabel!=null && AccountSession.Instance)cloudSaveLabel.text=AccountSession.Instance.SaveStatus;
         energyRing.SetValue(player.Hunger);energyLabel.text=Mathf.RoundToInt(player.Hunger).ToString();
         waterRing.SetValue(player.Hydration);waterLabel.text=Mathf.RoundToInt(player.Hydration).ToString();
@@ -613,6 +710,7 @@ public sealed partial class GameHud : MonoBehaviour
         if(coordinates!=null&&coordinatePanel.resolvedStyle.display!=DisplayStyle.None)coordinates.text=CoordinateSnapshot();
         int serverHour=MultiplayerWorld.Instance?MultiplayerWorld.Instance.ServerHour:-1;
         if(clock!=null)clock.text=serverHour>=0?serverHour.ToString("D2")+":00":DateTime.Now.ToString("HH:mm");
+        hzCoinsLabel.text=AccountSession.Instance?.State?.hzCoins??"0";
         if(dateLabel!=null)dateLabel.text=DateTime.Now.ToString("dd/MM/yyyy");
         float yaw=Mathf.Repeat(orbit.yaw,360);
         string direction=yaw<22.5f||yaw>=337.5f?"N":yaw<67.5f?"NE":yaw<112.5f?"L":yaw<157.5f?"SE":yaw<202.5f?"S":yaw<247.5f?"SO":yaw<292.5f?"O":"NO";

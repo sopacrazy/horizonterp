@@ -42,6 +42,7 @@ public partial class ThirdPersonPlayer : MonoBehaviour
     public bool IsTeleporting => teleporting;
     public bool IsSpectating {get;private set;}
     public bool IsCuffed {get;private set;}
+    public bool IsJailed {get;private set;}
     public bool InPoliceCar {get;private set;}
     float policeCarOldDistance,policeCarOldPitch;
     Coroutine policeCarExitRoutine;
@@ -219,7 +220,7 @@ public partial class ThirdPersonPlayer : MonoBehaviour
         jumpRequested=jumpLaunched=IsJumping=false;
         GetComponent<RifleWeapon>()?.SetEquipped(false);
         if(policeCarExitRoutine!=null){StopCoroutine(policeCarExitRoutine);policeCarExitRoutine=null;}
-        IsCuffed=false;escorted=false;InPoliceCar=false;
+        IsCuffed=false;IsJailed=false;escorted=false;InPoliceCar=false;
         if(cuffedPose)cuffedPose.Cuffed=false;
         if(animator)
         {
@@ -277,13 +278,23 @@ public partial class ThirdPersonPlayer : MonoBehaviour
         jumpRequested=true;
     }
 
-    public void SetCustody(bool cuffed,string officerUid,Vector3 position,float yaw)
+    public void SetCustody(bool cuffed,string officerUid,Vector3 position,float yaw,long jailUntil=0,long serverTime=0)
     {
-        bool changed=IsCuffed!=cuffed;
-        IsCuffed=cuffed;escorted=cuffed&&!string.IsNullOrEmpty(officerUid);
+        bool wasJailed=IsJailed;
+        IsJailed=jailUntil>serverTime;
+        bool changed=IsCuffed!=(cuffed||IsJailed);
+        IsCuffed=cuffed||IsJailed;
+        escorted=cuffed&&!IsJailed&&!string.IsNullOrEmpty(officerUid);
         custodyPosition=position;custodyYaw=yaw;
         if(cuffedPose)cuffedPose.Cuffed=cuffed;
-        if(changed&&GameHud.Instance)GameHud.Instance.ShowAccountMessage(cuffed?"Você foi algemado":"Algemas retiradas");
+        if(IsJailed&&!IsTeleporting&&(!wasJailed||Vector3.ProjectOnPlane(transform.position-position,Vector3.up).sqrMagnitude>9))
+            TeleportTo(position,yaw);
+        if(IsJailed!=wasJailed)
+        {
+            long minutes=(jailUntil-serverTime+59999)/60000;
+            GameHud.Instance?.ShowAccountMessage(IsJailed?$"Você está cumprindo pena. Restam {minutes} min.":"Sua pena terminou. Você pode sair.");
+        }
+        else if(changed&&GameHud.Instance)GameHud.Instance.ShowAccountMessage(cuffed?"Você foi algemado":"Algemas retiradas");
     }
 
     public void SetPoliceCarPassenger(bool inCar,Vector3 seatPosition,float seatYaw)

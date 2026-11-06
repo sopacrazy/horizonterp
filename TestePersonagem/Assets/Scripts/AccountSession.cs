@@ -94,7 +94,8 @@ public sealed partial class AccountSession : MonoBehaviour
     public IEnumerator RequireLogin(Texture2D artwork)
     {
         Build(artwork);ReadyToEnterCity=false;
-        if(Authenticated)ShowAccountCharacter();
+        yield return WelcomeToBeta();
+        if(Authenticated)ShowCitySelection();
         else if(!string.IsNullOrEmpty(SessionVault.Read()))yield return RestoreRemembered();
         else ShowLogin();
         while(!ReadyToEnterCity||!HasCharacter)yield return null;
@@ -114,14 +115,15 @@ public sealed partial class AccountSession : MonoBehaviour
         ClearSecrets();
         token=result.token;confirmedGender=confirmedGenderCharacterId=null;State=result.state;pending=null;leaving=false;SessionVault.Write(token);
         RememberAccountUid(result,email.value.Trim());
-        ShowAccountCharacter();
+        ShowCitySelection();
     }
     void ShowAccountCharacter()
     {
+        HideEntryScreen();
         HideRemembered();
         ReadyToEnterCity=false;AuthVisible=true;root.style.display=DisplayStyle.Flex;
         landing.style.display=DisplayStyle.None;scroll.style.display=DisplayStyle.None;
-        if(HasCharacter)ShowExistingCharacter(State);else ShowCharacterLobby();
+        ShowExistingCharacter(HasCharacter?State:null);
     }
     IEnumerator SubmitCharacter()
     {
@@ -137,7 +139,8 @@ public sealed partial class AccountSession : MonoBehaviour
         if(!Authenticated)yield break;
         if(reply?.state==null||string.IsNullOrEmpty(reply.state.characterId))
         {SetCharacterMessage(string.IsNullOrEmpty(LastError)?"Não foi possível salvar. Tente novamente.":LastError,true);yield break;}
-        confirmedGender=confirmedGenderCharacterId=null;State=reply.state;pending=null;EnterCity();
+        confirmedGender=confirmedGenderCharacterId=null;State=reply.state;pending=null;
+        ShowAccountCharacter();
     }
     void EnterCity()
     {
@@ -240,6 +243,7 @@ public sealed partial class AccountSession : MonoBehaviour
         if(MultiplayerWorld.Instance)yield return MultiplayerWorld.Instance.Leave();
         busy=true;yield return Request("POST","/v1/auth/logout","{}",true,_=>{});busy=false;
         SessionVault.Clear();HideRemembered();token=null;State=null;confirmedGender=confirmedGenderCharacterId=null;player=null;pending=null;leaving=false;ReadyToEnterCity=false;
+        if(StartupLoader.IsLoading){ShowLogin();yield break;}
         SceneManager.LoadScene("Entrada");
     }
     void OnApplicationPause(bool pause)

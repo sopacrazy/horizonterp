@@ -1,0 +1,142 @@
+/* Layout and colors from the Real City HUD. Game actions are bound by GameHud. */
+.modern-hud .h2-mini-button,
+.modern-hud.narrow-hud .h2-mini-button {
+    border-width: 0;
+    border-radius: 0;
+    padding: 0;
+    background-color: rgb(29, 37, 43);
+}
+.modern-hud .h2-mini .mini-viewport,
+.modern-hud.narrow-hud .h2-mini .mini-viewport {
+    width: 100%;
+    height: 100%;
+    border-radius: 0;
+}
+.modern-hud .h2-mini .mini-viewport .marker,
+.modern-hud.narrow-hud .h2-mini .mini-viewport .marker {
+    left: 50%;
+    top: 50%;
+    margin-left: -10.5px;
+    margin-top: -10.5px;
+}
+.modern-hud .h2-north { display: none; }
+.realcity-minimap-meters { position: absolute; left: 0; right: 0; bottom: 0; height: 6px; flex-direction: row; }
+.realcity-minimap-track { width: 50%; background-color: rgba(14, 19, 28, .85); }
+.realcity-minimap-health, .realcity-minimap-energy { height: 100%; }
+.realcity-minimap-health { background-color: rgb(128, 179, 78); }
+.realcity-minimap-energy { background-color: rgb(41, 104, 163); }
+.modern-hud .h2-nav { top: 250px; }
+.modern-hud.narrow-hud .h2-nav { top: 230px; }
+.modern-hud .h2-nav-button,
+.modern-hud .h2-nav-button:hover {
+    width: 45px;
+    height: 45px;
+    margin-right: 9px;
+    border-width: 0;
+    border-radius: 7px;
+    background-color: rgb(11, 63, 94);
+    background-image: resource("RealCityHud/nav-background");
+}
+.modern-hud .h2-nav-button:active { opacity: .8; }
+.modern-hud .h2-nav-button > Image { width: 30px; height: 30px; }
+.realcity-admin {
+    position: absolute;
+    left: 24px;
+    top: 214px;
+    height: 29px;
+    margin: 0;
+    padding: 0 8px;
+    border-width: 0;
+    border-radius: 5px;
+    background-color: rgba(25, 27, 28, .82);
+    color: white;
+    font-size: 13px;
+    -unity-font-style: bold;
+}
+.narrow-hud .realcity-admin { top: 194px; }
+.realcity-info { position: absolute; right: 24px; top: 24px; flex-direction: row; }
+.realcity-info .h2-chip {
+    height: 28px;
+    margin: 0 0 0 6px;
+    flex-direction: row;
+    align-items: center;
+    background-color: rgba(14, 19, 28, .8);
+}
+.realcity-info .h2-chip Label { font-size: 14px; -unity-font-style: bold-and-italic; }
+.realcity-info Image { width: 14px; height: 14px; margin-right: 5px; -unity-background-image-tint-color: rgb(18, 163, 227); }
+.realcity-info .realcity-coin-symbol { color: rgb(18, 163, 227); margin-right: 5px; }
+.modern-hud .h2-wallet, .modern-hud.narrow-hud .h2-wallet {
+    left: auto;
+    right: 24px;
+    top: 59px;
+    height: 25px;
+}
+.modern-hud .h2-cash { font-size: 17px; color: white; }
+.modern-hud .h2-currency { width: 20px; height: 20px; margin-left: 6px; margin-right: 0; }
+.modern-hud .h2-top { top: 89px; }
+.modern-hud .h2-top-button, .modern-hud.narrow-hud .h2-top-button { width: 32px; height: 32px; border-radius: 7px; }
+.modern-hud .h2-top-button > Image { width: 17px; height: 17px; }
+.modern-hud .h2-level, .modern-hud.narrow-hud .h2-level { left: 130px; top: auto; bottom: 24px; }
+.modern-hud .h2-footer { left: auto; right: 24px; bottom: 24px; }
+.modern-hud .h2-stats, .modern-hud.narrow-hud .h2-stats {
+    left: 24px;
+    right: auto;
+    top: auto;
+    bottom: 24px;
+    width: auto;
+}
+.modern-hud .status-cell { width: 30px; height: 30px; margin-right: 5px; }
+.modern-hud .status-ring {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    min-height: 30px;
+    border-radius: 6px;
+    background-color: rgba(14, 19, 28, .8);
+    overflow: hidden;
+}
+.modern-hud .status-symbol { left: 6px; top: 6px; width: 18px; height: 18px; }
+.modern-hud .status-caption { display: none; }
+.modern-hud .h2-safe { bottom: 64px; }
+.realcity-chat, .realcity-camera, .modern-hud .h2-microphone,
+.modern-hud .h2-jump, .modern-hud .h2-actions .h2-sprint {
+    padding: 0;
+    margin: 0;
+    border-width: 0;
+    background-color: transparent;
+    align-items: center;
+    justify-content: center;
+}
+.realcity-chat {
+    position: absolute;
+    left: 25%;
+    top: 24px;
+    width: 32px;
+    height: 32px;
+    border-radius: 7px;
+    background-color: rgba(14, 19, 28, .8);
+}
+.realcity-chat > Image { width: 23px; height: 23px; }
+.realcity-camera { position: absolute; left: 24px; bottom: 66px; width: 42px; height: 42px; }
+.modern-hud .h2-safe { left: 74px; }
+.realcity-camera > Image, .modern-hud .h2-microphone > Image,
+.modern-hud .h2-jump > Image, .modern-hud .h2-actions .h2-sprint > Image { width: 100%; height: 100%; }
+.modern-hud .h2-microphone { position: absolute; right: 128px; top: 59%; width: 58px; height: 58px; border-radius: 29px; }
+.modern-hud .h2-microphone-ring { border-radius: 29px; }
+.modern-hud .h2-jump { right: 24px; top: 60%; bottom: auto; width: 49px; height: 49px; border-radius: 25px; }
+.modern-hud .h2-actions { right: 24px; top: 49%; bottom: auto; width: 54px; }
+.modern-hud .h2-actions .h2-sprint { width: 54px; height: 54px; border-radius: 27px; }
+.modern-hud .h2-fist, .modern-hud .h2-fist:hover {
+    position: absolute;
+    right: 24px;
+    top: 130px;
+    width: 132px;
+    height: 58px;
+    margin: 0;
+    border-width: 0;
+    background-color: transparent;
+    flex-direction: row;
+    justify-content: flex-end;
+}
+.modern-hud .h2-fist > Image { width: 58px; height: 58px; }
+.realcity-weapon { color: white; font-size: 14px; -unity-font-style: bold; }

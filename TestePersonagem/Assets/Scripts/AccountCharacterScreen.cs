@@ -12,11 +12,13 @@ public sealed partial class AccountSession
     ScrollView characterScroll;
     TextField characterFirstName, characterLastName;
     Label characterFirstError, characterLastError, characterGenderError, characterMessage;
-    Label characterFemaleStatus, characterMaleStatus, characterSelection, characterExistingName;
+    Label characterFemaleStatus, characterMaleStatus, characterSelection, characterExistingName, characterSlotName, characterSlotMark, characterPlayCaption, characterExistingDescription;
     Image characterExistingImage;
+    Label entryCharacterId, entryLevel, entryHours, entryFaction, entryCash, entryBank;
+    Button entryBack, characterActiveSlot;
     Button characterFemale, characterMale, characterSave, characterEnter, characterLogout;
     Texture2D characterFemaleArtwork, characterMaleArtwork;
-    VisualElement characterStage;
+    VisualElement characterStage, characterExistingCard;
     Image characterFemalePreview, characterMalePreview;
     Label characterPreviewName;
     Coroutine characterSlide;
@@ -35,6 +37,10 @@ public sealed partial class AccountSession
         if(styles)parent.styleSheets.Add(styles);
         var garageStyles=Resources.Load<StyleSheet>("CharacterGarage");
         if(garageStyles)parent.styleSheets.Add(garageStyles);
+        var selectionStyles=Resources.Load<StyleSheet>("CharacterSelection");
+        if(selectionStyles)parent.styleSheets.Add(selectionStyles);
+        var creationStyles=Resources.Load<StyleSheet>("CharacterCreationGta");
+        if(creationStyles)parent.styleSheets.Add(creationStyles);
         characterFemaleArtwork=Resources.Load<Texture2D>("Characters/ByBeybyPreview");
         characterMaleArtwork=Resources.Load<Texture2D>("Characters/Masculino");
         characterLobby=new VisualElement {name="character-lobby"};
@@ -53,6 +59,12 @@ public sealed partial class AccountSession
         var brand=new VisualElement();brand.AddToClassList("character-brand-block");header.Add(brand);
         CharacterLabel("HORIZONTE","character-brand",brand);
         CharacterLabel("B R A S I L   R P","character-brand-sub",brand);
+        entryBack=new Button(()=>
+        {
+            if(characterCreation.resolvedStyle.display!=DisplayStyle.None)ShowExistingCharacter(HasCharacter?State:null);
+            else ShowCitySelection();
+        }){name="character-city-back",text="‹  CIDADE"};
+        entryBack.AddToClassList("entry-secondary");header.Insert(0,entryBack);
         CharacterLabel("N O V O   P E R S O N A G E M","character-header-title",header);
         characterLogout=new Button(()=>{if(!characterBusy&&!busy)Logout();}) {name="character-logout",text="TROCAR CONTA"};
         characterLogout.AddToClassList("character-logout");header.Add(characterLogout);
@@ -68,10 +80,15 @@ public sealed partial class AccountSession
             scaleMode=ScaleMode.ScaleToFit,pickingMode=PickingMode.Ignore};
         characterFemalePreview.AddToClassList("character-stage-image");characterMalePreview.AddToClassList("character-stage-image");
         characterStage.Add(characterFemalePreview);characterStage.Add(characterMalePreview);
+        CharacterLabel("HORIZONTE  /  PERSONAGEM 01","character-stage-index",characterStage);
+        CharacterLabel("NOVA VIDA","character-stage-title",characterStage);
         characterPreviewName=CharacterLabel("SEU PERSONAGEM","character-preview-name",characterStage);
         characterPreviewName.name="character-preview-name";
 
         var identity=new VisualElement();identity.AddToClassList("character-identity");body.Add(identity);
+        CharacterLabel("CRIAÇÃO DE PERSONAGEM   /   01","character-create-kicker",identity);
+        CharacterLabel("QUEM É VOCÊ?","character-create-title",identity);
+        CharacterLabel("Escolha um nome e o visual que vão representar você na cidade.","character-create-subtitle",identity);
         CharacterLabel("IDENTIDADE","character-section",identity);
         var fields=new VisualElement();fields.AddToClassList("character-name-fields");identity.Add(fields);
         characterFirstName=CharacterField("NOME","Seu primeiro nome","character-first-name",fields,out characterFirstError);
@@ -88,6 +105,11 @@ public sealed partial class AccountSession
         characterGenderError=CharacterLabel("","character-field-error",choices);
         characterGenderError.name="character-gender-error";characterGenderError.style.display=DisplayStyle.None;
         characterDock=new VisualElement {name="character-dock"};characterDock.AddToClassList("character-dock");identity.Add(characterDock);
+        var testAnimations=new Button(() =>
+        {
+            if(!busy&&!characterBusy)AnimationTestWheel.Open(root,null,characterPreviewGender);
+        }) {name="character-test-animations",text="TESTAR ANIMAÇÕES"};
+        testAnimations.AddToClassList("entry-secondary");characterDock.Add(testAnimations);
         characterSave=new Button(()=>{if(!characterBusy&&!busy)StartCoroutine(SubmitCharacter());})
             {name="character-save",text="CRIAR PERSONAGEM   ›"};
         characterSave.AddToClassList("character-primary");characterDock.Add(characterSave);
@@ -96,19 +118,36 @@ public sealed partial class AccountSession
         characterExisting=new VisualElement {name="character-existing"};
         characterExisting.AddToClassList("character-existing");shell.Add(characterExisting);
         CharacterLabel("SEU PERSONAGEM","character-kicker",characterExisting);
-        CharacterLabel("Sua história continua","character-title",characterExisting);
-        CharacterLabel("Tudo pronto para voltar à cidade.","character-description",characterExisting);
-        var existingCard=new VisualElement();existingCard.AddToClassList("character-existing-card");characterExisting.Add(existingCard);
-        var portrait=new VisualElement();portrait.AddToClassList("character-existing-portrait");existingCard.Add(portrait);
+        CharacterLabel("SUA HISTÓRIA CONTINUA","character-title",characterExisting);
+        characterExistingDescription=CharacterLabel("Seu personagem está pronto para voltar à cidade.","character-description",characterExisting);
+        characterExistingCard=new VisualElement();characterExistingCard.AddToClassList("character-existing-card");characterExisting.Add(characterExistingCard);
+        var portrait=new VisualElement();portrait.AddToClassList("character-existing-portrait");characterExistingCard.Add(portrait);
         characterExistingImage=new Image {name="character-existing-image",scaleMode=ScaleMode.ScaleToFit,pickingMode=PickingMode.Ignore};
         characterExistingImage.AddToClassList("character-existing-image");portrait.Add(characterExistingImage);
-        CharacterLabel("✓  SELECIONADO","character-existing-selected",portrait);
-        var summary=new VisualElement();summary.AddToClassList("character-existing-summary");existingCard.Add(summary);
-        CharacterLabel("PERSONAGEM SALVO","character-section",summary);
+        CharacterLabel("PERSONAGEM 01  ·  SELECIONADO","character-existing-selected",portrait);
+        var summary=new VisualElement();summary.AddToClassList("character-existing-summary");characterExistingCard.Add(summary);
+        entryCharacterId=CharacterLabel("PERSONAGEM SALVO","character-section",summary);
         characterExistingName=CharacterLabel("","character-existing-name",summary);characterExistingName.name="character-existing-name";
-        CharacterLabel("Seu personagem e seu progresso estão prontos. Entre para continuar sua jornada.","character-existing-description",summary);
-        characterEnter=new Button(()=>{if(!characterBusy&&!busy)EnterCity();}) {name="character-enter",text="ENTRAR NA CIDADE"};
-        characterEnter.AddToClassList("character-primary");summary.Add(characterEnter);
+        entryLevel=EntryStat(summary,"level","NÍVEL");
+        entryHours=EntryStat(summary,"clock","TEMPO DE JOGO");
+        entryFaction=EntryStat(summary,"users","FACÇÃO");
+        entryCash=EntryStat(summary,"cash","DINHEIRO");
+        entryBank=EntryStat(summary,"safe","NO BANCO");
+        var selectionFooter=new VisualElement {name="character-selection-footer"};
+        selectionFooter.AddToClassList("character-selection-footer");characterExisting.Add(selectionFooter);
+        var slots=new VisualElement {name="character-slots"};slots.AddToClassList("character-slots");selectionFooter.Add(slots);
+        slots.style.display=DisplayStyle.None;
+        characterActiveSlot=new Button(()=>{if(characterBusy||busy)return;if(HasCharacter)characterEnter.Focus();else ShowCharacterLobby();})
+            {name="character-slot-1",tooltip="Personagem salvo nesta conta"};
+        characterActiveSlot.AddToClassList("character-slot");characterActiveSlot.AddToClassList("character-slot-active");slots.Add(characterActiveSlot);
+        CharacterLabel("01","character-slot-number",characterActiveSlot);
+        characterSlotName=CharacterLabel("SEU PERSONAGEM","character-slot-name",characterActiveSlot);
+        characterSlotMark=CharacterLabel("✓","character-slot-mark",characterActiveSlot);
+        var playArea=new VisualElement();playArea.AddToClassList("character-play-area");selectionFooter.Add(playArea);
+        characterPlayCaption=CharacterLabel("PERSONAGEM SELECIONADO","character-play-caption",playArea);
+        characterEnter=new Button(()=>{if(characterBusy||busy)return;if(HasCharacter)EnterCity();else ShowCharacterLobby();})
+            {name="character-enter",text="JOGAR   »"};
+        characterEnter.AddToClassList("character-primary");characterEnter.AddToClassList("entry-action");playArea.Add(characterEnter);
 
         characterLobby.RegisterCallback<GeometryChangedEvent>(_=>
         {
@@ -154,6 +193,7 @@ public sealed partial class AccountSession
         string id=gender=="female"?"character-female":"character-male";
         var card=new Button(()=>SelectCharacter(gender)) {name=id,tooltip="Selecionar personagem "+caption.ToLowerInvariant()};
         card.AddToClassList("character-card");parent.Add(card);
+        CharacterLabel(gender=="female"?"02":"01","character-gender-number",card);
         CharacterLabel(gender=="female"?"♀":"♂","character-gender-icon",card);
         CharacterLabel(caption,"character-card-name",card);
         CharacterLabel("✓","character-card-check",card);
@@ -164,6 +204,8 @@ public sealed partial class AccountSession
     void ShowCharacterLobby()
     {
         if(characterLobby==null)return;
+        entryBack.style.display=VerificationTransport==null?DisplayStyle.Flex:DisplayStyle.None;
+        entryBack.text="‹  PERSONAGENS";
         characterLobbyShown=true;characterLobby.style.display=DisplayStyle.Flex;
         characterCreation.style.display=DisplayStyle.Flex;characterExisting.style.display=DisplayStyle.None;
         characterLobby.RemoveFromClassList("character-existing-mode");
@@ -177,19 +219,51 @@ public sealed partial class AccountSession
     void ShowExistingCharacter(ApiPlayerState state)
     {
         if(characterLobby==null)return;
+        entryBack.style.display=VerificationTransport==null?DisplayStyle.Flex:DisplayStyle.None;
+        entryBack.text="‹  CIDADE";
         characterLobbyShown=true;characterLobby.style.display=DisplayStyle.Flex;
         characterCreation.style.display=DisplayStyle.None;characterExisting.style.display=DisplayStyle.Flex;
         characterLobby.AddToClassList("character-existing-mode");
         characterLobby.RemoveFromClassList("character-create-mode");characterDock.style.display=DisplayStyle.None;
+        bool hasSavedCharacter=state!=null&&!string.IsNullOrEmpty(state.characterId);
+        characterExisting.EnableInClassList("character-empty-mode",!hasSavedCharacter);
+        characterExistingCard.style.display=hasSavedCharacter?DisplayStyle.Flex:DisplayStyle.None;
+        characterExistingDescription.text=hasSavedCharacter?
+            "Seu personagem está pronto para voltar à cidade.":
+            "Escolha a primeira vaga para criar seu personagem no Horizonte.";
+        characterSlotName.text=hasSavedCharacter?"SEU PERSONAGEM":"CRIAR PERSONAGEM";
+        characterSlotMark.text=hasSavedCharacter?"✓":"+";
+        characterActiveSlot.tooltip=hasSavedCharacter?"Personagem salvo nesta conta":"Criar personagem na primeira vaga";
+        characterPlayCaption.text=hasSavedCharacter?"PERSONAGEM SELECIONADO":"VAGA 01 DISPONÍVEL";
+        characterEnter.text=hasSavedCharacter?"JOGAR   »":"CRIAR PERSONAGEM   »";
+        characterEnter.style.fontSize=hasSavedCharacter?22:17;
+        if(!hasSavedCharacter)
+        {ClearCharacterErrors();SetCharacterBusy(false);characterScroll.scrollOffset=Vector2.zero;return;}
         characterExistingImage.image=state?.gender=="female"?characterFemaleArtwork:characterMaleArtwork;
         string fullName=PlayerDisplayName.From(state);
         characterExistingName.text=!string.IsNullOrWhiteSpace(fullName)?fullName:state?.name??"Seu personagem";
+        characterSlotName.text=characterExistingName.text;
+        entryCharacterId.text=string.IsNullOrEmpty(state?.uid)?"PERSONAGEM SALVO":"PERSONAGEM   /   UID "+state.uid;
+        entryLevel.text=state!=null?state.level.ToString():"—";
+        entryHours.text=long.TryParse(state?.playSeconds,out long seconds)?$"{seconds/3600} h {seconds/60%60:00} min":"—";
+        entryFaction.text=string.IsNullOrWhiteSpace(state?.organization?.name)?"Nenhuma":state.organization.name;
+        entryCash.text=EntryMoney(state?.cashCents);
+        entryBank.text=EntryMoney(state?.bankCents);
         ClearCharacterErrors();SetCharacterBusy(false);characterScroll.scrollOffset=Vector2.zero;
         characterLobby.schedule.Execute(()=>{if(characterLobbyShown&&characterExisting.resolvedStyle.display!=DisplayStyle.None)characterEnter.Focus();});
     }
 
+    Label EntryStat(VisualElement parent,string icon,string title)
+    {
+        var row=new VisualElement();row.AddToClassList("entry-stat");parent.Add(row);
+        row.Add(HorizonteEntryVisuals.Image(Resources.Load<Texture2D>("HudMinimal/"+icon),"entry-stat-icon"));
+        CharacterLabel(title,"entry-stat-title",row);
+        return CharacterLabel("","entry-stat-value",row);
+    }
+
     void HideCharacterLobby()
     {
+        root?.Q("animation-test-wheel")?.RemoveFromHierarchy();
         characterLobbyShown=false;
         if(characterLobby==null)return;
         var focused=root.focusController?.focusedElement as VisualElement;
@@ -275,7 +349,8 @@ public sealed partial class AccountSession
         characterSave.SetEnabled(!value);characterEnter.SetEnabled(!value);
         characterLogout.SetEnabled(!value);
         characterSave.text=value?"SALVANDO PERSONAGEM...":"CRIAR PERSONAGEM   ›";
-        characterEnter.text=value?"PREPARANDO A CIDADE...":"ENTRAR NA CIDADE";
+        characterEnter.text=value?"PREPARANDO...":HasCharacter?"JOGAR   »":"CRIAR PERSONAGEM   »";
+        characterEnter.style.fontSize=HasCharacter?22:17;
         characterLobby.EnableInClassList("character-busy",value);
     }
 

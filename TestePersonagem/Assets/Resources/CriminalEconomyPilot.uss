@@ -144,3 +144,43 @@
 .economy-batches { width: 190px; margin-bottom: 9px; }
 .economy-audit-row { white-space: normal; }
 .economy-primary:disabled { opacity: .4; }
+
+/* Same navigation and visual hierarchy as the player's main menu. */
+.economy-overlay { background-color: rgba(5, 9, 15, .68); }
+.economy-panel {
+    width: 86%; max-width: 1300px; height: 90%; max-height: 90%; padding: 14px 21px 11px;
+    border-radius: 4px; border-top-width: 3px; border-color: #445163; border-top-color: #f5c44f;
+    background-color: rgba(12, 17, 25, .96);
+    -unity-font: url("HudMinimal/Barlow-Medium.ttf");
+}
+.economy-header { margin-bottom: 8px; }
+.economy-titles { min-width: 0; }
+.economy-title { font-size: 26px; white-space: normal; }
+.economy-organization { white-space: normal; }
+.economy-eyebrow { color: #f5c44f; }
+.economy-balance { color: #f8d983; margin-right: 9px; font-size: 13px; -unity-font-style: bold; }
+.economy-close { border-radius: 4px; background-color: #263447; }
+.economy-close:hover, .economy-close:focus { border-color: #f5c44f; }
+.economy-columns { flex-grow: 1; flex-direction: row; min-height: 0; }
+.economy-tabs {
+    flex-direction: column; align-items: stretch; width: 24%; min-width: 79px; max-width: 200px;
+    flex-shrink: 0; margin: 0 8px 0 0;
+}
+.economy-tabs > .economy-eyebrow { margin: 3px 0 7px; }
+.economy-tab {
+    flex-grow: 0; min-height: 22px; height: 35px; margin: 0 0 3px; border-radius: 0;
+    border-width: 0; border-left-width: 3px; border-left-color: #53657a; background-color: #202a36;
+    color: #e5ecf6; font-size: 12px; padding-left: 7px; -unity-text-align: middle-left;
+}
+.economy-tab:hover, .economy-tab:focus { background-color: #354354; border-left-color: #f5c44f; }
+.economy-tab.economy-selected { background-color: #f1f3f7; color: #151b26; border-left-color: #f5c44f; }
+.economy-body { min-width: 0; min-height: 0; padding: 8px; border-radius: 2px; background-color: rgba(20, 27, 37, .83); }
+.economy-card, .economy-stock-row { flex-wrap: wrap; }
+.economy-card, .economy-stock-row, .economy-recipe, .economy-summary, .economy-audit-row {
+    border-radius: 2px; background-color: #212d3c; border-left-width: 2px; border-left-color: #65758a;
+}
+.economy-card-title, .economy-stock-name, .economy-card-description, .economy-stock-value { white-space: normal; }
+.economy-primary, .economy-secondary { border-radius: 3px; }
+.economy-primary { background-color: #f5c44f; color: #151b26; }
+.economy-primary:hover, .economy-primary:focus { background-color: #ffda77; }
+.economy-secondary { background-color: #354458; }

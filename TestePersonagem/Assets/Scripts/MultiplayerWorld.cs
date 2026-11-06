@@ -185,12 +185,20 @@ public sealed class MultiplayerWorld : MonoBehaviour
                         GameHud.Instance?.ApplyAccountIdentity();
                     }
                 }
+                if(reply.selfPoliceDutyAvailable)
+                {
+                    bool wasOnDuty=AdminPlayerPanel.PoliceDuty;
+                    AdminPlayerPanel.ApplyPoliceDuty(reply.selfPoliceDuty,reply.selfOrganization);
+                    if(wasOnDuty&&!reply.selfPoliceDuty)player.GetComponent<RifleWeapon>()?.SetEquipped(false);
+                    if(wasOnDuty!=reply.selfPoliceDuty)GameHud.Instance?.RefreshPoliceDutyMenu();
+                }
                 ApplySelfCombat(reply.selfCombat,reply.serverTime,roundTrip);
                 SetStatus("ONLINE "+reply.count+"/"+reply.capacity);
                 UpdatePeers(reply.peers,reply.serverTime,roundTrip);
                 policeCarWorld.Apply(reply.policeCars,reply.selfPoliceCarId,new Vector3(reply.selfX,reply.selfY,reply.selfZ),vehicleRevision);
-                player.SetCustody(reply.selfCuffed,reply.selfEscortedBy,new Vector3(reply.selfX,reply.selfY,reply.selfZ),reply.selfYaw);
-                player.SetPoliceCarPassenger(reply.selfInPoliceCar,new Vector3(reply.selfX,reply.selfY,reply.selfZ),reply.selfYaw);
+                var selfPosition=new Vector3(reply.selfX,reply.selfY,reply.selfZ);
+                player.SetPoliceCarPassenger(reply.selfInPoliceCar,selfPosition,reply.selfYaw);
+                player.SetCustody(reply.selfCuffed,reply.selfEscortedBy,selfPosition,reply.selfYaw,reply.selfJailUntil,reply.serverTime);
                 ReceiveChat(reply);
                 if(reply.teleport!=null&&reply.teleport.id>lastTeleportId)
                 {

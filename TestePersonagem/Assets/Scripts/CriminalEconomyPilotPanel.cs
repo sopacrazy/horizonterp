@@ -13,7 +13,7 @@ public sealed class CriminalEconomyPilotPanel : MonoBehaviour
     public static CriminalEconomyState LastState { get; private set; }
     public static event Action<CriminalEconomyState> StateChanged;
     VisualElement root, modal, body;
-    Label organization, status;
+    Label organization, status, balance;
     Button launcher, refresh, retry, adminTab;
     GameHud attachedHud;
     StyleSheet sheet;
@@ -63,21 +63,19 @@ public sealed class CriminalEconomyPilotPanel : MonoBehaviour
         root.pickingMode = PickingMode.Ignore;
         sheet = Resources.Load<StyleSheet>("CriminalEconomyPilot");
         if (sheet) root.styleSheets.Add(sheet);
+        var menuSheet = Resources.Load<StyleSheet>("PlayerMenu");
+        if (menuSheet) root.styleSheets.Add(menuSheet);
         Build();
         while (true)
         {
             var hud = GameHud.Instance;
-            if (hud && hud.Root != null && (hud != attachedHud || launcher == null || launcher.parent != hud.Root))
+            if (hud && hud.Root != null && hud != attachedHud)
             {
                 Close();
                 if (launcher != null) launcher.RemoveFromHierarchy();
                 attachedHud = hud;
                 if (sheet && !hud.Root.styleSheets.Contains(sheet)) hud.Root.styleSheets.Add(sheet);
-                launcher = new Button(Toggle) { text = "ECONOMIA", tooltip = "Organização e inventário [F7]" };
-                launcher.name = "criminal-economy-pilot-launcher";
-                launcher.AddToClassList("economy-launcher");
-                hud.Root.Add(launcher);
-                hud.RegisterPointerBlocker(launcher);
+                // Economy remains available from the player menu and F7.
                 hud.RegisterPointerBlocker(modal);
             }
             yield return null;
@@ -111,6 +109,7 @@ public sealed class CriminalEconomyPilotPanel : MonoBehaviour
     }
     static void Publish(CriminalEconomyState value)
     { LastState = value; StateChanged?.Invoke(value); }
+    public static void CloseOverlay() { if (instance) instance.Close(); }
     public static void OpenSection(string kind, string activityCode = null)
     {
         if (!instance) Bootstrap();
@@ -126,17 +125,25 @@ public sealed class CriminalEconomyPilotPanel : MonoBehaviour
         var panel = Element("economy-panel", modal);
         var header = Element("economy-header", panel);
         var titles = Element("economy-titles", header);
-        Text("ORGANIZAÇÕES • CIDADE", "economy-eyebrow", titles);
-        Text("Economia criminal", "economy-title", titles);
+        Text("CENTRAL DO JOGADOR", "economy-eyebrow", titles);
+        Text("Economia da cidade", "economy-title", titles);
         organization = Text("Consultando vínculo...", "economy-organization", titles);
+        balance = Text("", "economy-balance", header);
         var close = new Button(Close) { text = "×", tooltip = "Fechar [Esc]" };
         close.AddToClassList("economy-close"); header.Add(close);
-        var tabRow = Element("economy-tabs", panel);
+        var nav = Element("player-menu-tabs", panel);
+        Nav("Central", "menu", nav); Nav("Mapa", "map", nav); Nav("Missões", "missions", nav);
+        Nav("Economia", null, nav); Nav("Configurações", "settings", nav);
+        var columns = Element("economy-columns", panel);
+        var tabRow = Element("economy-tabs", columns);
+        Text("OPERAÇÕES", "economy-eyebrow", tabRow);
         Tab("ATIVIDADES", "activity", tabRow); Tab("DEPÓSITO", "warehouse", tabRow);
         Tab("BANCADA", "craft", tabRow); Tab("HISTÓRICO", "history", tabRow);
         Tab("LOJAS", "shop", tabRow);
         adminTab = Tab("MEMBROS", "admin", tabRow);
-        body = new ScrollView(ScrollViewMode.Vertical); body.AddToClassList("economy-body"); panel.Add(body);
+        var wallet = new Button(() => GameHud.Instance?.OpenPanel("wallet")) { text = "CARTEIRA", name = "economy-wallet" };
+        wallet.AddToClassList("economy-tab"); tabRow.Add(wallet);
+        body = new ScrollView(ScrollViewMode.Vertical); body.AddToClassList("economy-body"); columns.Add(body);
         var footer = Element("economy-footer", panel);
         refresh = new Button(() => { if (!busy) StartCoroutine(RefreshRoutine(true)); }) { text = "ATUALIZAR" };
         refresh.AddToClassList("economy-secondary"); footer.Add(refresh);
@@ -145,6 +152,14 @@ public sealed class CriminalEconomyPilotPanel : MonoBehaviour
         retry.AddToClassList("economy-secondary"); footer.Add(retry);
         status = Text(message, "economy-status", panel);
         modal.style.display = DisplayStyle.None; Render();
+    }
+    void Nav(string title, string target, VisualElement parent)
+    {
+        var button = new Button(() => { if (target != null) GameHud.Instance?.OpenPanel(target); }) { text = title };
+        button.AddToClassList("player-menu-tab");
+        button.EnableInClassList("player-menu-active", target == null);
+        if (target == null) { button.focusable = false; button.pickingMode = PickingMode.Ignore; }
+        parent.Add(button);
     }
     Button Tab(string title, string kind, VisualElement parent)
     {
@@ -249,12 +264,13 @@ public sealed class CriminalEconomyPilotPanel : MonoBehaviour
         productionCountdown = null; productionComplete = null;
         var org = LastState?.organization;
         organization.text = org != null ? org.name + "  •  " + org.rank : "SEM ORGANIZAÇÃO";
+        balance.text = LastState == null ? "SALDO  —" : "SALDO  " + (LastState.cashCents / 100m).ToString("C2", CultureInfo.GetCultureInfo("pt-BR"));
         adminTab.style.display = CanAdmin ? DisplayStyle.Flex : DisplayStyle.None;
         foreach (var tab in tabs) tab.button.EnableInClassList("economy-selected", tab.section == section);
         refresh.SetEnabled(!busy); retry.style.display = pendingJson != null ? DisplayStyle.Flex : DisplayStyle.None; retry.SetEnabled(!busy);
         status.text = busy ? "Sincronizando com o servidor..." : message;
         if (section == "admin" && CanAdmin) { RenderAdmin(); return; }
-        if (LastState == null) { Text("Economia indisponível", "economy-section-title", body); Text("Atualize para consultar seu inventário e as atividades da cidade.", "economy-copy", body); return; }
+        if (LastState == null) { Text(busy ? "Consultando a economia" : "Economia indisponível", "economy-section-title", body); Text(busy ? "Buscando inventário e atividades da cidade." : "Use Atualizar para tentar novamente.", "economy-copy", body); return; }
         if (section == "warehouse") RenderWarehouse();
         else if (section == "craft") RenderCraft();
         else if (section == "history") RenderHistory();

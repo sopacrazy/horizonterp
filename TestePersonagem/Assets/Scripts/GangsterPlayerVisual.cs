@@ -13,6 +13,12 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
     const string MalePath = "GangsterMusculo/GangsterMusculo";
     const string WuzimuPath = "Characters/Wuzimu/Wuzimu";
     const string RunClipName = "Correr_FastRunEnviado";
+    static AnimationClip FemaleLocomotion(string original) => original switch
+    {
+        "Andar_WalkingOriginal" => AnimationTestWheel.FindClip(AnimationTestWheel.Walk),
+        RunClipName => AnimationTestWheel.FindClip(AnimationTestWheel.Run),
+        _ => null
+    };
     const string TestRunPath = "GangsterMusculo/Animations/Gangster_Corrida_Base";
     string previewModel;
     RuntimeAnimatorController previewOriginalController;
@@ -70,7 +76,7 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
             {
                 var originalClip = clips[i].Key;
                 if (!originalClip || !replacements.TryGetValue(originalClip.name, out var path)) continue;
-                var clip = Resources.LoadAll<AnimationClip>(path)
+                var clip = (female ? FemaleLocomotion(originalClip.name) : null) ?? Resources.LoadAll<AnimationClip>(path)
                     .FirstOrDefault(candidate => candidate && candidate.length > 0 && candidate.humanMotion &&
                         !candidate.name.StartsWith("__preview"));
                 if (!clip) throw new InvalidOperationException("Animação Humanoid ausente: " + path);
@@ -91,7 +97,7 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
             Destroy(original.gameObject);
             installedGender = female ? "female" : "male";
             saLocomotionApplied = !female;
-            ShowRunLabel(female ? "Corrida original (F8 para trocar)" : "Parado, andar, correr e pular SA ativos");
+            ShowRunLabel(female ? "Locomoção feminina (F8 para testar outra corrida)" : "Parado, andar, correr e pular SA ativos");
             ClearVisualRetry();
             if (!GetComponent<FighterCombo>()) gameObject.AddComponent<FighterCombo>();
         }

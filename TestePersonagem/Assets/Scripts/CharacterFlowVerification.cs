@@ -110,7 +110,7 @@ public sealed class CharacterFlowVerification : MonoBehaviour
         yield return WaitForCreationLobby();
         Check(AccountSession.Authenticated && !AccountSession.HasCharacter && account.State == null &&
               !account.ReadyToEnterCity && account.AuthVisible && !CityEntryLoading.Active,
-            "Token com needsCharacter e state nulo abre criação sem carregar a cidade");
+            "Token com needsCharacter e state nulo abre seleção e depois criação sem carregar a cidade");
         Check(AccountSession.InputBlocked && StartupLoader.IsLoading && !FindAnyObjectByType<ThirdPersonPlayer>(),
             "Conta sem personagem continua bloqueada antes da ativação da cena");
         CheckMusic("durante a criação");
@@ -136,6 +136,11 @@ public sealed class CharacterFlowVerification : MonoBehaviour
               account.CharacterGender == "female", "Erro de criação preserva identidade e escolha para repetir");
         yield return Capture("creation-retry");
         Submit("character-save");
+        yield return WaitUntil(() => Visible(root.Q("character-existing")) && AccountSession.HasCharacter,
+            8, "Seleção após criar personagem");
+        Check(!account.ReadyToEnterCity && Button("character-enter").text.Contains("JOGAR"),
+            "Criação retorna à seleção antes de entrar na cidade");
+        Submit("character-enter");
         yield return VerifyCityEntry("created-character");
         Check(account.State.firstName == "Ana-María" && account.State.lastName == "D'Ávila" &&
               account.State.gender == "female" && characterAttempts == 2,
@@ -176,6 +181,9 @@ public sealed class CharacterFlowVerification : MonoBehaviour
         yield return WaitUntil(() => recoveryReads == 1, 5, "Recuperação local de CHARACTER_EXISTS");
         Check(CharacterBusy() && !account.ReadyToEnterCity,
             "CHARACTER_EXISTS mantém bloqueio enquanto consulta o personagem já salvo");
+        yield return WaitUntil(() => Visible(root.Q("character-existing")) && AccountSession.HasCharacter,
+            8, "Seleção após recuperar personagem");
+        Submit("character-enter");
         yield return VerifyCityEntry("recovered-character");
         Check(account.State.gender == "male" && account.State.firstName == "João" &&
               characterAttempts == 3 && recoveryReads == 1,
@@ -635,6 +643,12 @@ public sealed class CharacterFlowVerification : MonoBehaviour
 
     IEnumerator WaitForCreationLobby()
     {
+        yield return WaitUntil(() => Visible(root.Q("character-existing")), 8, "Seleção de personagem disponível");
+        Check(!Visible(root.Q("character-create")) &&
+              Button("character-enter").text.Contains("CRIAR PERSONAGEM") &&
+              root.Q("character-slot-1") != null && root.Q("character-slots").style.display.value == DisplayStyle.None,
+            "Conta sem personagem vê a vaga de criação antes do formulário");
+        Submit("character-enter");
         yield return WaitUntil(() => Visible(root.Q("character-create")), 8, "Lobby de criação disponível");
         yield return new WaitForSecondsRealtime(.2f);
     }

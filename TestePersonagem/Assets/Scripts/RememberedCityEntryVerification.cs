@@ -79,6 +79,12 @@ public sealed class RememberedCityEntryVerification : MonoBehaviour
         }
         bool pass=missionReads>0&&a&&a.ReadyToEnterCity&&!a.AuthVisible&&AccountSession.HasCharacter&&
             a.Document.rootVisualElement.resolvedStyle.display==DisplayStyle.None&&presentation;
+        if(pass&&Array.IndexOf(Environment.GetCommandLineArgs(),"--verify-player-menus")>=0)
+        {
+            bool menus=false;
+            yield return PlayerMenuVerification.Run(value=>menus=value);
+            pass &= menus;
+        }
         string detail="authenticated="+AccountSession.Authenticated+" ready="+a?.ReadyToEnterCity+
             " authVisible="+a?.AuthVisible+" root="+a?.Document.rootVisualElement.resolvedStyle.display+" missionReads="+missionReads;
         yield return new WaitForEndOfFrame();

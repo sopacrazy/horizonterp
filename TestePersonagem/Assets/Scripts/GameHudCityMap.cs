@@ -22,6 +22,19 @@ public sealed partial class GameHud
     bool cityPointSelected;
     Vector2 citySelectedTarget;
     VisualElement cityDestinationMarker,cityTeleportConfirm;
+    Label cityDestinationLabel;
+    bool cityPoliceWaypoint;
+
+    internal void ShowPoliceWaypoint(Vector3 position,string title)
+    {
+        if(CurrentPanel!="map")OpenPanel("map");
+        if(CurrentPanel!="map"||cityDestinationMarker==null)return;
+        CancelCityMapSelection();
+        citySelectedTarget=new Vector2(position.x,position.z);
+        cityPoliceWaypoint=true;
+        cityDestinationLabel.text=title;
+        UpdateCityMapMarker();
+    }
     Button cityTeleportGo;
     bool CanUseMapTeleport => AdminPermissions.CurrentCanUseTools;
 
@@ -56,7 +69,7 @@ public sealed partial class GameHud
         mapMarker.AddToClassList("city-map-player"); mapArea.Add(mapMarker);
         cityDestinationMarker=Element("city-map-destination",mapArea);
         cityDestinationMarker.pickingMode=PickingMode.Ignore;
-        Text("DESTINO","city-map-destination-label",cityDestinationMarker);
+        cityDestinationLabel=Text("DESTINO","city-map-destination-label",cityDestinationMarker);
         cityDestinationMarker.style.display=DisplayStyle.None;
         mapArea.RegisterCallback<PointerDownEvent>(evt =>
         {
@@ -95,7 +108,7 @@ public sealed partial class GameHud
 
     void CancelCityMapSelection()
     {
-        cityPointSelected=false;citySelectionVersion++;
+        cityPointSelected=false;cityPoliceWaypoint=false;citySelectionVersion++;
         if(cityDestinationMarker!=null)cityDestinationMarker.style.display=DisplayStyle.None;
         if(cityTeleportConfirm!=null)cityTeleportConfirm.style.display=DisplayStyle.None;
         FindAnyObjectByType<GtaSaSectorStreaming>()?.ClearMapDestinationPreview();
@@ -109,7 +122,8 @@ public sealed partial class GameHud
         var target=new Vector2(Mathf.Lerp(AtlasMin.x,AtlasMax.x,uv.x),Mathf.Lerp(AtlasMin.y,AtlasMax.y,uv.y));
         if(NeighborhoodMap.Active&&!NeighborhoodMap.Active.ContainsXZ(new Vector3(target.x,0,target.y)))
         {ShowToast("Este ponto está fora da região disponível.");return;}
-        citySelectedTarget=target;cityPointSelected=true;citySelectionVersion++;
+        citySelectedTarget=target;cityPointSelected=true;cityPoliceWaypoint=false;citySelectionVersion++;
+        cityDestinationLabel.text="DESTINO";
         cityTeleportConfirm.style.display=DisplayStyle.Flex;
         UpdateCityMapMarker();
         RefreshPlayerRadar(true);
@@ -177,7 +191,7 @@ public sealed partial class GameHud
         mapMarker.style.rotate = new Rotate(new Angle(180 - player.transform.eulerAngles.y, AngleUnit.Degree));
         if(cityDestinationMarker!=null)
         {
-            cityDestinationMarker.style.display=cityPointSelected?DisplayStyle.Flex:DisplayStyle.None;
+            cityDestinationMarker.style.display=(cityPointSelected||cityPoliceWaypoint)?DisplayStyle.Flex:DisplayStyle.None;
             Vector2 destination=CityMapUV(new Vector3(citySelectedTarget.x,0,citySelectedTarget.y));
             cityDestinationMarker.style.left=cityImageOffset.x+destination.x*cityImageSize.x-11;
             cityDestinationMarker.style.top=cityImageOffset.y+destination.y*cityImageSize.y-11;

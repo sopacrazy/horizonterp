@@ -10,6 +10,12 @@ public sealed class AdminPlayerPanel : MonoBehaviour
     public bool IsOpen {get;private set;}
     public bool Busy=>policeBusy;
     public static bool PoliceDuty {get;private set;}
+    internal static void ApplyPoliceDuty(bool enabled, ApiOrganization organization)
+    {
+        PoliceDuty=enabled;
+        if(AccountSession.HasCharacter)AccountSession.Instance.State.organization=organization;
+        Instance?.RefreshPoliceButton();
+    }
 
     VisualElement overlay;
     ScrollView table;
@@ -149,7 +155,7 @@ public sealed class AdminPlayerPanel : MonoBehaviour
     {
         if(betaButton!=null)betaButton.style.display=AccountSession.HasCharacter&&BetaAccessPanel.CanManage(AccountSession.Instance.State)?DisplayStyle.Flex:DisplayStyle.None;
         if(IsOpen&&!AdminPermissions.CurrentCanUseTools)Close(true);
-        if(!AdminPermissions.CurrentCanUseTools)PoliceDuty=false;
+        if(!AccountSession.HasCharacter||(!AdminPermissions.CurrentCanUseTools&&AccountSession.Instance.State.organization?.code!="pm"))PoliceDuty=false;
     }
     void Load()
     {

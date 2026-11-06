@@ -1,0 +1,172 @@
+.player-menu-shade {
+    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+    background-color: rgba(5, 9, 15, .68);
+}
+.hub2-hud .drawer.player-menu {
+    left: 7%; right: 7%; top: 5%; bottom: 5%; width: auto;
+    padding: 16px 21px 13px; border-width: 1px; border-top-width: 3px;
+    border-color: #445163; border-top-color: #f5c44f; border-radius: 4px;
+    background-color: rgba(12, 17, 25, .94); color: #f4f6fa;
+}
+.player-menu .drawer-header, .player-menu .drawer-content {
+    width: 100%; max-width: none; align-self: stretch;
+}
+.player-menu .drawer-header { margin-bottom: 10px; min-height: 45px; flex-shrink: 0; }
+.player-menu .drawer-title { color: #f4f6fa; font-size: 27px; margin-top: 1px; }
+.player-menu .eyebrow, .player-menu .home-kicker, .player-menu .home-footer-brand { color: #f5c44f; }
+.player-menu .drawer-content { min-height: 0; overflow: hidden; }
+.player-menu-tabs { flex-direction: row; flex-shrink: 0; margin-bottom: 11px; }
+.player-menu-tab {
+    flex-grow: 1; flex-basis: 0; min-width: 0; min-height: 39px; margin: 0 3px 0 0;
+    padding: 0 7px; border-width: 0; border-top-width: 2px; border-top-color: #465364;
+    border-radius: 0; background-color: #202a36; color: #d9e2ef; font-size: 15px;
+}
+.player-menu-tab:hover, .player-menu-tab:focus { background-color: #354354; border-top-color: #f5c44f; color: white; }
+.player-menu-tab.player-menu-active { color: #151b26; background-color: #f1f3f7; border-top-color: #f5c44f; -unity-font-style: bold; }
+.player-menu-columns { flex-direction: row; flex-grow: 1; min-height: 0; }
+.player-menu-sidebar { width: 26%; min-width: 120px; max-width: 235px; margin-right: 10px; flex-shrink: 0; }
+.player-menu-sidebar .player-menu-tab {
+    flex-grow: 0; flex-basis: auto; border-top-width: 0; border-left-width: 3px; border-left-color: #465364;
+    margin: 0 0 4px; padding-left: 12px; -unity-text-align: middle-left;
+}
+.player-menu-sidebar .player-menu-tab:hover, .player-menu-sidebar .player-menu-tab:focus,
+.player-menu-sidebar .player-menu-tab.player-menu-active { border-left-color: #f5c44f; }
+.player-menu-caption { color: #f5c44f; font-size: 11px; -unity-font-style: bold; letter-spacing: 1.4px; white-space: normal; margin: 4px 0 7px; }
+.player-menu-main { flex-grow: 1; flex-basis: 0; min-width: 0; min-height: 0; padding: 0 11px 6px; background-color: rgba(20, 27, 37, .74); }
+.player-menu-scroll { flex-grow: 1; min-height: 0; }
+.player-menu-section { padding: 8px 0 10px; flex-shrink: 0; }
+.player-menu-heading { font-size: 23px; color: #f4f6fa; -unity-font-style: bold; white-space: normal; margin: 0 0 3px; }
+.player-menu-description { color: #bac9da; font-size: 14px; white-space: normal; margin: 0 0 4px; }
+.player-menu-row {
+    flex-direction: row; align-items: center; min-height: 44px; margin-bottom: 4px; padding: 4px 9px;
+    background-color: rgba(35, 47, 62, .91);
+}
+.player-menu-row:hover { background-color: #303f52; }
+.player-menu-value-label { flex-grow: 1; flex-basis: 0; min-width: 0; font-size: 15px; white-space: normal; }
+.player-menu-slider { width: 33%; min-width: 55px; margin: 0 8px; }
+.player-menu-slider .unity-base-slider__tracker { background-color: #536478; }
+.player-menu-slider .unity-base-slider__dragger { background-color: #f5c44f; border-color: #f5c44f; }
+.player-menu-readout { min-width: 56px; color: #f8d983; font-size: 14px; -unity-text-align: middle-right; }
+.player-menu-command {
+    align-self: flex-start; min-height: 40px; margin: 9px 0 3px; padding: 4px 12px; font-size: 14px;
+    background-color: #283647; color: #f3f5f8; border-width: 1px; border-color: #566980; border-radius: 3px;
+}
+.player-menu-command:hover, .player-menu-command:focus { border-color: #f5c44f; background-color: #3b4a5e; }
+.player-mission-card, .player-wallet-card {
+    padding: 8px 11px; margin-bottom: 6px; background-color: #212d3c; border-left-width: 2px; border-left-color: #65758a;
+}
+.player-mission-title-row, .player-wallet-grid { flex-direction: row; align-items: center; }
+.player-mission-title-row { flex-wrap: wrap; margin-bottom: 4px; }
+.player-mission-number { color: #f5c44f; margin-right: 7px; font-size: 13px; }
+.player-mission-title { color: white; font-size: 17px; -unity-font-style: bold; white-space: normal; flex-shrink: 1; }
+.player-mission-status { margin-left: auto; padding: 3px 5px; background-color: #384658; color: #eef2f8; font-size: 10px; }
+.player-mission-available { background-color: #285849; color: #d1ffeb; }
+.player-wallet-grid { align-items: stretch; flex-wrap: wrap; }
+.player-wallet-card { min-width: 128px; flex-grow: 1; margin-right: 6px; border-left-color: #f5c44f; }
+.player-wallet-value { color: white; font-size: 23px; -unity-font-style: bold; }
+.player-menu .home-tile { background-color: #202c3b; border-color: #4b5d72; border-radius: 4px; }
+.player-menu .home-tile:hover, .player-menu .home-tile:focus { border-color: #f5c44f; background-color: #303e50; }
+.player-menu .home-tile-category { color: #d6b96e; }
+.player-menu .home-tile-accent { background-color: #f5c44f; }
+.player-menu > #drawer-back {
+    width: auto; align-self: flex-end; height: 36px; min-height: 32px; margin: 7px 0 0; padding: 0 16px;
+    border-width: 1px; border-radius: 3px; border-color: #596a80; background-color: #222d3d; color: white;
+}
+.player-menu > #drawer-back:hover, .player-menu > #drawer-back:focus { border-color: #f5c44f; }
+.hub2-hud.narrow-hud .drawer.player-menu { left: 2%; right: 2%; top: 3%; bottom: 3%; width: auto; padding: 8px 9px; }
+.narrow-hud .player-menu-tab { font-size: 12px; min-height: 34px; padding-left: 3px; padding-right: 3px; }
+.narrow-hud .player-menu-sidebar { min-width: 82px; margin-right: 4px; }
+.narrow-hud .player-menu-sidebar .player-menu-tab { padding-left: 5px; }
+.narrow-hud .player-menu-main { padding-left: 5px; padding-right: 5px; }
+.narrow-hud .player-menu-row { padding-left: 5px; padding-right: 5px; }
+.narrow-hud .player-menu-value-label { font-size: 13px; }
+.narrow-hud .player-menu-readout { min-width: 36px; font-size: 12px; }
+
+/* Clearer menu hierarchy; cards and tabs remain usable on a narrow mobile screen. */
+.hub2-hud .drawer.player-menu { border-radius: 18px; border-width: 1px; border-top-width: 3px; background-color: rgba(10, 12, 22, .97); border-color: #3b304f; border-top-color: #b575df; }
+.player-menu .drawer-title { font-size: 26px; }
+.player-menu .eyebrow, .player-menu .home-kicker, .player-menu .home-footer-brand { color: #c68de9; }
+.player-menu-tab { border-top-color: #574066; background-color: #1b1b2a; border-radius: 7px; margin-right: 5px; }
+.player-menu-tab:hover, .player-menu-tab:focus { border-top-color: #ba77e0; background-color: #30243f; }
+.player-menu-tab.player-menu-active { border-top-color: #d39cf1; color: white; background-color: #543167; }
+.player-menu .home-tile { border-color: #40344f; border-radius: 12px; background-color: #1b1a29; }
+.player-menu .home-tile:hover, .player-menu .home-tile:focus { border-color: #ba77e0; background-color: #30233d; }
+.player-menu .home-tile-category { color: #caa5df; }
+.player-menu .home-tile-accent { background-color: #a866d0; }
+.hub2-hud .menu-home .home-grid { justify-content: flex-start; }
+.hub2-hud .menu-home .home-tile { width: 15.8%; height: 155px; margin: 0 .8% 10px 0; padding: 12px 8px; align-items: center; justify-content: center; }
+.hub2-hud .menu-home .home-tile-top { width: 100%; flex-direction: column; justify-content: center; align-items: center; }
+.hub2-hud .menu-home .home-tile-badge { width: 66px; height: 66px; border-radius: 17px; margin-bottom: 8px; background-color: #39284c; }
+.hub2-hud .menu-home .home-tile-badge .icon { width: 44px; height: 44px; }
+.hub2-hud .menu-home .home-tile-category { display: none; }
+.hub2-hud .menu-home .home-tile-title { width: 100%; font-size: 13px; white-space: normal; -unity-text-align: middle-center; }
+.hub2-hud .menu-home .home-tile-accent { display: none; }
+.player-menu-row, .player-mission-card, .player-wallet-card { background-color: #1d1c2a; }
+.player-menu-caption { color: #cb98e5; }
+.player-menu-command { border-color: #674879; background-color: #3b2850; }
+.player-menu-command:hover, .player-menu-command:focus { border-color: #d39cf1; background-color: #603875; }
+.hub2-hud.narrow-hud .drawer.player-menu { left: 1%; right: 1%; top: 1%; bottom: 1%; padding: 11px; }
+.narrow-hud .player-menu-tabs { flex-wrap: wrap; margin-bottom: 5px; }
+.narrow-hud .player-menu-tab { flex-grow: 1; flex-basis: 30%; min-width: 90px; min-height: 40px; margin-bottom: 5px; font-size: 12px; }
+.narrow-hud .home-grid { justify-content: space-between; }
+.hub2-hud.narrow-hud .menu-home .home-tile { width: 24%; height: 120px; margin-right: 1%; padding: 8px 5px; }
+.hub2-hud.narrow-hud .menu-home .home-tile-badge { width: 48px; height: 48px; margin-bottom: 5px; }
+.hub2-hud.narrow-hud .menu-home .home-tile-badge .icon { width: 32px; height: 32px; }
+.narrow-hud .home-tile-title { font-size: 14px; }
+.narrow-hud .home-tile-category { font-size: 8px; }
+.narrow-hud .player-menu-columns { flex-direction: column; }
+.narrow-hud .player-menu-sidebar { width: 100%; max-width: none; min-width: 0; margin-right: 0; flex-direction: row; flex-wrap: wrap; }
+.narrow-hud .player-menu-sidebar .player-menu-tab { flex-grow: 1; flex-basis: 30%; min-width: 82px; }
+.narrow-hud .player-menu-main { min-height: 0; }
+
+/* Ten inventory spaces, five across on desktop and two across on narrow screens. */
+.inventory-header { flex-direction: row; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.inventory-capacity { color: #cba6e4; font-size: 11px; letter-spacing: 1px; }
+.inventory-hint { color: #aeb3c5; font-size: 12px; margin-bottom: 10px; white-space: normal; }
+.inventory-grid { flex-direction: row; flex-wrap: wrap; justify-content: space-between; }
+.inventory-slot { width: 19%; min-width: 0; height: 185px; margin-bottom: 10px; padding: 10px; border-width: 1px; border-color: #40364e; border-radius: 12px; background-color: #1c1b29; align-items: flex-start; }
+.inventory-slot-index { color: #ac83c7; font-size: 10px; -unity-font-style: bold; }
+.inventory-slot-icon { width: 100%; height: 74px; margin: 2px 0 6px; align-items: center; justify-content: center; }
+.inventory-slot-icon > Image { width: 57px; height: 57px; -unity-background-image-tint-color: #d1b2e7; }
+.inventory-slot-name { color: white; font-size: 14px; -unity-font-style: bold; white-space: normal; }
+.inventory-slot-quantity { color: #cb9de7; font-size: 10px; margin-top: auto; }
+.inventory-slot-empty { border-color: #303044; background-color: rgba(27, 27, 40, .58); }
+.inventory-slot-placeholder { width: 100%; height: 80px; color: #655a78; font-size: 34px; -unity-text-align: middle-center; }
+.inventory-slot-empty .inventory-slot-name { align-self: center; color: #77788b; font-size: 11px; }
+.narrow-hud .inventory-slot { width: 31.5%; height: 150px; padding: 7px; }
+.narrow-hud .inventory-slot-icon { height: 52px; }
+.narrow-hud .inventory-slot-icon > Image { width: 40px; height: 40px; }
+.narrow-hud .inventory-slot-name { font-size: 11px; }
+
+/* Smartphone shown when the player opens the phone shortcut. */
+.player-menu-shade.phone-shade { background-color: rgba(5, 9, 15, .34); }
+.hub2-hud .drawer.phone-shell {
+    left: auto; right: 34px; top: 22px; bottom: 22px; width: 326px;
+    padding: 9px; border-width: 2px; border-color: #3d444e; border-radius: 35px;
+    background-color: #050608; overflow: hidden;
+}
+.phone-shell .drawer-header, .phone-shell .player-menu-tabs, .phone-shell > #drawer-back { display: none; }
+.phone-shell .drawer-content { flex-grow: 1; min-height: 0; border-radius: 27px; overflow: hidden; }
+.phone-screen { position: absolute; left: 0; right: 0; top: 0; bottom: 0; padding: 15px 14px 12px; background-color: #17243d; -unity-background-scale-mode: scale-and-crop; }
+.phone-status { height: 23px; flex-direction: row; align-items: center; justify-content: space-between; padding: 0 7px; }
+.phone-time, .phone-signal { color: white; font-size: 10px; -unity-font-style: bold; }
+.phone-island { position: absolute; top: 8px; left: 50%; margin-left: -42px; width: 84px; height: 20px; border-radius: 11px; background-color: #050608; }
+.phone-hero { height: 105px; align-items: center; justify-content: center; margin-top: 2px; }
+.phone-day { color: white; font-size: 46px; -unity-font-style: bold; -unity-text-align: middle-center; }
+.phone-weekday { color: rgba(230, 238, 249, .88); font-size: 9px; letter-spacing: 2px; margin-top: -7px; }
+.phone-brand { color: rgba(101, 183, 255, .85); font-size: 8px; letter-spacing: 3px; margin-top: 5px; }
+.phone-app-grid { flex-direction: row; flex-wrap: wrap; align-content: flex-start; justify-content: space-between; flex-grow: 1; padding: 4px 4px 0; }
+.phone-app { width: 23%; height: 81px; margin: 0 0 4px; padding: 2px; border-width: 0; background-color: transparent; align-items: center; }
+.phone-app:hover, .phone-app:focus { background-color: rgba(255, 255, 255, .1); border-radius: 10px; }
+.phone-app-icon { width: 48px; height: 48px; border-radius: 12px; align-items: center; justify-content: center; }
+.phone-app-icon > Image { width: 29px; height: 29px; -unity-background-image-tint-color: white; }
+.phone-app-name { width: 100%; margin-top: 4px; color: white; font-size: 9px; -unity-text-align: middle-center; white-space: normal; }
+.phone-dock { height: 65px; margin: 3px 5px 7px; padding: 8px 13px; flex-direction: row; align-items: center; justify-content: space-between; border-radius: 18px; background-color: rgba(225, 235, 248, .22); }
+.phone-dock-app { width: 45px; height: 45px; margin: 0; padding: 8px; border-width: 0; border-radius: 12px; }
+.phone-dock-app > Image { width: 29px; height: 29px; -unity-background-image-tint-color: white; }
+.phone-home { position: absolute; bottom: 4px; left: 50%; margin-left: -48px; width: 96px; height: 4px; min-height: 4px; padding: 0; border-width: 0; border-radius: 2px; background-color: rgba(255, 255, 255, .88); }
+.hub2-hud.narrow-hud .drawer.phone-shell { left: auto; right: 14px; top: 12px; bottom: 12px; width: 292px; padding: 7px; border-radius: 31px; }
+.narrow-hud .phone-app { height: 73px; }
+.narrow-hud .phone-app-icon { width: 43px; height: 43px; }
+.narrow-hud .phone-hero { height: 84px; }
+.narrow-hud .phone-day { font-size: 39px; }

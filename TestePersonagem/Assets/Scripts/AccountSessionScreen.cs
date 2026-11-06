@@ -23,11 +23,12 @@ public sealed partial class AccountSession
         root=document.rootVisualElement;root.AddToClassList("auth-root");
         root.focusable=true;root.tabIndex=-1;
         root.styleSheets.Add(Resources.Load<StyleSheet>("AuthStyles"));
-        var image=new Image { name="auth-artwork",image=artwork,scaleMode=ScaleMode.ScaleAndCrop,pickingMode=PickingMode.Ignore };
+        var image=new Image { name="auth-artwork",image=HorizonteEntryVisuals.City?HorizonteEntryVisuals.City:artwork,scaleMode=ScaleMode.ScaleAndCrop,pickingMode=PickingMode.Ignore };
         image.AddToClassList("auth-art");root.Add(image);
         var shade=new VisualElement {pickingMode=PickingMode.Ignore};shade.AddToClassList("auth-shade");root.Add(shade);
 
         landing=new VisualElement {name="auth-landing"};landing.AddToClassList("auth-landing");root.Add(landing);
+        landing.Add(HorizonteEntryVisuals.Image(HorizonteEntryVisuals.Logo,"entry-small-logo"));
         LabelAt("BETA FECHADO · EQUIPE","auth-kicker",landing);
         LabelAt("Entre na cidade","auth-welcome",landing);
         LabelAt("Acesse com seu usuário ou UID e senha enviados pela equipe.","auth-intro",landing);
@@ -63,6 +64,8 @@ public sealed partial class AccountSession
         LabelAt("Seu acesso já está criado. Após entrar, escolha ou crie seu personagem.","auth-footer",form);
         var language=LabelAt("PORTUGUÊS  ·  BRASIL","auth-language",root);language.pickingMode=PickingMode.Ignore;
         BuildCharacterLobby(root);
+        var entryStyle=Resources.Load<StyleSheet>("Startup/EntryFlow");
+        if(entryStyle)root.styleSheets.Add(entryStyle);
         root.RegisterCallback<GeometryChangedEvent>(_=>
         {
             root.EnableInClassList("auth-compact",root.resolvedStyle.width<1100);
@@ -148,6 +151,7 @@ public sealed partial class AccountSession
 
     void ShowLogin(string error="")
     {
+        HideEntryScreen();
         Debug.Log("ACCOUNT_LOGIN_SHOWN authenticated="+Authenticated+" code="+LastErrorCode);
         HideRemembered();
         ReadyToEnterCity=false;HideCharacterLobby();AuthVisible=true;root.style.display=DisplayStyle.Flex;
