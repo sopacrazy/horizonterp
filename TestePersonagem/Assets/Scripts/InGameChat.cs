@@ -18,6 +18,9 @@ public sealed class InGameChat : MonoBehaviour
     internal Func<string,string,Action<MultiplayerReply>,IEnumerator> VerificationSend;
     bool VerifyingSend=>AccountSession.VerificationTransport!=null&&VerificationSend!=null;
     readonly List<string> messageTexts=new List<string>();
+    readonly List<string> sentHistory=new List<string>();
+    int historyCursor;
+    bool hidden;
     VisualElement root,area,composer;
     ScrollView feed;
     TextField input;
@@ -53,6 +56,7 @@ public sealed class InGameChat : MonoBehaviour
         input.AddToClassList("chat-input");input.textEdition.placeholder="";
         input.textEdition.hidePlaceholderOnFocus=true;row.Add(input);
         send=new Button(Send){name="chat-send",text="›",tooltip="Enviar mensagem"};send.AddToClassList("chat-send");row.Add(send);
+        var previous=new Button(()=>{if(historyCursor>0){historyCursor--;input.value=sentHistory[historyCursor];if(keyboard!=null)keyboard.text=input.value;}}){name="chat-previous",text="↑",tooltip="Mensagem anterior"};row.Insert(0,previous);
         hint=new Label(""){name="chat-hint",enableRichText=false};hint.AddToClassList("chat-hint");composer.Add(hint);
         area.RegisterCallback<ClickEvent>(evt=>
         {
@@ -80,14 +84,20 @@ public sealed class InGameChat : MonoBehaviour
         float desired=Mathf.Lerp(360,480,Mathf.InverseLerp(960,1280,panelWidth));
         float width=Mathf.Min(desired,Mathf.Max(160,panelWidth-440));
         area.style.width=width;
-        area.style.left=(panelWidth-width)*.5f;
+        float chatLeft=(panelWidth-width)*.5f;
+        area.style.left=chatLeft;
         area.style.right=StyleKeyword.Auto;
+        var toggle=root.Q<VisualElement>("action-chat");
+        if(toggle!=null)toggle.style.left=Mathf.Max(8,chatLeft-42);
     }
     public void Open()
     {
         if(StartupLoader.IsLoading||AccountSession.InputBlocked)return;
+        hidden=false;area.style.display=DisplayStyle.Flex;
+        root.Q<VisualElement>("action-chat")?.EnableInClassList("chat-muted",false);
         if(GameHud.Instance.IsPanelOpen)GameHud.Instance.ClosePanel();
         IsOpen=true;composer.style.display=DisplayStyle.Flex;
+        feed.style.display=DisplayStyle.Flex;
         composePrompt.text=ComposePrompt();
         root.AddToClassList("chat-editing");Render();SetKeyboardInset(0);
         ShowHint("");
@@ -103,6 +113,14 @@ public sealed class InGameChat : MonoBehaviour
                 if(editor!=null)editor.Focus();else input.Focus();
             }).ExecuteLater(1);
         }
+    }
+    public void OpenWithText(string text){input.value=text;Open();if(IsOpen)input.Focus();}
+    public void ToggleVisibility()
+    {
+        hidden=!hidden;
+        area.style.display=hidden?DisplayStyle.None:DisplayStyle.Flex;
+        root.Q<VisualElement>("action-chat")?.EnableInClassList("chat-muted",hidden);
+        if(hidden&&IsOpen)Close();
     }
     void OpenKeyboard()
     {
@@ -124,14 +142,25 @@ public sealed class InGameChat : MonoBehaviour
         if(string.IsNullOrEmpty(text)){input.Focus();return;}
         string localCommand=text.Split(' ')[0].ToLowerInvariant();
         string skinCommand=text.Trim().ToLowerInvariant();
-        if (skinCommand=="/wuzimu" || skinCommand=="/skin wuzimu" || skinCommand=="/skin sa" || skinCommand=="/skin padrao")
+        string previewModel = skinCommand switch
+        {
+            "/fla" or "/skin fla" => "fla",
+            "/wuzimu" or "/skin wuzimu" or "/skin sa" => "sa",
+            "/skin padrao" => "padrao",
+            _ => null
+        };
+        if (previewModel != null)
         {
             var target=GameHud.Instance?GameHud.Instance.Player:null;
             var visual=target?target.GetComponent<GangsterPlayerVisual>():null;
-            bool restored=skinCommand=="/skin padrao";
-            bool changed=visual&&visual.SwitchPreviewModel(restored?"padrao":"sa");
+            bool changed=visual&&visual.SwitchPreviewModel(previewModel);
             input.value="";Close();
-            SystemLine(changed?(restored?"Personagem padrão restaurado.":"Personagem SA em teste local: parado e caminhada. Use /skin padrao para voltar."):"Não foi possível trocar agora. Guarde a arma, fique a pé e aguarde terminar a ação atual.");
+            SystemLine(changed ? previewModel switch
+            {
+                "padrao" => "Personagem padrão restaurado.",
+                "fla" => "Fla ativo no teste local. Ande e pule com os controles normais. Use /skin padrao para voltar.",
+                _ => "Personagem SA em teste local: parado e caminhada. Use /skin padrao para voltar."
+            } : "Não foi possível trocar agora. Guarde a arma, fique a pé e aguarde terminar a ação atual.");
             return;
         }
         if(localCommand=="/arma"||localCommand=="/rifle"||localCommand=="/pistola"||localCommand=="/desarmar")
@@ -161,11 +190,12 @@ public sealed class InGameChat : MonoBehaviour
         if(!VerifyingSend&&(!MultiplayerWorld.Instance||!MultiplayerWorld.Instance.Connected))
         {if(Editing)ShowHint("Aguarde a conexão com a sala.");else GameHud.Instance?.ShowToast("Aguarde a conexão com a sala.");return;}
         if(outgoing.Count>=20){ShowHint("Muitas mensagens na fila. Aguarde um instante.");return;}
+        sentHistory.Add(text);if(sentHistory.Count>30)sentHistory.RemoveAt(0);historyCursor=sentHistory.Count;
         string id=Guid.NewGuid().ToString();bool command=text.StartsWith("/");
         bool admin=AccountSession.Instance.State.accountRole=="admin"&&AccountSession.Instance.State.adminLevel>0;
         var line=new ChatLine {id=id,uid=AccountSession.Instance.State.uid,
-            text=command?text:PlayerDisplayName.From(AccountSession.Instance.State)+": "+text,kind=command&&admin?"admin":"normal",
-            isAdmin=admin,author=command?null:PlayerDisplayName.From(AccountSession.Instance.State),body=command?null:text};
+            text=command?text:PlayerDisplayName.From(AccountSession.Instance.State)+" ["+AccountSession.Instance.State.uid+"]: "+text,kind=command&&admin?"admin":"normal",
+            isAdmin=false,author=command?null:PlayerDisplayName.From(AccountSession.Instance.State),body=command?null:text};
         lines.Add(line);TrimLines();
         outgoing.Enqueue(new Outgoing {text=text,id=id,line=line});
         input.value="";Close(); // Local feedback never waits for the network.
@@ -258,7 +288,11 @@ public sealed class InGameChat : MonoBehaviour
             }
         }
         if(command.status=="teleport"&&player)
-            player.TeleportTo(new Vector3(command.x,command.y,command.z));
+        {
+            var destination=new Vector3(command.x,command.y,command.z);
+            if(command.name=="delegacia")PolicePrisonWorld.Travel(player,destination);
+            else player.TeleportTo(destination);
+        }
         else if(command.status=="gender"&&command.name=="trocarsexo"&&
             AccountSession.Instance&&AccountSession.Instance.ApplyConfirmedGender(command.gender))
             player?.GetComponent<GangsterPlayerVisual>()?.SwitchGender(command.gender);
@@ -307,7 +341,7 @@ public sealed class InGameChat : MonoBehaviour
         if(!combat||!combat.Busy)fixedHead.localRotation=fixedHeadRotation;
     }
     static bool IsPoliceCommand(string name)=>name=="ide"||name=="wanted"||name=="su"||name=="clear"||name=="cuff"||name=="uncuff"||name=="follow"||name=="stay"||name=="put"||name=="eject"||name=="carpolicia"||name=="ticket"||name=="proc"||name=="megaphone"||name=="faction"||name=="departments"||name=="government"||
-        name=="servico"||name=="pmrecrutar"||name=="pmpatente"||name=="pmdemitir"||name=="delegacia"||name=="prender"||
+        name=="servico"||name=="pmrecrutar"||name=="pmpatente"||name=="pmdemitir"||name=="delegacia"||name=="cela"||name=="prender"||name=="soltar"||
         name=="ocorrencias"||name=="chamados"||name=="despachar190"||name=="gpsocorrencia"||name=="encerrar190"||name=="cancelarmulta"||name=="revistar"||
         name=="documentos"||name=="placa"||name=="apreender"||name=="arsenal"||name=="giroflex"||name=="sirene";
     void AdminLine(string text,bool police=false)
@@ -330,8 +364,8 @@ public sealed class InGameChat : MonoBehaviour
             message.channel=="megaphone"?"[MEGAFONE] "+message.text:message.text;
         ReceivedCount++;messageTexts.Add(message.text);if(messageTexts.Count>60)messageTexts.RemoveAt(0);
         if(existing!=null)
-        {existing.text=display+": "+body;existing.author=display;existing.body=body;existing.isAdmin=message.isAdmin;existing.kind="confirmed";Render();}
-        else {lines.Add(new ChatLine {text=display+": "+body,author=display,body=body,isAdmin=message.isAdmin,id=message.messageId,uid=message.uid,kind="confirmed"});TrimLines();Render();}
+        {existing.text=display+" ["+message.uid+"]: "+body;existing.author=display;existing.body=body;existing.isAdmin=false;existing.kind="confirmed";Render();}
+        else {lines.Add(new ChatLine {text=display+" ["+message.uid+"]: "+body,author=display,body=body,isAdmin=false,id=message.messageId,uid=message.uid,kind="confirmed"});TrimLines();Render();}
     }
     public bool HasMessage(string text)=>messageTexts.Contains(text);
     public void ResetHistory(){lines.RemoveAll(line=>!outgoingContains(line));messageTexts.Clear();ReceivedCount=0;SystemLine("Chat da sala · mensagens recentes");}

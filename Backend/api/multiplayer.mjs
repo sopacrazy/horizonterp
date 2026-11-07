@@ -1,6 +1,6 @@
 // Small, authenticated two-player presence room. Positions are client simulated:
 // this prototype does not grant authority over inventory, money or progression.
-import {PLAYER_COMMANDS,playerCommand,playerHelp} from './player-command-catalog.mjs';
+import {PLAYER_COMMANDS,playerCommand} from './player-command-catalog.mjs';
 import {randomUUID} from 'node:crypto';
 import {isPositionWithinWorld} from './world-bounds.mjs';
 import {ADMIN_COMMANDS as COMMAND_CATALOG,adminCommand,adminCommandAllowed,adminHelp,gameCommandHelp} from './admin-command-catalog.mjs';
@@ -9,8 +9,15 @@ export class RoomError extends Error {
 }
 const reject=(status,code,message)=>{throw new RoomError(status,code,message);};
 export const ADMIN_COMMANDS=Object.freeze(COMMAND_CATALOG.map(command=>command.name));
-export const POLICE_COMMANDS=Object.freeze(['ide','wanted','su','clear','cuff','uncuff','follow','stay','put','eject','carpolicia','ticket','proc','m','f','d','gov']);
-export const SERVICE_COMMANDS=Object.freeze(['190']);
+export const POLICE_OPERATIONS=Object.freeze([
+ 'delegacia','cela','prender','soltar','ocorrencias','chamados','despachar190','gpsocorrencia','encerrar190','cancelarmulta','revistar','documentos',
+ 'placa','apreender','arsenal','giroflex','sirene'
+]);
+export const POLICE_PUBLIC=Object.freeze(['servico','pmrecrutar','pmpatente','pmdemitir','minhasmultas','pagarmulta','cancelar190']);
+export const POLICE_COMMANDS=Object.freeze(['ide','wanted','su','clear','cuff','uncuff','follow','stay','put','eject','carpolicia','ticket','proc','m','f','d','gov',...POLICE_OPERATIONS]);
+export const SERVICE_COMMANDS=Object.freeze(['190',...POLICE_PUBLIC]);
+export const canPoliceDuty=identity=>identity.adminLevel!==4 && (identity.organization?.code==='pm'||
+ identity.accountRole==='admin'&&Number.isInteger(identity.adminLevel)&&identity.adminLevel>0);
 export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=async({health,damage})=>Math.max(0,health-damage),persistRespawn=async()=>{},spawnForWorld=()=>({x:2489.3,y:12.37,z:1668.5,yaw:40})}={}){
  const members=new Map();
  let followerBot=null;
@@ -30,7 +37,9 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
     if(isPositionWithinWorld(member.world,spawn))restoreCombatAtSpawn(member,state,spawn);
    }
   }
-  if(followerBot&&!members.has(followerBot.ownerCharacterId))members.delete(followerBot.characterId);
+  if(followerBot&&!members.has(followerBot.ownerCharacterId)){releaseCustody(followerBot.characterId);members.delete(followerBot.characterId);}
+  const testBot=followerBot&&members.get(followerBot.characterId);
+  if(testBot?.jailed&&testBot.botJailUntil<=clock())Object.assign(testBot,{x:1546,y:12.62,z:1676,yaw:90,jailed:false,botJailUntil:0,renderSequence:(testBot.renderSequence??testBot.sequence)+1});
   while(messages.length&&clock()-messages[0].sentAt>900000)messages.shift();
   for(const [key,mute] of mutes)if(mute.until<=clock())mutes.delete(key);
   for(const [key,result] of commandResults)if(clock()-result.sentAt>900000)commandResults.delete(key);
@@ -59,6 +68,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
  function shoot(identity,sessionId,body){return serializeCombat(()=>applyShot(identity,sessionId,body));}
  async function applyShot(identity,sessionId,body){
   prune();
+  if(Number(identity.jailUntil)>clock())reject(403,'PLAYER_JAILED','Você está cumprindo pena.');
   const keys=['clientId','shotId','originX','originY','originZ','directionX','directionY','directionZ','targetUid'];
   if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).some(key=>!keys.includes(key))||
    !validUuid(body.clientId)||!validUuid(body.shotId)||typeof body.targetUid!=='string'||body.targetUid.length>24||
@@ -67,8 +77,10 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
   const actor=authenticatedActor(identity,sessionId,body.clientId),cacheKey=sessionId+':'+body.clientId+':'+body.shotId;
   if(shotResults.has(cacheKey))return shotResults.get(cacheKey).reply;
   const state=combatState(identity);
+  if(actor.policeDuty&&(!actor.policeWeapon||actor.policeWeapon!==actor.weaponType))
+   reject(403,'POLICE_WEAPON_REQUIRED','Retire seu equipamento no arsenal da PM.');
   if(state.dead||restraints.has(identity.characterId)||actor.driving||actor.weaponEquipped!==true||!actor.respawnClient||
-    state.hitSequence&&clock()-state.hitAt<1600||[...policeCars.values()].some(car=>car.driverCharacterId===identity.characterId||car.occupantCharacterId===identity.characterId))
+    [...policeCars.values()].some(car=>car.driverCharacterId===identity.characterId||car.occupantCharacterId===identity.characterId))
    reject(409,'SHOT_BLOCKED','Você não pode atirar neste estado.');
   if(clock()-actor.seen>1500)reject(409,'STALE_COMBAT_POSE','Aguarde a conexão de movimento antes de atirar.');
   if(state.lastShotAt!==undefined&&clock()-state.lastShotAt<120)reject(429,'SHOT_COOLDOWN','Aguarde o próximo disparo.');
@@ -81,7 +93,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
   // range and nearby origin. Never accept a damage amount or arbitrary health.
   const target=body.targetUid?[...members.values()].find(candidate=>candidate.uid===body.targetUid):null;
   if(body.targetUid&&(!target||target.characterId===identity.characterId||target.world!==actor.world||
-   clock()-target.seen>1500||(!target.combatClient&&!target.isBot)||(!target.respawnClient&&!target.isBot)||combatState(target).dead||target.driving))
+   clock()-target.seen>1500||(!target.combatClient&&!target.isBot)||(!target.respawnClient&&!target.isBot)||combatState(target).dead||target.driving||target.jailed))
    reject(409,'INVALID_SHOT_TARGET','Alvo indisponível.');
   if(target){
    const tx=target.x-ox,ty=target.y+.95-oy,tz=target.z-oz,along=tx*dx+ty*dy+tz*dz;
@@ -95,7 +107,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
   const at=clock();state.lastShotAt=at;
   if(target){
    targetState.health=nextHealth;targetState.dead=nextHealth<=0;targetState.hitSequence=++combatSequence;
-   targetState.hitAttackId=body.shotId;targetState.hitAt=at;targetState.revision=targetState.hitSequence;
+   targetState.hitAttackId=body.shotId;targetState.hitAt=at;targetState.hitReactions=1;targetState.revision=targetState.hitSequence;
    target.speed=0;target.jumping=false;target.jumpPhase=0;target.renderSequence=(target.renderSequence??target.sequence)+1;
    if(targetState.dead){targetState.deathSequence=++combatSequence;targetState.deathAt=at;targetState.revision=targetState.deathSequence;releaseDriver(target.characterId);releaseCustody(target.characterId);}
   }
@@ -105,6 +117,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
  }
  function respawn(identity,sessionId,body){return serializeCombat(()=>applyRespawn(identity,sessionId,body));}
  async function applyRespawn(identity,sessionId,body){
+  if(Number(identity.jailUntil)>clock())reject(403,'PLAYER_JAILED','Você está cumprindo pena.');
   if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).length!==4||!validUuid(body.clientId)||
    !validUuid(body.requestId)||body.epoch!==combatEpoch||!Number.isSafeInteger(body.deathSequence)||body.deathSequence<=0)
    reject(400,'INVALID_RESPAWN','Pedido de renascimento inválido.');
@@ -136,6 +149,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
  }
  async function applyAttack(identity,sessionId,body){
   prune();
+  if(Number(identity.jailUntil)>clock())reject(403,'PLAYER_JAILED','Você está cumprindo pena.');
   const uuid=value=>typeof value==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
   if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).length!==2||!uuid(body.clientId)||!uuid(body.attackId))
    reject(400,'INVALID_ATTACK','Ataque inválido.');
@@ -146,7 +160,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
   const cacheKey=sessionId+':'+body.clientId+':'+body.attackId;
   if(attackResults.has(cacheKey))return attackResults.get(cacheKey).reply;
   const state=combatState(identity);
-  if(state.dead||state.hitSequence&&clock()-state.hitAt<1600||restraints.has(identity.characterId)||actor.driving||actor.jumping||
+  if(state.dead||restraints.has(identity.characterId)||actor.driving||actor.jumping||
     [...policeCars.values()].some(car=>car.driverCharacterId===identity.characterId||car.occupantCharacterId===identity.characterId))
    reject(409,'ATTACK_BLOCKED','Você não pode atacar neste estado.');
   if(clock()-actor.seen>1500)reject(409,'STALE_COMBAT_POSE','Aguarde a conexão de movimento antes de atacar.');
@@ -155,7 +169,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
   const target=[...members.values()].filter(candidate=>{
    if(candidate.characterId===identity.characterId||candidate.world!==actor.world||clock()-candidate.seen>1500||
       candidate.combatClient!==true&&!candidate.isBot||
-      candidate.driving||candidate.invisible&&actor.adminLevel<=0||combatState(candidate).dead||
+      candidate.driving||candidate.jailed||candidate.invisible&&actor.adminLevel<=0||combatState(candidate).dead||
       [...policeCars.values()].some(car=>car.driverCharacterId===candidate.characterId||car.occupantCharacterId===candidate.characterId))return false;
    const dx=candidate.x-actor.x,dz=candidate.z-actor.z,distance=Math.hypot(dx,dz);
    return distance<=2.2&&Math.abs(candidate.y-actor.y)<=1.5&&
@@ -174,7 +188,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
   const currentActor=members.get(identity.characterId);if(currentActor)currentActor.renderSequence=(currentActor.renderSequence??currentActor.sequence)+1;
   if(target){
    targetState.health=nextHealth;targetState.dead=nextHealth<=0;
-   targetState.hitSequence=++combatSequence;targetState.hitAttackId=body.attackId;targetState.hitAt=at;targetState.revision=targetState.hitSequence;
+   targetState.hitSequence=++combatSequence;targetState.hitAttackId=body.attackId;targetState.hitAt=at;targetState.hitReactions=3;targetState.revision=targetState.hitSequence;
    if(targetState.dead){
     targetState.deathSequence=++combatSequence;targetState.deathAt=at;targetState.revision=targetState.deathSequence;releaseDriver(target.characterId);
     for(const [detainedId,record] of restraints)if(detainedId===target.characterId||record.officerCharacterId===target.characterId){
@@ -192,7 +206,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
  }
  function sync(identity,sessionId,body){
   prune();
-  const keys=['clientId','sequence','x','y','z','yaw','speed','jumping','jumpPhase','afterChat','afterTeleport','afterRespawn','driving','voice','voiceSequence','radioVoice','radioSequence','radioChannel','voiceActive','radioActive','policeCarId','combatClient','weaponEquipped','weaponAiming','weaponShotSequence','weaponAimPitch'];
+  const keys=['clientId','sequence','x','y','z','yaw','speed','jumping','jumpPhase','afterChat','afterTeleport','afterRespawn','driving','voice','voiceSequence','radioVoice','radioSequence','radioChannel','voiceActive','radioActive','policeCarId','combatClient','weaponEquipped','weaponAiming','weaponShotSequence','weaponAimPitch','weaponType','animationClip','animationSequence','prisonReady'];
   if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).some(k=>!keys.includes(k))||
     !/^[a-f0-9-]{36}$/i.test(body.clientId||'')||!Number.isSafeInteger(body.sequence)||body.sequence<0||body.sequence>2147483647)
    reject(400,'INVALID_FRAME','Atualização de movimento inválida.');
@@ -200,6 +214,11 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
   if(body.driving!==undefined&&typeof body.driving!=='boolean')reject(400,'INVALID_FRAME','Estado do veículo inválido.');
   if(body.combatClient!==undefined&&typeof body.combatClient!=='boolean')reject(400,'INVALID_FRAME','Capacidade de combate inválida.');
   for(const key of ['weaponEquipped','weaponAiming'])if(body[key]!==undefined&&typeof body[key]!=='boolean')reject(400,'INVALID_FRAME','Estado visual de arma inválido.');
+  if(body.prisonReady!==undefined&&typeof body.prisonReady!=='boolean')reject(400,'INVALID_FRAME','Estado da custódia inválido.');
+  if(body.weaponType!==undefined&&!['rifle','pistol'].includes(body.weaponType))reject(400,'INVALID_FRAME','Tipo de arma inválido.');
+  if(body.animationClip!==undefined&&!['','fight_d.FightD_IDLE','fight_c.FightC_M','fight_c.FightC_2','fight_b.FightB_IDLE','ped.IDLE_taxi','ped.GunCrouchFwd','ped.gas_cwr'].includes(body.animationClip)||
+    body.animationSequence!==undefined&&(!Number.isSafeInteger(body.animationSequence)||body.animationSequence<0||body.animationSequence>2147483647))
+   reject(400,'INVALID_FRAME','Animação inválida.');
   if(body.weaponAiming&&!body.weaponEquipped||body.weaponShotSequence!==undefined&&(!Number.isSafeInteger(body.weaponShotSequence)||body.weaponShotSequence<0||body.weaponShotSequence>2147483647)||
     body.weaponAimPitch!==undefined&&(typeof body.weaponAimPitch!=='number'||!Number.isFinite(body.weaponAimPitch)||Math.abs(body.weaponAimPitch)>80))reject(400,'INVALID_FRAME','Estado visual de arma inválido.');
   if(body.policeCarId!==undefined&&(typeof body.policeCarId!=='string'||body.policeCarId.length>64||
@@ -223,17 +242,21 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
   const previous=members.get(identity.characterId);
   const selfCombat=combatState(identity);
   const restraint=restraints.get(identity.characterId);
-  const isPolice=identity.accountRole==='admin'&&identity.adminLevel>0&&identity.adminLevel!==4&&policeDuty.get(identity.characterId)===sessionId;
-  if(!isPolice){policeDuty.delete(identity.characterId);policeChannels.delete(identity.characterId);releaseDriver(identity.characterId);}
+  const jailed=Number(identity.jailUntil)>clock();
+  const isPolice=!jailed&&canPoliceDuty(identity)&&policeDuty.get(identity.characterId)===sessionId;
+  if(!isPolice&&policeDuty.has(identity.characterId)){
+   if(jailed||!canPoliceDuty(identity))revokePoliceDuty(identity.characterId);
+   else {policeDuty.delete(identity.characterId);policeChannels.delete(identity.characterId);releaseDriver(identity.characterId);}
+  }
   let driven=[...policeCars.values()].find(car=>car.driverCharacterId===identity.characterId);
   if(driven&&(driven.driverSessionId!==sessionId||identity.organization?.code!=='pm'||restraint||selfCombat.dead))
    {releaseDriver(identity.characterId);driven=null;}
-  if(body.policeCarId&&(!driven||driven.id!==body.policeCarId||body.driving!==true))
+  if(!jailed&&body.policeCarId&&(!driven||driven.id!==body.policeCarId||body.driving!==true))
    reject(403,'POLICE_CAR_FORBIDDEN','Entre na sua viatura antes de conduzir.');
-  if(body.radioVoice&&(!isPolice||policeChannels.get(identity.characterId)?.sessionId!==sessionId||
+  if(!jailed&&body.radioVoice&&(!isPolice||policeChannels.get(identity.characterId)?.sessionId!==sessionId||
     body.radioChannel!==policeChannels.get(identity.characterId)?.channel))
    reject(403,'RADIO_FORBIDDEN','Conecte-se ao rádio policial antes de transmitir.');
-  if(body.radioActive&&(!isPolice||policeChannels.get(identity.characterId)?.sessionId!==sessionId||!policeChannels.get(identity.characterId)?.channel))
+  if(!jailed&&body.radioActive&&(!isPolice||policeChannels.get(identity.characterId)?.sessionId!==sessionId||!policeChannels.get(identity.characterId)?.channel))
    reject(403,'RADIO_FORBIDDEN','Conecte-se ao rádio policial antes de transmitir.');
   if(previous&&previous.sessionId===sessionId&&previous.clientId!==body.clientId)
    reject(409,'SESSION_IN_USE','Esta conta já está conectada em outro jogo.');
@@ -248,7 +271,8 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
    combatClient:body.combatClient===true,
    respawnClient:Number.isSafeInteger(body.afterRespawn),
    uid:identity.uid,name:identity.name,firstName:identity.firstName||identity.name.split(/\s+/u)[0],gender:identity.gender==='female'?'female':'male',model:identity.model,world:identity.world,
-   policeDuty:isPolice,orgCode:identity.organization?.code||'',policeCarId:driven?.id||'',
+   jailed,prisonReady:body.prisonReady===true,policeDuty:isPolice,orgCode:identity.organization?.code||'',policeCarId:driven?.id||'',
+   policeWeapon:isPolice&&previous?.sessionId===sessionId?previous.policeWeapon:null,
    adminLevel:identity.accountRole==='admin'?identity.adminLevel:0,
    invisible:identity.accountRole==='admin'&&(identity.adminLevel===1||identity.adminLevel>=3)&&identity.adminLevel!==4&&(previous?.invisible||false),teleport:identity.adminLevel===4?null:previous?.teleport||null};
   // Keep a small recovery window for clients polling at different phases or over mobile jitter.
@@ -257,11 +281,16 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
   member.voiceFrames=voiceWindow(sameSource?previous.voiceFrames:[],body.voice,body.voiceSequence);
   member.radioFrames=voiceWindow(sameSource&&isPolice&&previous.radioChannel===member.radioChannel?previous.radioFrames:[],body.radioVoice,body.radioSequence);
   members.set(identity.characterId,member);
-  if(selfCombat.respawnSequence>(body.afterRespawn??0)){
+  if(jailed){
+   Object.assign(member,{x:identity.x,y:identity.y,z:identity.z,yaw:identity.yaw,speed:0,
+    jumping:false,jumpPhase:0,driving:false,policeCarId:'',teleport:null,weaponEquipped:false,weaponAiming:false,
+    voiceActive:false,voiceFrames:[],voice:''});
+  }
+  if(!jailed&&selfCombat.respawnSequence>(body.afterRespawn??0)){
    member.x=selfCombat.respawnX;member.y=selfCombat.respawnY;member.z=selfCombat.respawnZ;member.yaw=selfCombat.respawnYaw;
    member.speed=0;member.jumping=false;member.jumpPhase=0;member.driving=false;
   }
-  if(selfCombat.dead||selfCombat.hitSequence&&clock()-selfCombat.hitAt<1600){
+  if(!jailed&&selfCombat.dead){
    if(previous){member.x=previous.x;member.y=previous.y;member.z=previous.z;member.yaw=previous.yaw;}
    member.speed=0;member.jumping=false;member.jumpPhase=0;member.driving=false;
   }
@@ -295,14 +324,16 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
   if(followerBot&&identity.characterId===followerBot.ownerCharacterId)advanceFollower(member);
   const seat=[...policeCars.values()].find(car=>car.occupantCharacterId===identity.characterId);
   if(seat){member.x=seat.x;member.y=seat.y;member.z=seat.z;member.yaw=seat.yaw;member.speed=0;member.jumping=false;member.jumpPhase=0;}
-  return {room:'centro_teste',voiceStateAvailable:true,policeVehicleAvailable:true,combatAvailable:true,weaponStateAvailable:true,rifleDamageAvailable:true,respawnAvailable:true,selfCombat:publicCombat(identity),selfAccountRole:identity.accountRole||'user',selfAdminLevel:identity.adminLevel||0,capacity,count:members.size,serverTime:clock(),sequence:body.sequence,chatEpoch,serverHour,hourOverride:serverHour>=0,
-   selfCuffed:restraints.has(identity.characterId),selfEscortedBy:restraints.get(identity.characterId)?.following?members.get(restraints.get(identity.characterId).officerCharacterId)?.uid||'':'',
+  return {room:'centro_teste',voiceStateAvailable:true,policeVehicleAvailable:true,combatAvailable:true,weaponStateAvailable:true,pistolStateAvailable:true,animationSyncAvailable:true,prisonAvailable:true,rifleDamageAvailable:true,respawnAvailable:true,selfCombat:publicCombat(identity),selfAccountRole:identity.accountRole||'user',selfAdminLevel:identity.adminLevel||0,capacity,count:members.size,serverTime:clock(),sequence:body.sequence,chatEpoch,serverHour,hourOverride:serverHour>=0,
+   selfPoliceDuty:isPolice,selfPoliceDutyAvailable:true,selfOrganization:identity.organization??null,
+   selfJailUntil:jailed?identity.jailUntil:0,selfCuffed:restraints.has(identity.characterId),selfEscortedBy:restraints.get(identity.characterId)?.following?members.get(restraints.get(identity.characterId).officerCharacterId)?.uid||'':'',
    selfX:member.x,selfY:member.y,selfZ:member.z,selfYaw:member.yaw,
    selfInPoliceCar:!!seat,
    selfPoliceCarId:driven?.id||'',
    policeCars:[...policeCars.values()].map(car=>({id:car.id,ownerUid:car.ownerUid,x:car.x,y:car.y,z:car.z,yaw:car.yaw,
     driverUid:members.get(car.driverCharacterId)?.uid||'',driverName:members.get(car.driverCharacterId)?.firstName||'',
-    occupantUid:members.get(car.occupantCharacterId)?.uid||'',occupantName:members.get(car.occupantCharacterId)?.firstName||''})),
+    occupantUid:members.get(car.occupantCharacterId)?.uid||'',occupantName:members.get(car.occupantCharacterId)?.firstName||'',
+    lightbar:car.lightbar===true,siren:car.siren===true})),
    teleport:member.teleport&&member.teleport.id>(body.afterTeleport??0)?member.teleport:null,
    messages:messages.filter(m=>m.id>(body.afterChat??0)&&(m.channel!=='admin'||member.adminLevel>0)&&
     (!m.targetCharacterId||m.targetCharacterId===member.characterId)&&
@@ -313,6 +344,8 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
     weaponEquipped:m.weaponEquipped===true&&!m.driving&&!restraints.has(m.characterId)&&!publicCombat(m).dead,
     weaponAiming:m.weaponAiming===true&&m.weaponEquipped===true&&!m.driving&&!restraints.has(m.characterId)&&!publicCombat(m).dead,
     weaponShotSequence:m.weaponShotSequence||0,weaponAimPitch:m.weaponAimPitch||0,
+    animationClip:m.animationClip||'',animationSequence:m.animationSequence||0,
+    weaponType:m.weaponType==='pistol'?'pistol':'rifle',
    voice:m.voice&&m.seen>=clock()-500&&Math.hypot(m.x-member.x,m.y-member.y,m.z-member.z)<=35?m.voice:'',voiceSequence:m.voiceSequence,
    voiceFrames:Math.hypot(m.x-member.x,m.y-member.y,m.z-member.z)<=35?publicVoice(m.voiceFrames):[],
    voiceActive:m.voiceActive===true&&m.seen>=clock()-1500&&Math.hypot(m.x-member.x,m.y-member.y,m.z-member.z)<=35,
@@ -362,7 +395,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
  function setFollowerBot(bot){
   if(bot&&(!/^[0-9a-f-]{36}$/i.test(bot.characterId)||!/^[0-9a-f-]{36}$/i.test(bot.ownerCharacterId)||!bot.uid))
    throw new Error('Invalid follower bot');
-  if(followerBot){members.delete(followerBot.characterId);combatStates.delete(followerBot.characterId);}
+  if(followerBot){releaseCustody(followerBot.characterId);members.delete(followerBot.characterId);combatStates.delete(followerBot.characterId);}
   followerBot=bot;
  }
  function advanceFollower(owner){
@@ -378,7 +411,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
   const jumpToOwner=!previous||distance>35;
   const step=jumpToOwner?distance:Math.min(distance,2.8*elapsed);
   const moving=!jumpToOwner&&step>0.002;
-  const next={characterId:followerBot.characterId,uid:followerBot.uid,name:followerBot.name,
+  const next={characterId:followerBot.characterId,ownerCharacterId:followerBot.ownerCharacterId,uid:followerBot.uid,name:followerBot.name,
    health:followerBot.health,
    firstName:followerBot.firstName,gender:followerBot.gender==='female'?'female':'male',model:followerBot.model||'bybeyby',world:owner.world,
    x:distance>0?x+dx/distance*step:x,y:owner.y,z:distance>0?z+dz/distance*step:z,
@@ -404,6 +437,72 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
    else if(car.occupantCharacterId===characterId)car.occupantCharacterId=null;
   }
  }
+ function revokePoliceDuty(characterId){
+  policeDuty.delete(characterId);policeChannels.delete(characterId);
+  releaseCustody(characterId);
+  const member=members.get(characterId);
+  if(member)Object.assign(member,{policeDuty:false,policeWeapon:null,radioChannel:0,radioVoice:'',radioFrames:[],radioActive:false});
+ }
+ function applyPoliceSentence(characterId){
+  revokePoliceDuty(characterId);
+  const member=members.get(characterId);
+  if(member)Object.assign(member,{jailed:true,weaponEquipped:false,weaponAiming:false,teleport:null});
+ }
+ function requirePoliceCustody(identity,targetId){
+  const record=restraints.get(targetId);
+  if(record?.officerCharacterId!==identity.characterId||
+   [...policeCars.values()].some(car=>car.occupantCharacterId===targetId))
+   reject(403,'NOT_YOUR_DETAINEE','Algeme o jogador e retire-o da viatura antes de prosseguir.');
+ }
+ function followingDetainee(identity){
+  const entry=[...restraints].find(([id,record])=>record.officerCharacterId===identity.characterId&&record.following&&members.has(id));
+  return entry?members.get(entry[0]):null;
+ }
+ function jailTestBot(identity,minutes,point){
+  const bot=followingDetainee(identity);
+  if(!bot?.isBot||bot.ownerCharacterId!==identity.characterId)
+   reject(409,'NOT_YOUR_DETAINEE','Conduza seu bot algemado até a cela.');
+  requirePoliceCustody(identity,bot.characterId);
+  restraints.delete(bot.characterId);
+  Object.assign(bot,{x:point.x,y:point.y,z:point.z,yaw:point.yaw,speed:0,jailed:true,
+   botJailUntil:clock()+Number(minutes)*60000,renderSequence:(bot.renderSequence??bot.sequence)+1});
+  return bot;
+ }
+ function releaseTestBot(identity){
+  const bot=online('BOT1');
+  if(!bot?.isBot||bot.ownerCharacterId!==identity.characterId||!bot.jailed)
+   reject(404,'SENTENCE_NOT_FOUND','Seu bot não está preso.');
+  Object.assign(bot,{x:1546,y:12.62,z:1676,yaw:90,jailed:false,botJailUntil:0,
+   renderSequence:(bot.renderSequence??bot.sequence)+1});
+  return bot;
+ }
+ function teleportPoliceEscort(identity,point){
+  const detained=followingDetainee(identity);
+  if(!detained)return null;
+  const officer=members.get(identity.characterId);
+  if(detained.world!==officer?.world||Math.hypot(detained.x-officer.x,detained.y-officer.y,detained.z-officer.z)>4||detained.driving)
+   reject(409,'TARGET_TOO_FAR','Aproxime o preso algemado da porta antes de entrar.');
+  if(point.y< -94&&!detained.prisonReady&&!detained.isBot)
+   reject(409,'PRISON_CLIENT_REQUIRED','O preso precisa atualizar o jogo para entrar na custódia.');
+  Object.assign(detained,{x:point.x,y:point.y,z:point.z+1.7,yaw:point.yaw,speed:0,driving:false,
+   teleport:{id:++teleportSequence,x:point.x,y:point.y,z:point.z+1.7}});
+  detained.renderSequence=(detained.renderSequence??detained.sequence)+1;
+  detained.seen=clock();
+  return detained;
+ }
+ function togglePoliceEquipment(identity,name){
+  const car=policeCars.get(identity.characterId);
+  if(!car||car.driverCharacterId!==identity.characterId)
+   reject(409,'POLICE_CAR_REQUIRED','Entre como motorista da sua viatura.');
+  const field=name==='sirene'?'siren':'lightbar';
+  car[field]=!car[field];
+  return car[field];
+ }
+ function grantPoliceWeapon(identity,weapon){
+  const member=members.get(identity.characterId);
+  if(!member?.policeDuty)reject(403,'POLICE_ONLY','Entre em serviço na PM.');
+  member.policeWeapon=weapon;
+ }
  function custody(identity,name,targetUid){
   prune();
   const officer=members.get(identity.characterId);
@@ -416,6 +515,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
    return {name,status:'ok',message:`Condução de ID ${members.get(detained[0])?.uid||'?'} interrompida. As algemas permanecem.`};
   }
   const target=online(targetUid);
+  if(target?.isBot&&target.ownerCharacterId!==identity.characterId)reject(403,'NOT_YOUR_DETAINEE','Você só pode conduzir seu próprio bot de teste.');
   if(!target)reject(404,'PLAYER_NOT_ONLINE','Jogador não está online nesta sala.');
   if(name!=='uncuff'&&combatState(target).dead)reject(409,'TARGET_DEAD','Este jogador está morto e não pode ser conduzido.');
   if(target.characterId===identity.characterId)reject(400,'INVALID_TARGET','Você não pode usar algemas em si mesmo.');
@@ -460,6 +560,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
   if(current.driverCharacterId&&(members.get(current.driverCharacterId)?.speed||0)>1)
    reject(409,'VEHICLE_MOVING','Pare a viatura antes de colocar ou retirar o detido.');
   const target=online(targetUid);
+  if(target?.isBot&&target.ownerCharacterId!==identity.characterId)reject(403,'NOT_YOUR_DETAINEE','Você só pode conduzir seu próprio bot de teste.');
   if(!target)reject(404,'PLAYER_NOT_ONLINE','Jogador não está online nesta sala.');
   if(name==='put'&&combatState(target).dead)reject(409,'TARGET_DEAD','Este jogador está morto e não pode entrar na viatura.');
   if(Math.hypot(target.x-officer.x,target.y-officer.y,target.z-officer.z)>4||
@@ -483,6 +584,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
   return {name,status:'ok',message:`ID ${target.uid} retirado da viatura. As algemas permanecem.`};
  }
  function vehicle(identity,sessionId,body){
+  if(Number(identity.jailUntil)>clock())reject(403,'PLAYER_JAILED','Você está cumprindo pena.');
   prune();
   if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).length!==2||
     !['enter','exit'].includes(body.action)||typeof body.carId!=='string'||!/^pm-[1-9][0-9]{0,18}$/.test(body.carId))
@@ -569,7 +671,9 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
     return externalAction({name,args,identity,sessionId});
    }
    if(args)reject(400,'COMMAND_USAGE','Uso: '+playerDefinition.usage);
-   if(name==='ajuda')return {name,status:'open_help',message:'Guia do jogador aberto.',help:playerHelp()};
+   if(name==='ajuda')return {name,status:'open_help',message:'Guia do jogador aberto.',
+    help:gameCommandHelp().filter(entry=>entry.group==='Jogador'||entry.group==='Atendimento'||
+     entry.group==='Polícia'&&canPoliceDuty(identity))};
    if(name==='headmove')return {name,status:'headmove',message:'Movimento da cabeça alternado.'};
    return {name,status:'player_panel',message:'Abrindo '+playerDefinition.description.toLowerCase()};
   }
@@ -663,7 +767,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
    if(parts.length!==1||!['1','2','4','6','8','10','12'].includes(parts[0]))usage();
    return {name,status:'speed',message:`Velocidade x${parts[0]} ativada.`,value:Number(parts[0])};
   }
-  if(['kick','ban','unban','makeadmin','adminpromov','trocarsexo'].includes(name)&&externalAction)
+  if(['kick','ban','unban','makeadmin','adminpromov','trocarsexo','jail','unjail'].includes(name)&&externalAction)
    return externalAction({name,args,identity,sessionId});
   return {name,status:'not_implemented',message:`/${name} está registrado; a mecânica ainda não está disponível.`};
  }
@@ -722,15 +826,17 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
  function duty(identity,sessionId,body){
   prune();
   if(identity.accountRole==='admin'&&identity.adminLevel===4)reject(403,'ADMIN_ROLE_RESTRICTED','O cargo administrativo nível 4 permite somente /adminpromov.');
-  if(identity.accountRole!=='admin'||!Number.isInteger(identity.adminLevel)||identity.adminLevel<1)
-   reject(403,'ADMIN_REQUIRED','Apenas administradores podem entrar em serviço policial.');
+  if(!canPoliceDuty(identity))reject(403,'ADMIN_REQUIRED','Você precisa pertencer à Polícia Militar.');
   const member=members.get(identity.characterId);
   if(!member||member.sessionId!==sessionId)reject(409,'NOT_IN_ROOM','Entre na cidade antes de alterar o serviço policial.');
   if(body!==undefined){
    if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).length!==1||typeof body.enabled!=='boolean')
     reject(400,'INVALID_DUTY','Estado de serviço inválido.');
-   if(body.enabled)policeDuty.set(identity.characterId,sessionId);
-   else {policeDuty.delete(identity.characterId);policeChannels.delete(identity.characterId);releaseCustody(identity.characterId);}
+   if(body.enabled){
+    if(Number(identity.jailUntil)>clock())reject(403,'PLAYER_JAILED','Você está cumprindo pena.');
+    policeDuty.set(identity.characterId,sessionId);
+    member.orgCode=identity.organization?.code||'';
+   }else revokePoliceDuty(identity.characterId);
   }
   member.policeDuty=policeDuty.get(identity.characterId)===sessionId;
   if(!member.policeDuty){member.radioFrames=[];member.radioVoice='';member.radioActive=false;}
@@ -757,5 +863,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
   const member=members.get(characterId);
   if(member&&['female','male'].includes(gender))member.gender=gender;
  }
- return {sync,chat,attack,shoot,respawn,leave,removeSession,findOnline:online,duty,radio,vehicle,setFollowerBot,privateMessage,broadcast,custody,patrol,setCharacterGender};
+ return {sync,chat,attack,shoot,respawn,leave,removeSession,findOnline:online,duty,radio,vehicle,setFollowerBot,privateMessage,broadcast,custody,patrol,setCharacterGender,
+  revokePoliceDuty,applyPoliceSentence,requirePoliceCustody,followingDetainee,teleportPoliceEscort,jailTestBot,releaseTestBot,togglePoliceEquipment,grantPoliceWeapon,
+  findPoliceCar:id=>[...policeCars.values()].find(car=>car.id===id)};
 }

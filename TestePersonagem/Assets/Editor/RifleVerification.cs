@@ -20,19 +20,23 @@ public static class RifleVerification
         try
         {
             var controller=AssetDatabase.LoadAssetAtPath<AnimatorController>("Assets/Animations/Locomocao.controller");
-            Check(report,controller&&controller.layers.Any(l=>l.name=="Rifle"),"Camada de locomoção armada disponível");
+            Check(report,controller&&controller.layers.Any(l=>l.name=="SARifle"||l.name=="Rifle"),"Camada de locomoção armada disponível");
             foreach(string gender in new[]{"male","female"})
             {
                 var root=new GameObject("Rifle review "+gender);UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(root,preview);objects.Add(root);
                 var model=GangsterPlayerVisual.CreateRemoteVisual(gender,controller,root.transform);
                 var animator=model.GetComponent<Animator>();animator.Rebind();animator.Update(0);
                 var visual=model.AddComponent<RifleAvatar>();visual.Configure(animator,root.transform);
+                int nativeLayer=animator.GetLayerIndex("SARifle");
+                bool native=nativeLayer>=0;
+                int activeLayer=native?nativeLayer:animator.GetLayerIndex("Rifle");
+                int fireLayer=animator.GetLayerIndex(native?"SARifleFire":"RifleFire");
                 Check(report,visual.Ready,gender+": rifle e Humanoid preparados");
                 foreach(float speed in new[]{0,1.65f,4.5f})
                 {
                     visual.Apply(true,speed<3,0,3,speed);visual.PrepareAnimationFrame(.1f);
-                    animator.SetLayerWeight(animator.GetLayerIndex("Rifle"),1);animator.SetFloat("RifleSpeed",speed);
-                    animator.Play("Rifle.Locomotion",animator.GetLayerIndex("Rifle"),.25f);animator.Update(.016f);
+                    animator.SetLayerWeight(activeLayer,1);animator.SetFloat(native?"SARifleSpeed":"RifleSpeed",speed);
+                    animator.Play(native?(speed<3?"SARifle.Aim":"SARifle.Carry"):"Rifle.Locomotion",activeLayer,.25f);animator.Update(.016f);
                     visual.ApplyAttachmentPose();
                     Check(report,visual.Visible&&visual.Muzzle&&float.IsFinite(visual.Muzzle.position.x),gender+": pose válida em "+speed+" m/s");
                     var hand=animator.GetBoneTransform(HumanBodyBones.RightHand);
@@ -41,8 +45,8 @@ public static class RifleVerification
                     if(speed==0)Render(preview,root,folder+"/"+gender+"-aim.png");
                     if(speed>4)Render(preview,root,folder+"/"+gender+"-run.png");
                 }
-                visual.Apply(true,true,0,3,0);visual.PrepareAnimationFrame(.1f);animator.SetFloat("RifleSpeed",0);animator.Update(.2f);
-                visual.PlayShot();Check(report,animator.GetLayerWeight(animator.GetLayerIndex("RifleFire"))>0,gender+": disparo inicia sem esperar transição");
+                visual.Apply(true,true,0,3,0);visual.PrepareAnimationFrame(.1f);animator.SetFloat(native?"SARifleSpeed":"RifleSpeed",0);animator.Update(.2f);
+                visual.PlayShot();Check(report,animator.GetLayerWeight(fireLayer)>0,gender+": disparo inicia sem esperar transição");
                 animator.Update(.15f);
                 visual.ApplyAttachmentPose();
                 Render(preview,root,folder+"/"+gender+"-fire.png");

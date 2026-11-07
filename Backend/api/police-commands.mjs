@@ -1,4 +1,5 @@
 import {RoomError} from './multiplayer.mjs';
+import {isPositionWithinWorld} from './world-bounds.mjs';
 
 const error=(status,code,message)=>{throw new RoomError(status,code,message);};
 const uid=value=>/^[1-9][0-9]{0,18}$/.test(value||'')?value:error(400,'COMMAND_USAGE','Informe o ID numérico do jogador.');
@@ -15,9 +16,12 @@ export function createPoliceCommands({pool,transaction,room}){
   if(name==='190'){
    const message=args.normalize('NFC').trim();
    if(message.length<3||message.length>180)error(400,'COMMAND_USAGE','Uso: /190 [MENSAGEM] (3 a 180 caracteres)');
+   const member=room.findOnline(identity.uid);
+   const position=isPositionWithinWorld(identity.world,member)?member:null;
    const call=await transaction(async client=>{
-    const result=await client.query(`INSERT INTO hbrp.police_calls(caller_character_id,message)
-     VALUES($1,$2) RETURNING id`,[identity.characterId,message]);
+    const result=await client.query(`INSERT INTO hbrp.police_calls(caller_character_id,message,world_code,x,y,z)
+     VALUES($1,$2,$3,$4,$5,$6) RETURNING id`,[identity.characterId,message,position?identity.world:null,
+     position?.x??null,position?.y??null,position?.z??null]);
     return result.rows[0].id;
    });
    room.broadcast(identity,'police',`CHAMADA 190 · ID ${identity.uid}: ${message}`);
@@ -45,10 +49,11 @@ export function createPoliceCommands({pool,transaction,room}){
     await client.query(`INSERT INTO hbrp.audit_events(actor_account_id,action,entity_type,entity_id,details)
      VALUES($1,'police.ticket','character',$2,$3::jsonb)`,
      [identity.accountId,found.id,JSON.stringify({ticketId:inserted.rows[0].id,amountCents:reais*100,reason})]);
-    return found;
+    return {...found,ticketId:inserted.rows[0].id};
    });
-   if(room.findOnline(player.uid))room.privateMessage(player.id,`Multa de R$ ${reais} aplicada pela Polícia Militar. Motivo: ${reason}. Pagamento ainda indisponível.`);
-   return {name,status:'ok',message:`Multa pendente de R$ ${reais} aplicada ao ID ${player.uid}. Motivo: ${reason}`};
+   if(room.findOnline(player.uid))room.privateMessage(player.id,`Multa de R$ ${reais} aplicada pela Polícia Militar. Motivo: ${reason}. Use /minhasmultas para consultar e pagar.`);
+   return {name,status:'ok',message:`Multa pendente de R$ ${reais} aplicada ao ID ${player.uid}. Motivo: ${reason}`,
+    lines:[`Código da multa: ${player.ticketId}`]};
   }
   if(name==='proc'){
    if(parts.length!==1)error(400,'COMMAND_USAGE','Uso: /proc [ID DO SOLICITANTE]');
@@ -57,8 +62,13 @@ export function createPoliceCommands({pool,transaction,room}){
     const result=await client.query(`SELECT id,message FROM hbrp.police_calls
      WHERE caller_character_id=$1 AND status='open' ORDER BY created_at DESC LIMIT 1 FOR UPDATE`,[player.id]);
     if(!result.rowCount)error(404,'CALL_NOT_FOUND','Não há chamada policial aberta deste jogador.');
-    await client.query(`UPDATE hbrp.police_calls SET status='accepted',officer_account_id=$2,accepted_at=now()
-     WHERE id=$1 AND status='open'`,[result.rows[0].id,identity.accountId]);
+    try{
+     await client.query(`UPDATE hbrp.police_calls SET status='accepted',officer_account_id=$2,accepted_at=now()
+      WHERE id=$1 AND status='open'`,[result.rows[0].id,identity.accountId]);
+    }catch(cause){
+     if(cause.code==='23505')error(409,'CALL_ALREADY_ASSIGNED','Encerre o atendimento atual antes de aceitar outro.');
+     throw cause;
+    }
     return result.rows[0];
    });
    if(room.findOnline(player.uid))room.privateMessage(player.id,`Sua chamada 190 foi aceita por ${identity.firstName||identity.name} (ID ${identity.uid}).`);
@@ -84,7 +94,7 @@ export function createPoliceCommands({pool,transaction,room}){
   if(['cuff','uncuff','follow','stay'].includes(name)){
    if(name==='stay' ? parts.length!==0 : parts.length!==1)
     error(400,'COMMAND_USAGE',name==='stay'?'Uso: /stay':`Uso: /${name} [ID]`);
-   return room.custody(identity,name,name==='stay'?null:uid(parts[0]));
+   return room.custody(identity,name,name==='stay'?null:parts[0]?.toUpperCase()==='BOT1'?'BOT1':uid(parts[0]));
   }
   if(['put','eject','carpolicia'].includes(name)){
    if(name==='carpolicia' ? parts.length!==0 : parts.length!==1)

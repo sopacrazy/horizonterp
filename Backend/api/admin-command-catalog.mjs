@@ -15,8 +15,8 @@ const entries=[
  ['re',1,'/re [ID]','Observar um jogador.'],
  ['reoff',1,'/reoff','Parar de observar.'],
  ['inf',1,'/inf [ID]','Alternar imortalidade.','Dano e combate'],
- ['jail',1,'/jail [ID/nome] [minutos] [motivo]','Prender um jogador.','Prisões'],
- ['unjail',1,'/unjail [ID/nome]','Soltar um jogador.','Prisões'],
+ ['jail',1,'/jail [ID] [minutos] [motivo]','Aplicar pena administrativa.'],
+ ['unjail',1,'/unjail [ID]','Encerrar uma pena antes do prazo.'],
  ['a',1,'/a [mensagem]','Enviar mensagem apenas aos admins.'],
  ['alist',1,'/alist','Listar administradores online.'],
  ['ahelp',1,'/ahelp [nível]','Mostrar comandos disponíveis.'],
@@ -80,9 +80,9 @@ const policeEntries=[
  ['/wanted','Consultar a lista de procurados.'],
  ['/su [ID] [1-6 estrelas] [motivo]','Adicionar procurado e registrar motivo.'],
  ['/clear [ID]','Retirar o status de procurado.'],
- ['/cuff [ID]','Algemar um jogador próximo.'],
+ ['/cuff [ID|BOT1]','Algemar um jogador próximo ou seu bot de teste.'],
  ['/uncuff [ID]','Retirar as algemas.'],
- ['/follow [ID]','Conduzir o detido algemado.'],
+ ['/follow [ID|BOT1]','Conduzir o detido algemado ou seu bot de teste.'],
  ['/stay','Parar a condução.'],
  ['/carpolicia','Posicionar a viatura policial.'],
  ['/put [ID]','Colocar o detido algemado na viatura.'],
@@ -93,6 +93,32 @@ const policeEntries=[
  ['/f [mensagem]','Enviar mensagem à organização.'],
  ['/d [mensagem]','Enviar mensagem às organizações.'],
  ['/gov [mensagem]','Publicar comunicado para todos (admin nível 2).']
+];
+const policeOperations=[
+ ['/servico [on|off]','Entrar ou sair de serviço na PM.','PM ou administração'],
+ ['/pmrecrutar [ID]','Recrutar jogador para a PM.','Comando ou administração'],
+ ['/pmpatente [ID] [recruta|oficial|comando]','Alterar a patente. Alterações do Comando exigem administração.','Comando ou administração'],
+ ['/pmdemitir [ID]','Remover um membro da PM.','Comando ou administração'],
+ ['/delegacia','Marcar a delegacia; Oficial ou Comando em serviço entra ou sai da custódia quando está no local.'],
+ ['/cela [minutos] [motivo]','Colocar na cela o preso algemado que acompanha o policial dentro da custódia.','Oficial ou Comando em serviço'],
+ ['/prender [ID] [minutos] [motivo]','Registrar a ocorrência e prender um detido na delegacia.','Oficial ou Comando em serviço'],
+ ['/soltar [ID|BOT1]','Encerrar antecipadamente a pena de um preso ou liberar seu bot de teste na delegacia.','Oficial ou Comando em serviço'],
+ ['/ocorrencias [ID]','Consultar as últimas penas registradas de um jogador.','Oficial ou Comando em serviço'],
+ ['/chamados','Consultar fila do 190 e chamados da patrulha.'],
+ ['/despachar190 [ID solicitante] [ID policial]','Atribuir um chamado a outro policial em serviço.','Comando em serviço'],
+ ['/gpsocorrencia','Marcar no mapa a posição registrada no chamado aceito.'],
+ ['/encerrar190','Encerrar o chamado aceito pela patrulha.'],
+ ['/cancelar190','Cancelar seu chamado mais recente.','Todos os jogadores'],
+ ['/minhasmultas','Consultar suas multas e códigos para pagamento.','Todos os jogadores'],
+ ['/pagarmulta [código]','Pagar uma multa com o saldo em dinheiro.','Todos os jogadores'],
+ ['/cancelarmulta [código]','Cancelar uma multa pendente.','Oficial responsável ou Comando em serviço'],
+ ['/revistar [ID]','Consultar inventário do jogador sob custódia.'],
+ ['/documentos [ID]','Consultar RG e CNH de um jogador próximo.'],
+ ['/placa [placa]','Consultar proprietário de veículo registrado ou viatura.'],
+ ['/apreender [ID] [item] [quantidade]','Remover itens de um jogador sob custódia e registrar a apreensão.','Oficial ou Comando em serviço'],
+ ['/arsenal [pistola|rifle|guardar]','Retirar ou guardar equipamento na delegacia. Rifle exige Oficial ou Comando.'],
+ ['/giroflex','Alternar as luzes de emergência da viatura que você dirige.'],
+ ['/sirene','Alternar a sirene da viatura que você dirige.']
 ];
 
 export function gameCommandHelp(){
@@ -105,6 +131,9 @@ export function gameCommandHelp(){
   group:'Polícia',level:usage.startsWith('/gov ')?2:1,
   permission:usage.startsWith('/gov ')?'Polícia em serviço · Admin nível 2':'Polícia em serviço',
   available:true,note:''}));
- return [...playerHelp(),...admin,...police,{usage:'/190 [mensagem]',description:'Pedir atendimento policial.',
+ const operations=policeOperations.map(([usage,description,permission='Polícia em serviço'])=>({
+  usage,description,permission,group:permission==='Todos os jogadores'?'Atendimento':'Polícia',level:0,available:true,note:''
+ }));
+ return [...playerHelp(),...admin,...police,...operations,{usage:'/190 [mensagem]',description:'Pedir atendimento policial.',
   group:'Atendimento',level:0,permission:'Todos os jogadores',available:true,note:''}];
 }

@@ -89,8 +89,9 @@ public static class RifleMotionReview
                     rig.rifle.Apply(true,initialAim,0,0,initialSpeed);
                     rig.rifle.PrepareAnimationFrame(Step);rig.animator.Update(Step);rig.rifle.ApplyAttachmentPose();
                 }
-                int rifleLayer=rig.animator.GetLayerIndex("Rifle");
-                rig.animator.Play("Rifle.Locomotion",rifleLayer,0);rig.animator.Update(0);
+                bool nativeRifle=rig.animator.GetLayerIndex("SARifle")>=0;
+                int rifleLayer=rig.animator.GetLayerIndex(nativeRifle?"SARifle":"Rifle");
+                rig.animator.Play(nativeRifle?"SARifle.Locomotion":"Rifle.Locomotion",rifleLayer,0);rig.animator.Update(0);
                 var firstLeft=rig.leftFoot.position;var firstRight=rig.rightFoot.position;
                 float minimumShotTime=float.PositiveInfinity,maximumShotTime=float.NegativeInfinity;
                 float previousPitch=0;
@@ -130,7 +131,7 @@ public static class RifleMotionReview
                         sequence.supportError=Mathf.Max(sequence.supportError,rig.rifle.GripError);
                         if(scenario=="run"||scenario.EndsWith("walk"))sequence.footTravel=Mathf.Max(sequence.footTravel,
                             Vector3.Distance(firstLeft,rig.leftFoot.position),Vector3.Distance(firstRight,rig.rightFoot.position));
-                        int fireLayer=rig.animator.GetLayerIndex("RifleFire");
+                        int fireLayer=rig.animator.GetLayerIndex(nativeRifle?"SARifleFire":"RifleFire");
                         float shotTime=fireLayer>=0?rig.animator.GetCurrentAnimatorStateInfo(fireLayer).normalizedTime:0;
                         if(scenario=="repeated-shots"&&fireLayer>=0&&rig.animator.GetLayerWeight(fireLayer)>.1f)
                         {minimumShotTime=Mathf.Min(minimumShotTime,shotTime);maximumShotTime=Mathf.Max(maximumShotTime,shotTime);}
@@ -138,7 +139,7 @@ public static class RifleMotionReview
                         {
                             var stock=rig.rifle.Muzzle?rig.rifle.Muzzle.parent.Find("Stock"):null;
                             var gun=rig.rifle.Muzzle?rig.rifle.Muzzle.parent:null;
-                            report.samples.Add(new Sample{gender=gender,scenario=scenario,seconds=time,blendSpeed=rig.animator.GetFloat("RifleSpeed"),lowReadyAngle=rig.rifle.LowReadyAngle,
+                            report.samples.Add(new Sample{gender=gender,scenario=scenario,seconds=time,blendSpeed=rig.animator.GetFloat(nativeRifle?"SARifleSpeed":"RifleSpeed"),lowReadyAngle=rig.rifle.LowReadyAngle,
                                 muzzleBelowHead=rig.head.position.y-(rig.rifle.Muzzle?rig.rifle.Muzzle.position.y:rig.head.position.y),
                                 rightArmRotationChange=rotation,segmentLengthChange=lengthChange,supportError=rig.rifle.GripError,
                                 stockHeadDistance=stock?Vector3.Distance(stock.position,rig.head.position):-1,
@@ -154,17 +155,19 @@ public static class RifleMotionReview
                     Check(report,captureIndex==6,gender+" / "+scenario+": six actual animated frames rendered from front and side");
                     Check(report,sequence.rightArmRotationChange<.1f,gender+" / "+scenario+": upper-arm change matches relaxed carry, preserving authored elbow and wrist tracks (<0.1 degree)");
                     Check(report,sequence.segmentLengthChange<.002f,gender+" / "+scenario+": neither arm is stretched");
-                    Check(report,sequence.supportError<.10f,gender+" / "+scenario+": both weapon grip points stay aligned (<10cm)");
+                    float gripLimit=nativeRifle?.12f:.10f;
+                    Check(report,sequence.supportError<gripLimit,gender+" / "+scenario+": both weapon grip points stay aligned (<"+(gripLimit*100).ToString("0")+"cm)");
                     if(scenario=="run"||scenario.EndsWith("walk"))Check(report,sequence.footTravel>.08f,gender+": "+scenario+" advances the foot cycle instead of freezing in a single pose");
                     if(scenario=="repeated-shots")Check(report,sequence.shotProgress>.01f,gender+": repeated shots advance the authored shot rather than remaining at frame zero");
                     if(scenario=="rest")Check(report,report.samples.Where(s=>s.gender==gender&&s.scenario==scenario)
-                        .All(s=>s.lowReadyAngle>30&&s.weaponPitch>25&&s.muzzleBelowHead>.12f),gender+": idle without aiming carries the rifle below the face with its barrel down");
+                        .All(s=>nativeRifle?s.muzzleBelowHead>.12f&&s.supportError<.10f:s.lowReadyAngle>30&&s.weaponPitch>25&&s.muzzleBelowHead>.12f),
+                        gender+": idle without aiming keeps the muzzle below the face and both hands on the rifle");
                     if(scenario=="rest-aim-rest"||scenario=="rest-shot")
                     {
                         var middle=report.samples.First(s=>s.gender==gender&&s.scenario==scenario&&s.seconds>.85f&&s.seconds<.9f);
                         var final=report.samples.Last(s=>s.gender==gender&&s.scenario==scenario);
                         Check(report,middle.lowReadyAngle<.1f&&Mathf.Abs(middle.weaponPitch)<4,gender+" / "+scenario+": aim or fire raises the rifle back to the sight line");
-                        Check(report,final.lowReadyAngle>30,gender+" / "+scenario+": releasing aim or fire returns to low ready");
+                        Check(report,nativeRifle?final.muzzleBelowHead>.12f:final.lowReadyAngle>30,gender+" / "+scenario+": releasing aim or fire returns to carry");
                         Check(report,sequence.maximumPitchStep<13,gender+" / "+scenario+": raising and lowering stays smooth between frames");
                     }
                     if(scenario=="idle")

@@ -38,6 +38,8 @@ public sealed class MultiplayerWorld : MonoBehaviour
     public bool CombatReady {get;private set;}
     public bool WeaponStateAvailable {get;private set;}
     public bool PistolStateAvailable {get;private set;}
+    public bool AnimationSyncAvailable {get;private set;}
+    public bool PrisonAvailable {get;private set;}
     public bool RifleDamageAvailable {get;private set;}
     public bool RespawnAvailable {get;private set;}
     public float RespawnDeadline {get;private set;}
@@ -128,6 +130,8 @@ public sealed class MultiplayerWorld : MonoBehaviour
                 json=json.Substring(0,json.Length-1)+","+JsonUtility.ToJson(state).Substring(1);
                 if(PistolStateAvailable)json=json.Substring(0,json.Length-1)+",\"weaponType\":\""+(rifle&&rifle.IsPistol?"pistol":"rifle")+"\"}";
             }
+            if(AnimationSyncAvailable)json=json.Substring(0,json.Length-1)+",\"animationClip\":\""+AnimationTestWheel.NetworkClip+"\",\"animationSequence\":"+AnimationTestWheel.NetworkSequence+"}";
+            if(PrisonAvailable)json=json.Substring(0,json.Length-1)+",\"prisonReady\":true}";
             if(RespawnAvailable)json=json.Substring(0,json.Length-1)+",\"afterRespawn\":"+lastRespawnSequence+"}";
             if(police&&PoliceVehicleAvailable)json=json.Substring(0,json.Length-1)+",\"policeCarId\":\""+police.Id+"\"}";
             // Old installed servers strictly validate fields; negotiate before sending the new state.
@@ -171,6 +175,8 @@ public sealed class MultiplayerWorld : MonoBehaviour
                 CombatAvailable=reply.combatAvailable;
                 WeaponStateAvailable=reply.weaponStateAvailable;
                 PistolStateAvailable=reply.pistolStateAvailable;
+                AnimationSyncAvailable=reply.animationSyncAvailable;
+                PrisonAvailable=reply.prisonAvailable;
                 RifleDamageAvailable=reply.rifleDamageAvailable;RespawnAvailable=reply.respawnAvailable;
                 CombatReady=reply.combatAvailable&&combatClient;
                 // Refresh permission changes for this authenticated character without
@@ -203,7 +209,10 @@ public sealed class MultiplayerWorld : MonoBehaviour
                 if(reply.teleport!=null&&reply.teleport.id>lastTeleportId)
                 {
                     lastTeleportId=reply.teleport.id;
-                    player.TeleportTo(new Vector3(reply.teleport.x,reply.teleport.y,reply.teleport.z));
+                    var destination=new Vector3(reply.teleport.x,reply.teleport.y,reply.teleport.z);
+                    if(PolicePrisonWorld.IsInside(destination)||PolicePrisonWorld.IsInside(player.transform.position))
+                        PolicePrisonWorld.Travel(player,destination);
+                    else player.TeleportTo(destination);
                 }
                 int hour=reply.hourOverride?reply.serverHour:-1;
                 if(hour!=ServerHour)
@@ -458,6 +467,7 @@ public sealed class MultiplayerWorld : MonoBehaviour
         float lastCombatSync;
         readonly Animator animator;
         readonly RemoteAvatarAnimation animation;
+        int lastAnimationSequence;
         readonly CombatAvatarAnimation combat;
         readonly RifleAvatar rifle;
         bool weaponEquipped,weaponAiming;
@@ -563,6 +573,8 @@ public sealed class MultiplayerWorld : MonoBehaviour
         }
         public void Apply(MultiplayerPeer peer,long serverTime,float roundTrip)
         {
+            if(peer.animationSequence>0&&peer.animationSequence!=lastAnimationSequence)
+            {lastAnimationSequence=peer.animationSequence;AnimationTestWheel.PlayOnRemote(animator,peer.animationClip);}
             if(rifle)rifle.SetPistolMode(peer.weaponType=="pistol");
             weaponEquipped=peer.weaponEquipped&&!peer.cuffed&&!peer.driving&&!peer.inPoliceCar;
             weaponAiming=peer.weaponAiming;
