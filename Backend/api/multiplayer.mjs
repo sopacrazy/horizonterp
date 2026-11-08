@@ -18,13 +18,17 @@ export const POLICE_COMMANDS=Object.freeze(['ide','wanted','su','clear','cuff','
 export const SERVICE_COMMANDS=Object.freeze(['190',...POLICE_PUBLIC]);
 export const canPoliceDuty=identity=>identity.adminLevel!==4 && (identity.organization?.code==='pm'||
  identity.accountRole==='admin'&&Number.isInteger(identity.adminLevel)&&identity.adminLevel>0);
-export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=async({health,damage})=>Math.max(0,health-damage),persistRespawn=async()=>{},spawnForWorld=()=>({x:2489.3,y:12.37,z:1668.5,yaw:40})}={}){
+export function createRoom({clock=Date.now,ttl=10000,capacity=2,civilianCars=false,persistDamage=async({health,damage})=>Math.max(0,health-damage),persistRespawn=async()=>{},spawnForWorld=()=>({x:2489.3,y:12.37,z:1668.5,yaw:40})}={}){
  const members=new Map();
  let followerBot=null;
  const policeDuty=new Map();
  const policeChannels=new Map();
  const restraints=new Map();
  const policeCars=new Map();
+ if(civilianCars)for(const [index,offset] of [[0,[-7,3]]]){
+  const spawn=spawnForWorld('centro_teste');
+  policeCars.set('city-'+(index+1),{id:'city-'+(index+1),ownerUid:'',x:spawn.x+offset[0],y:spawn.y,z:spawn.z+offset[1],yaw:spawn.yaw,driverCharacterId:null,driverSessionId:null,occupantCharacterId:null});
+ }
  const combatStates=new Map(),attackResults=new Map(),shotResults=new Map(),respawnResults=new Map();let combatSequence=0,combatQueue=Promise.resolve();
  const combatEpoch=randomUUID();
  const messages=[];const chatEpoch=randomUUID();let messageSequence=0,teleportSequence=0;
@@ -222,7 +226,7 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
   if(body.weaponAiming&&!body.weaponEquipped||body.weaponShotSequence!==undefined&&(!Number.isSafeInteger(body.weaponShotSequence)||body.weaponShotSequence<0||body.weaponShotSequence>2147483647)||
     body.weaponAimPitch!==undefined&&(typeof body.weaponAimPitch!=='number'||!Number.isFinite(body.weaponAimPitch)||Math.abs(body.weaponAimPitch)>80))reject(400,'INVALID_FRAME','Estado visual de arma inválido.');
   if(body.policeCarId!==undefined&&(typeof body.policeCarId!=='string'||body.policeCarId.length>64||
-    (body.policeCarId!==''&&!/^pm-[1-9][0-9]{0,18}$/.test(body.policeCarId))))reject(400,'INVALID_FRAME','Viatura inválida.');
+    (body.policeCarId!==''&&!/^(?:pm-[1-9][0-9]{0,18}|city-1)$/.test(body.policeCarId))))reject(400,'INVALID_FRAME','Veículo inválido.');
   for(const key of ['voiceActive','radioActive'])if(body[key]!==undefined&&typeof body[key]!=='boolean')reject(400,'INVALID_FRAME','Estado do microfone inválido.');
   if(body.voiceActive&&body.radioActive)reject(400,'INVALID_FRAME','Transmissão de voz ambígua.');
   if(body.afterTeleport!==undefined&&(!Number.isSafeInteger(body.afterTeleport)||body.afterTeleport<0))reject(400,'INVALID_FRAME','Cursor de teleporte inválido.');
@@ -249,10 +253,10 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
    else {policeDuty.delete(identity.characterId);policeChannels.delete(identity.characterId);releaseDriver(identity.characterId);}
   }
   let driven=[...policeCars.values()].find(car=>car.driverCharacterId===identity.characterId);
-  if(driven&&(driven.driverSessionId!==sessionId||identity.organization?.code!=='pm'||restraint||selfCombat.dead))
+  if(driven&&(driven.driverSessionId!==sessionId||restraint||selfCombat.dead))
    {releaseDriver(identity.characterId);driven=null;}
   if(!jailed&&body.policeCarId&&(!driven||driven.id!==body.policeCarId||body.driving!==true))
-   reject(403,'POLICE_CAR_FORBIDDEN','Entre na sua viatura antes de conduzir.');
+   reject(403,'POLICE_CAR_FORBIDDEN','Entre no veículo antes de conduzir.');
   if(!jailed&&body.radioVoice&&(!isPolice||policeChannels.get(identity.characterId)?.sessionId!==sessionId||
     body.radioChannel!==policeChannels.get(identity.characterId)?.channel))
    reject(403,'RADIO_FORBIDDEN','Conecte-se ao rádio policial antes de transmitir.');
@@ -330,9 +334,10 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
    selfX:member.x,selfY:member.y,selfZ:member.z,selfYaw:member.yaw,
    selfInPoliceCar:!!seat,
    selfPoliceCarId:driven?.id||'',
-   policeCars:[...policeCars.values()].map(car=>({id:car.id,ownerUid:car.ownerUid,x:car.x,y:car.y,z:car.z,yaw:car.yaw,
+   policeCars:[...policeCars.values()].sort((a,b)=>Number(b.id.startsWith('pm-'))-Number(a.id.startsWith('pm-'))).map(car=>({id:car.id,ownerUid:car.ownerUid,x:car.x,y:car.y,z:car.z,yaw:car.yaw,
     driverUid:members.get(car.driverCharacterId)?.uid||'',driverName:members.get(car.driverCharacterId)?.firstName||'',
     occupantUid:members.get(car.occupantCharacterId)?.uid||'',occupantName:members.get(car.occupantCharacterId)?.firstName||'',
+    occupantCuffed:!!car.occupantCharacterId&&restraints.has(car.occupantCharacterId),
     lightbar:car.lightbar===true,siren:car.siren===true})),
    teleport:member.teleport&&member.teleport.id>(body.afterTeleport??0)?member.teleport:null,
    messages:messages.filter(m=>m.id>(body.afterChat??0)&&(m.channel!=='admin'||member.adminLevel>0)&&
@@ -587,12 +592,30 @@ export function createRoom({clock=Date.now,ttl=10000,capacity=2,persistDamage=as
   if(Number(identity.jailUntil)>clock())reject(403,'PLAYER_JAILED','Você está cumprindo pena.');
   prune();
   if(!body||typeof body!=='object'||Array.isArray(body)||Object.keys(body).length!==2||
-    !['enter','exit'].includes(body.action)||typeof body.carId!=='string'||!/^pm-[1-9][0-9]{0,18}$/.test(body.carId))
-   reject(400,'INVALID_VEHICLE_ACTION','Informe a viatura e a ação enter ou exit.');
-  const dutyState=duty(identity,sessionId);
-  if(!dutyState.policeDuty||identity.organization?.code!=='pm')reject(403,'POLICE_ONLY','Entre em serviço na Polícia Militar.');
-  const officer=members.get(identity.characterId),car=policeCars.get(identity.characterId);
-  if(!car||car.id!==body.carId)reject(403,'POLICE_CAR_FORBIDDEN','Você só pode conduzir sua própria viatura.');
+    !['enter','exit','passenger-enter','passenger-exit'].includes(body.action)||typeof body.carId!=='string'||
+    !/^(?:pm-[1-9][0-9]{0,18}|city-1)$/.test(body.carId))
+   reject(400,'INVALID_VEHICLE_ACTION','Informe o veículo e a ação válida.');
+  const officer=members.get(identity.characterId),car=[...policeCars.values()].find(item=>item.id===body.carId);
+  if(!officer||officer.sessionId!==sessionId)reject(403,'NOT_IN_ROOM','Entre na sala antes de usar o veículo.');
+  if(!car)reject(404,'VEHICLE_NOT_FOUND','Veículo indisponível.');
+  if(body.action==='passenger-enter'){
+   if(combatState(identity).dead||restraints.has(identity.characterId)||officer.driving||
+      [...policeCars.values()].some(item=>item.driverCharacterId===identity.characterId||item.occupantCharacterId===identity.characterId)||car.occupantCharacterId)
+    reject(409,'VEHICLE_ACTIVE','Banco do passageiro indisponível.');
+   if(Math.hypot(officer.x-car.x,officer.y-car.y,officer.z-car.z)>4)reject(409,'TARGET_TOO_FAR','Aproxime-se do veículo.');
+   car.occupantCharacterId=identity.characterId;officer.speed=0;officer.renderSequence=(officer.renderSequence??officer.sequence)+1;
+   return {carId:car.id,driving:false,x:car.x,y:car.y,z:car.z,yaw:car.yaw};
+  }
+  if(body.action==='passenger-exit'){
+   if(car.occupantCharacterId!==identity.characterId||restraints.has(identity.characterId))reject(409,'NOT_PASSENGER','Você não está no banco do passageiro.');
+   if(Math.abs(members.get(car.driverCharacterId)?.speed||0)>1)reject(409,'VEHICLE_MOVING','Pare o veículo antes de sair.');
+   const radians=car.yaw*Math.PI/180;
+   const exit={x:car.x+Math.cos(radians)*2.1,y:car.y,z:car.z-Math.sin(radians)*2.1,yaw:car.yaw,speed:0};
+   if(!isPositionWithinWorld(identity.world,exit))reject(409,'EXIT_BLOCKED','Não há ponto de saída dentro da área disponível.');
+   car.occupantCharacterId=null;Object.assign(officer,exit);
+   officer.renderSequence=(officer.renderSequence??officer.sequence)+1;
+   return {carId:car.id,driving:false,x:officer.x,y:officer.y,z:officer.z,yaw:officer.yaw};
+  }
   if(body.action==='enter'){
    if(combatState(identity).dead||restraints.has(identity.characterId)||[...policeCars.values()].some(item=>item.occupantCharacterId===identity.characterId))
     reject(409,'VEHICLE_ACTIVE','Você não pode assumir o volante nesta condição.');

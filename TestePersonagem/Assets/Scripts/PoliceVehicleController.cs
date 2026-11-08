@@ -133,7 +133,7 @@ public sealed class PoliceVehicleController : MonoBehaviour
             GameHud.Instance?.ShowAccountMessage("Aguardando sincronização da viatura com o servidor.");
             return;
         }
-        if(Busy||Active||!player||player.IsCuffed||player.InPoliceCar||player.IsJumping||player.IsTeleporting||player.IsSpectating||player.CombatLocked||MissionVehicle.Driver||EntryDistance(player)>.85f)return;
+        if(Busy||Active||!player||player.IsCuffed||player.InPoliceCar||player.IsJumping||player.IsTeleporting||player.IsSpectating||player.CombatLocked||MissionVehicle.Driver||EntryDistance(player)>3.2f)return;
         StartCoroutine(EnterRoutine(player));
     }
     IEnumerator EnterRoutine(ThirdPersonPlayer player)
@@ -236,15 +236,19 @@ public sealed class PoliceVehicleController : MonoBehaviour
     void Update()
     {
         if(!driver)return;
-        if(!LocalPreview&&(!AccountSession.HasCharacter||!AdminPlayerPanel.PoliceDuty)){Abort();return;}
+        if(!LocalPreview&&!AccountSession.HasCharacter){Abort();return;}
         bool blocked=Busy||exiting||rig.RearTransitioning||StartupLoader.IsLoading||AccountSession.InputBlocked||InGameChat.Editing||(GameHud.Instance&&GameHud.Instance.IsPanelOpen);
-        Vector2 input=blocked?Vector2.zero:MobileControls.HasTouches?MobileControls.Movement:new Vector2(Input.GetAxisRaw("Horizontal"),Input.GetAxisRaw("Vertical"));
+        // On Android the vehicle HUD owns both axes. The walking joystick must
+        // never steer a car; keyboard input remains available in the Editor.
+        Vector2 input=blocked||Application.isMobilePlatform?Vector2.zero:
+            new Vector2(Input.GetAxisRaw("Horizontal"),Input.GetAxisRaw("Vertical"));
 #if UNITY_EDITOR
         if(LocalPreview&&!blocked&&PreviewInput.HasValue)input=Vector2.ClampMagnitude(PreviewInput.Value,1);
 #endif
         if(!blocked&&Input.GetKeyDown(KeyCode.F)){RequestExit();input=Vector2.zero;}
         if(exiting)return;
         if(!blocked&&VehicleHud.PedalsHeld)input.y=VehicleHud.Throttle;
+        if(!blocked&&VehicleHud.SteeringHeld)input.x=VehicleHud.Steering;
         seat.Steering=input.x;
         Speed=Mathf.MoveTowards(Speed,input.y*7.5f,(blocked||VehicleHud.Braking?15:5)*Time.deltaTime);
         float steering=input.x*Mathf.Clamp(Speed/3,-1,1);

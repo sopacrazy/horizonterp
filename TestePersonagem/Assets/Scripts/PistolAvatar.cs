@@ -1,19 +1,23 @@
 using UnityEngine;
 
-// Imported GTA SA motion owns the arms and gait. The weapon follows the hand.
+// The Fla aim layer owns the arms while the base controller keeps its posture and gait.
 public sealed class PistolAvatar : MonoBehaviour
 {
+    public const string FlaAimLayerName="FlaPistolAim";
     public const string ReloadLayerName="SAPistolReload";
     public const string ReloadTimeParameter="SAPistolReloadProgress";
     public const string ReloadResource="SAExpanded/PistolReload";
     Animator animator;
     Transform owner,weapon,muzzle;
     ShootingGrip grip;
-    int layer=-1,reloadLayer=-1;
-    float weight,pitch,speed,reloadProgress=-1f;
+    Camera aimCamera;
+    int layer=-1,reloadLayer=-1,flaAimLayer=-1;
+    float weight,pitch,speed,reloadProgress=-1f,supportWeight;
+    Vector3 smoothedAimPoint,aimPointVelocity;
+    bool aimPointReady;
     public float ReloadDuration {get;private set;}=1.5f;
     bool equipped,aiming,gripReady;
-    public bool Ready=>animator&&layer>=0&&weapon&&gripReady;
+    public bool Ready=>animator&&layer>=0&&weapon&&gripReady&&(!grip.TwoHandedPistol||flaAimLayer>=0);
     public bool Visible=>weapon&&weapon.gameObject.activeSelf;
     public Transform Muzzle=>muzzle;
     public float GripSurfaceGap=>grip!=null?grip.PistolGripSurfaceGap:float.PositiveInfinity;
@@ -27,18 +31,28 @@ public sealed class PistolAvatar : MonoBehaviour
         ReloadDuration=reloadClip?reloadClip.length:1.5f;
         weapon=CreateWeapon(owner);muzzle=weapon.Find("Muzzle");
         grip=new ShootingGrip();gripReady=grip.ConfigureAuthoredPistol(animator,weapon,owner);
+        flaAimLayer=animator.GetLayerIndex(FlaAimLayerName);
+        if(owner.TryGetComponent<ThirdPersonPlayer>(out var player) && player.cameraTransform)
+            aimCamera=player.cameraTransform.GetComponent<Camera>();
         weapon.gameObject.SetActive(false);
     }
     public void Apply(bool value,bool aim,float aimPitch,float movement,float reload=-1f)
-    {equipped=value;reloadProgress=value?reload:-1f;aiming=aim&&reloadProgress<0;pitch=Mathf.Clamp(aimPitch,-35,35);speed=movement;}
+    {
+        equipped=value;reloadProgress=value?reload:-1f;aiming=aim&&reloadProgress<0;
+        pitch=Mathf.Clamp(aimPitch,-35,35);speed=movement;
+        if(!aiming){aimPointReady=false;aimPointVelocity=Vector3.zero;}
+    }
     public void PrepareFrame(float delta)
     {
         if(!Ready)return;
         bool busy=animator.TryGetComponent<CombatAvatarAnimation>(out var combat)&&combat.Busy;
         bool active=equipped&&!busy&&!animator.GetBool("Jumping");
         weight=busy||animator.GetBool("Jumping")?0:Mathf.MoveTowards(weight,active?1:0,Mathf.Clamp(delta,0,.1f)*10);
+        supportWeight=active&&reloadProgress<0f?Mathf.MoveTowards(supportWeight,aiming?1f:0f,Mathf.Clamp(delta,0,.1f)*10):0f;
         weapon.gameObject.SetActive(active);
-        animator.SetLayerWeight(layer,weight);animator.SetBool("SAPistolAim",aiming);
+        animator.SetLayerWeight(layer,grip.TwoHandedPistol?0f:weight);
+        if(grip.TwoHandedPistol)animator.SetLayerWeight(flaAimLayer,supportWeight);
+        animator.SetBool("SAPistolAim",aiming);
         animator.SetFloat("SAPistolSpeed",speed,.09f,Mathf.Max(.001f,delta));
         if(reloadLayer>=0)
         {
@@ -52,15 +66,41 @@ public sealed class PistolAvatar : MonoBehaviour
     public void Attach()
     {
         if(!Visible||!Ready)return;
+        if(grip.TwoHandedPistol)
+        {
+            Vector3 direction=Quaternion.Euler(pitch,owner.eulerAngles.y,0)*Vector3.forward;
+            Vector3 aimPoint=owner.position+Vector3.up*1.45f+direction*25f;
+            if(supportWeight>0f && aimCamera)
+            {
+                var ray=aimCamera.ViewportPointToRay(new Vector3(.5f,.5f));
+                // The orbit may look freely above and below the character, but
+                // arms cannot follow an unrestricted 65-degree camera pitch.
+                Vector3 horizontal=Vector3.ProjectOnPlane(ray.direction,owner.up).normalized;
+                float elevation=Mathf.Clamp(Mathf.Asin(Mathf.Clamp(Vector3.Dot(ray.direction,owner.up),-1f,1f))*Mathf.Rad2Deg,-28f,28f);
+                Vector3 visualDirection=Quaternion.AngleAxis(-elevation,owner.right)*horizontal;
+                var visualRay=new Ray(ray.origin,visualDirection);
+                float distance=Physics.Raycast(visualRay,out var hit,25f,~(1<<2),QueryTriggerInteraction.Ignore)
+                    ? Mathf.Max(3f,hit.distance) : 25f;
+                aimPoint=visualRay.GetPoint(distance);
+            }
+            if(!aimPointReady){smoothedAimPoint=aimPoint;aimPointReady=true;}
+            else smoothedAimPoint=Vector3.SmoothDamp(smoothedAimPoint,aimPoint,ref aimPointVelocity,.075f,
+                Mathf.Infinity,Mathf.Max(.0001f,Time.deltaTime));
+            grip.ApplyTwoHandedPistol(supportWeight,smoothedAimPoint,muzzle.localPosition);
+            return;
+        }
         if(aiming)
         {
             var chest=animator.GetBoneTransform(HumanBodyBones.UpperChest)??animator.GetBoneTransform(HumanBodyBones.Chest);
             var target=Quaternion.Euler(pitch,owner.eulerAngles.y,0)*Vector3.forward;
-            var barrel=Vector3.ProjectOnPlane(grip.AuthoredRifleDirection,owner.right);
-            float correction=Mathf.Clamp(Vector3.SignedAngle(barrel,target,owner.right),-45,45);
-            if(chest)chest.rotation=Quaternion.AngleAxis(correction,owner.right)*chest.rotation;
+            if(chest)
+            {
+                var barrel=Vector3.ProjectOnPlane(grip.AuthoredRifleDirection,owner.right);
+                float correction=Mathf.Clamp(Vector3.SignedAngle(barrel,target,owner.right),-45,45);
+                chest.rotation=Quaternion.AngleAxis(correction,owner.right)*chest.rotation;
+            }
         }
-        grip.ApplyAuthoredPistol(aiming,pitch,0);
+        grip.ApplyAuthoredPistol();
     }
     public static Transform CreateWeapon(Transform parent)
     {
@@ -114,6 +154,7 @@ public sealed class PistolAvatar : MonoBehaviour
     void OnDestroy()
     {
         if(animator&&layer>=0)animator.SetLayerWeight(layer,0);
+        if(animator&&flaAimLayer>=0&&grip!=null&&grip.TwoHandedPistol)animator.SetLayerWeight(flaAimLayer,0);
         if(animator&&reloadLayer>=0)animator.SetLayerWeight(reloadLayer,0);
         if(weapon){if(Application.isPlaying)Destroy(weapon.gameObject);else DestroyImmediate(weapon.gameObject);}
     }

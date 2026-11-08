@@ -12,13 +12,9 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
     const string FemalePath = "Characters/ByBeyby";
     const string MalePath = "GangsterMusculo/GangsterMusculo";
     const string WuzimuPath = "Characters/Wuzimu/Wuzimu";
+    const string FlaPath = "Characters/Fla/Fla";
+    internal const string FlaJumpClip = "FlaJump";
     const string RunClipName = "Correr_FastRunEnviado";
-    static AnimationClip FemaleLocomotion(string original) => original switch
-    {
-        "Andar_WalkingOriginal" => AnimationTestWheel.FindClip(AnimationTestWheel.Walk),
-        RunClipName => AnimationTestWheel.FindClip(AnimationTestWheel.Run),
-        _ => null
-    };
     const string TestRunPath = "GangsterMusculo/Animations/Gangster_Corrida_Base";
     string previewModel;
     RuntimeAnimatorController previewOriginalController;
@@ -76,7 +72,7 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
             {
                 var originalClip = clips[i].Key;
                 if (!originalClip || !replacements.TryGetValue(originalClip.name, out var path)) continue;
-                var clip = (female ? FemaleLocomotion(originalClip.name) : null) ?? Resources.LoadAll<AnimationClip>(path)
+                var clip = Resources.LoadAll<AnimationClip>(path)
                     .FirstOrDefault(candidate => candidate && candidate.length > 0 && candidate.humanMotion &&
                         !candidate.name.StartsWith("__preview"));
                 if (!clip) throw new InvalidOperationException("Animação Humanoid ausente: " + path);
@@ -190,7 +186,12 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
     // Local test selection only; never changes the saved gender or account identity.
     public bool SwitchPreviewModel(string model)
         => SwitchVisual(AccountSession.Instance?.State?.gender ?? installedGender ?? "male",
-            model == "wuzimu" || model == "sa" ? WuzimuPath : null);
+            model switch
+            {
+                "wuzimu" or "sa" => WuzimuPath,
+                "fla" => FlaPath,
+                _ => null
+            });
 
     bool SwitchVisual(string gender, string modelPath)
     {
@@ -216,21 +217,32 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
         var state = previous.GetCurrentAnimatorStateInfo(0);
         float speed = player.CurrentSpeed;
         var visual = Instantiate(source, transform, false);
-        visual.name = modelPath != null ? "Personagem SA • teste local" : female ? "ByBeyby feminina" : "Gangster Musculo";
+        visual.name = modelPath == FlaPath ? "Fla • teste local" :
+            modelPath != null ? "Personagem SA • teste local" : female ? "ByBeyby feminina" : "Gangster Musculo";
         try
         {
             var animator = PrepareVisual(visual, modelPath == null && female, modelPath);
             var normalizedScale=visual.transform.localScale;
             var normalizedPosition=visual.transform.localPosition;
             var originalController = previewOriginalController ? previewOriginalController : previous.runtimeAnimatorController;
-            animator.runtimeAnimatorController = modelPath != null ? CreateSaPreviewController(originalController) : originalController;
+            animator.runtimeAnimatorController = modelPath != null
+                ? CreatePreviewController(originalController, modelPath == FlaPath)
+                : originalController;
             animator.applyRootMotion = false;
             animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
             animator.Rebind();
-            animator.SetFloat("Speed", speed);
             animator.SetBool("Jumping", false);
-            if (state.fullPathHash != 0)
-                animator.Play(state.fullPathHash, 0, state.normalizedTime % 1f);
+            if (modelPath == FlaPath)
+            {
+                animator.SetFloat("Speed", 0f);
+                animator.Play("Locomocao", 0, 0f);
+            }
+            else
+            {
+                animator.SetFloat("Speed", speed);
+                if (state.fullPathHash != 0)
+                    animator.Play(state.fullPathHash, 0, state.normalizedTime % 1f);
+            }
             animator.Update(0f);
             if (modelPath != null)
             {
@@ -240,6 +252,13 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
                 // The imported bind pose differs from the evaluated Humanoid pose.
                 // Size the visible body only after the actual controller has evaluated.
                 CharacterSkinSizing.Match(visual,maleReferenceHeight,maleReferenceGround);
+            }
+            if (modelPath == FlaPath)
+            {
+                animator.SetFloat("Speed", speed);
+                if (state.fullPathHash != 0)
+                    animator.Play(state.fullPathHash, 0, state.normalizedTime % 1f);
+                animator.Update(0f);
             }
 
             player.RebindVisual(animator);
@@ -284,6 +303,9 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
     }
 
     static AnimatorOverrideController CreateSaPreviewController(RuntimeAnimatorController original)
+        => CreatePreviewController(original, false);
+
+    static AnimatorOverrideController CreatePreviewController(RuntimeAnimatorController original, bool fla)
     {
         var result = new AnimatorOverrideController(original);
         var clips = new List<KeyValuePair<AnimationClip, AnimationClip>>();
@@ -301,11 +323,21 @@ public sealed class GangsterPlayerVisual : MonoBehaviour
             { RunClipName, "Characters/Wuzimu/Animations/CorrerSA" },
             { "JumpRetarget", "Characters/Wuzimu/Animations/PuloSA_Personagem" }
         };
+        var flaClips = fla ? Resources.LoadAll<AnimationClip>(FlaPath) : Array.Empty<AnimationClip>();
         for (int i = 0; i < clips.Count; i++)
         {
             if (!clips[i].Key || !paths.TryGetValue(clips[i].Key.name, out string path)) continue;
-            var clip = Resources.LoadAll<AnimationClip>(path).FirstOrDefault(c => c && c.humanMotion && !c.name.StartsWith("__preview"));
-            if (!clip) throw new InvalidOperationException("Animacao SA de teste ausente: " + path);
+            string flaClip = fla ? clips[i].Key.name switch
+            {
+                "IdleRetarget" => "FlaIdle",
+                "Andar_WalkingOriginal" => "FlaWalk",
+                "JumpRetarget" => FlaJumpClip,
+                _ => null
+            } : null;
+            var clip = flaClip != null
+                ? flaClips.FirstOrDefault(c => c && c.humanMotion && c.name == flaClip)
+                : Resources.LoadAll<AnimationClip>(path).FirstOrDefault(c => c && c.humanMotion && !c.name.StartsWith("__preview"));
+            if (!clip) throw new InvalidOperationException("Animação de teste ausente: " + (flaClip ?? path));
             clips[i] = new KeyValuePair<AnimationClip, AnimationClip>(clips[i].Key, clip);
             paths.Remove(clips[i].Key.name);
         }

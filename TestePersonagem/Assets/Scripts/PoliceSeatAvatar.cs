@@ -22,6 +22,7 @@ public sealed class PoliceSeatAvatar : MonoBehaviour
     VehicleSeatedPose pose;
     Transform avatar;
     bool driver;
+    bool rearSeat;
     int phase;
     float elapsed;
     Vector3 from,exitPoint;
@@ -53,10 +54,10 @@ public sealed class PoliceSeatAvatar : MonoBehaviour
     float ExitLength=>exitingClip?exitingClip.length+PoseBlendDuration:ExitDuration;
     public float ClipProgress {get;private set;}
     public Vector3 ExpectedHip {get;private set;}
-    public void Initialize(PoliceCarRig car,Animator source,bool isDriver)
+    public void Initialize(PoliceCarRig car,Animator source,bool isDriver,bool isRearSeat=false)
     {
         sourceAnimator=source;
-        rig=car;driver=isDriver;
+        rig=car;driver=isDriver;rearSeat=!isDriver&&isRearSeat;
         var visual=Instantiate(source.gameObject,transform,false);
         visual.name=isDriver?"Motorista visível":"Passageiro visível";
         foreach(var c in visual.GetComponentsInChildren<Collider>(true))c.enabled=false;
@@ -73,7 +74,7 @@ public sealed class PoliceSeatAvatar : MonoBehaviour
         animator.Rebind();animator.Update(0);animator.SetFloat("Speed",0);animator.SetBool("Jumping",false);
         var cuffs=visual.GetComponent<CuffedAvatarPose>();
         if(!isDriver&&!cuffs)cuffs=visual.AddComponent<CuffedAvatarPose>();
-        if(cuffs){cuffs.Cuffed=!isDriver;cuffs.UseLatePose=!isDriver;cuffs.enabled=!isDriver;}
+        if(cuffs){cuffs.Cuffed=rearSeat;cuffs.UseLatePose=rearSeat;cuffs.enabled=rearSeat;}
         pose=visual.GetComponent<VehicleSeatedPose>();if(!pose)pose=visual.AddComponent<VehicleSeatedPose>();
         pose.PoseFrame=transform;pose.enabled=true;visual.SetActive(false);
         visualBones=Enumerable.Range(0,(int)HumanBodyBones.LastBone).Select(i=>animator.GetBoneTransform((HumanBodyBones)i)).Where(b=>b).ToArray();
@@ -92,7 +93,14 @@ public sealed class PoliceSeatAvatar : MonoBehaviour
         Abort();
         if(avatar)Destroy(avatar.gameObject);
         avatar=null;
-        Initialize(rig,source,driver);
+        Initialize(rig,source,driver,rearSeat);
+    }
+    public void SetRearSeat(bool value)
+    {
+        if(driver||rearSeat==value)return;
+        Abort();rearSeat=value;
+        var cuffs=avatar?avatar.GetComponent<CuffedAvatarPose>():null;
+        if(cuffs){cuffs.Cuffed=value;cuffs.UseLatePose=value;cuffs.enabled=value;}
     }
     public void SetOccupant(string uid,Vector3 startOrExit,bool animate=true,float startYaw=float.NaN)
     {
@@ -123,14 +131,22 @@ public sealed class PoliceSeatAvatar : MonoBehaviour
         }
         if(!driver)rig.RearTransitioning=Transitioning;
     }
-    Vector3 Door=>driver?rig.DriverDoor:rig.RearDoor;
-    Vector3 Hip=>driver?rig.DriverSeat:rig.RearSeat;
+    Vector3 Door=>driver?rig.DriverDoor:rearSeat?rig.RearDoor:rig.FrontPassengerDoor;
+    Vector3 Hip=>driver?rig.DriverSeat:rearSeat?rig.RearSeat:rig.FrontPassengerSeat;
+    Vector3 Handle=>driver?rig.DriverHandle:rearSeat?rig.RearHandle:rig.FrontPassengerHandle;
+    void SetDoor(float blend)=>rig.SetDoor(driver?0:rearSeat?3:1,blend);
     Vector3 SeatRoot=>Hip-Vector3.up*pose.SeatedHipHeight;
     static float Smooth(float value)=>Mathf.SmoothStep(0,1,Mathf.Clamp01(value));
     void PrepareBoardingPath()
     {
         boardingPath.Clear();rearDoorOpened=false;clipFinishing=false;
         var access=Door+Vector3.right*.4f;
+        if(!rearSeat)
+        {
+            float frontSide=rig.Dimensions.x*.5f+.6f;
+            if(from.x<frontSide)boardingPath.Enqueue(new Vector3(frontSide,from.y,from.z));
+            boardingPath.Enqueue(access);phase=3;elapsed=0;return;
+        }
         // Feet travel outside the car footprint before the authored seat step.
         float side=rig.Dimensions.x*.5f+.6f,rear=-rig.Dimensions.z*.5f-.65f;
         if(from.x<side&&from.z>rear)
@@ -151,7 +167,7 @@ public sealed class PoliceSeatAvatar : MonoBehaviour
         transform.localPosition=Vector3.MoveTowards(transform.localPosition,destination,1.65f*Time.deltaTime);
         if(direction.sqrMagnitude>.0025f)transform.localRotation=Quaternion.RotateTowards(transform.localRotation,Quaternion.LookRotation(direction),360*Time.deltaTime);
         animator.SetFloat("Speed",1.65f);
-        DoorBlend=Mathf.MoveTowards(DoorBlend,1,Time.deltaTime*2.5f);rig.SetDoor(false,DoorBlend);
+        DoorBlend=Mathf.MoveTowards(DoorBlend,1,Time.deltaTime*2.5f);SetDoor(DoorBlend);
         if(Vector3.Distance(transform.localPosition,destination)>.04f)return;
         boardingPath.Dequeue();if(boardingPath.Count>0)return;
         from=transform.localPosition;fromRotation=transform.localRotation;elapsed=0;phase=1;rearDoorOpened=true;
@@ -175,7 +191,7 @@ public sealed class PoliceSeatAvatar : MonoBehaviour
             transform.localRotation=Quaternion.Slerp(facingDoor,Quaternion.identity,sit);
             pose.SetBlend(sit,driver);
             DoorBlend=Smooth((elapsed-.5f)/.4f)*(1-Smooth((elapsed-1.95f)/.45f));
-            pose.ReachDoor(driver?Mathf.Sin(Mathf.Clamp01((elapsed-.4f)/.7f)*Mathf.PI):0,transform.parent.TransformPoint(driver?rig.DriverHandle:rig.RearHandle));
+            pose.ReachDoor(driver?Mathf.Sin(Mathf.Clamp01((elapsed-.4f)/.7f)*Mathf.PI):0,transform.parent.TransformPoint(Handle));
             animator.SetFloat("Speed",elapsed<.6f?1.4f:0);
             if(elapsed>=EnterDuration){phase=0;DoorBlend=0;pose.ReachDoor(0,Vector3.zero);}
         }
@@ -187,20 +203,20 @@ public sealed class PoliceSeatAvatar : MonoBehaviour
             transform.localRotation=Quaternion.Slerp(Quaternion.identity,Quaternion.Euler(0,driver?-90:90,0),leave);
             pose.SetBlend(1-leave,driver);
             DoorBlend=Smooth(elapsed/.45f)*(1-Smooth((elapsed-1.6f)/.5f));
-            pose.ReachDoor(driver&&elapsed<.6f?Mathf.Sin(Mathf.Clamp01(elapsed/.6f)*Mathf.PI):0,transform.parent.TransformPoint(driver?rig.DriverHandle:rig.RearHandle));
+            pose.ReachDoor(driver&&elapsed<.6f?Mathf.Sin(Mathf.Clamp01(elapsed/.6f)*Mathf.PI):0,transform.parent.TransformPoint(Handle));
             animator.SetFloat("Speed",elapsed>1.6f?1f:0);
             if(elapsed>=ExitDuration){phase=0;DoorBlend=0;pose.SetBlend(0,driver);pose.ReachDoor(0,Vector3.zero);avatar.gameObject.SetActive(false);}
         }
         else if(!string.IsNullOrEmpty(Uid))
         {transform.localPosition=SeatRoot;transform.localRotation=Quaternion.identity;pose.SetBlend(1,driver);animator.SetFloat("Speed",0);}
-        rig.SetDoor(driver,DoorBlend);
+        SetDoor(DoorBlend);
     }
     public void Abort()
     {
         StopClip();
         boardingPath.Clear();clipFinishing=false;
         Uid="";phase=0;DoorBlend=0;
-        if(rig)rig.SetDoor(driver,0);
+        if(rig)SetDoor(0);
         if(rig&&!driver)rig.RearTransitioning=false;
         if(pose){pose.SetBlend(0,driver);pose.ReachDoor(0,Vector3.zero);}
         if(avatar)avatar.gameObject.SetActive(false);
@@ -262,7 +278,7 @@ public sealed class PoliceSeatAvatar : MonoBehaviour
         DoorBlend=entering?Smooth((t-.17f)/.18f)*(1-Smooth((t-.7f)/.18f)):
             Smooth((t-.1f)/.17f)*(1-Smooth((t-.64f)/.16f));
         if(entering&&!driver)DoorBlend=(rearDoorOpened?1:Smooth(elapsed/.35f))*(1-Smooth((t-.78f)/.16f));
-        rig.SetDoor(driver,DoorBlend);
+        SetDoor(DoorBlend);
     }
     Vector3 HipInCar()=>transform.parent.InverseTransformPoint(animator.GetBoneTransform(HumanBodyBones.Hips).position);
     void SampleClip(double time)
@@ -311,7 +327,7 @@ public sealed class PoliceSeatAvatar : MonoBehaviour
         float duration=phase==1?enteringClip.length-entryStartTime+approachDuration:exitingClip.length;
         if(elapsed<duration)return;
         // Capture the actual last rendered pose before resetting its root.
-        clipFinishing=true;DoorBlend=0;rig.SetDoor(driver,0);
+        clipFinishing=true;DoorBlend=0;SetDoor(0);
         if(phase==1)
         {
             // Snapshot rotations must use the final car frame, so include the

@@ -40,12 +40,12 @@ public class ThirdPersonCamera : MonoBehaviour
         {
             Vector3 delta = mouse - lastMouse;
             yawDelta += delta.x * .2f * sensitivity;
-            pitch = Mathf.Clamp(pitch - delta.y * .15f * sensitivity,AimActive?-5f:-10f,AimActive?20f:65f);
+            pitch = Mathf.Clamp(pitch - delta.y * .15f * sensitivity,-10f,65f);
         }
         Vector2 touchLook=MobileControls.Look;
         yawDelta+=touchLook.x*.2f*sensitivity;
         yaw+=yawDelta;
-        pitch=Mathf.Clamp(pitch-touchLook.y*.15f*sensitivity,AimActive?-5f:-10f,AimActive?20f:65f);
+        pitch=Mathf.Clamp(pitch-touchLook.y*.15f*sensitivity,-10f,65f);
         if(VehicleFollowActive&&!freeVehicleOrbit&&target)
         {
             if(Mathf.Abs(yawDelta)>.001f)
@@ -62,18 +62,17 @@ public class ThirdPersonCamera : MonoBehaviour
             }
         }
         lastMouse = mouse;
-        if(!AimActive&&!(hud&&(hud.IsPanelOpen||hud.BlocksPointer(mouse))))
+        if((!AimActive||weaponAim)&&!(hud&&(hud.IsPanelOpen||hud.BlocksPointer(mouse))))
             distance = Mathf.Clamp(distance - Input.mouseScrollDelta.y * .35f, 2f, 6f);
         if(!AimActive&&restoringWeaponView)
         {
             distance=Mathf.Lerp(distance,aimPreviousDistance,1-Mathf.Exp(-10f*Time.deltaTime));
             if(Mathf.Abs(distance-aimPreviousDistance)<.01f){distance=aimPreviousDistance;restoringWeaponView=false;}
         }
+        // Keep the orbit unrestricted while retaining a useful over-shoulder
+        // framing in which the hands and pistol remain visible.
         if(AimActive)
-        {
             distance=Mathf.Lerp(distance,weaponAim?1.3f:.72f,1-Mathf.Exp(-12f*Time.deltaTime));
-            pitch=Mathf.Clamp(pitch,-5f,20f);
-        }
         Place(false);
     }
 
@@ -95,17 +94,19 @@ public class ThirdPersonCamera : MonoBehaviour
     {
         if(AimActive)return;
         AimActive=true;weaponAim=true;restoringWeaponView=false;aimPreviousDistance=distance;aimPreviousPitch=pitch;
-        // Keep the current heading; the over-shoulder view approaches smoothly.
-        pitch=Mathf.Clamp(pitch,-5f,20f);
+        // Preserve the current free camera heading, pitch and distance.
     }
 
     public void EndAim()
     {
         if(!AimActive)return;
-        bool smooth=weaponAim;AimActive=false;weaponAim=false;restoringWeaponView=smooth;
-        if(!smooth)distance=Mathf.Clamp(aimPreviousDistance,2f,6f);
-        pitch=aimPreviousPitch;
-        if(!smooth)Place(true);
+        bool preserveOrbit=weaponAim;AimActive=false;weaponAim=false;restoringWeaponView=false;
+        if(!preserveOrbit)
+        {
+            distance=Mathf.Clamp(aimPreviousDistance,2f,6f);
+            pitch=aimPreviousPitch;
+            Place(true);
+        }
     }
 
     public void BeginVehicleFollow(Transform vehicle,bool snap=true)

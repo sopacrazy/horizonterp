@@ -20,7 +20,8 @@ public sealed class MobileControls : MonoBehaviour
     {
         Look=Vector2.zero;
         var hud=GameHud.Instance;
-        if(StartupLoader.IsLoading || AccountSession.InputBlocked || InGameChat.Editing || (hud && hud.IsPanelOpen)) { Clear(); return; }
+        if(StartupLoader.IsLoading || AccountSession.InputBlocked || InGameChat.Editing || VehicleHud.Driving ||
+            (playerPassenger()) || (hud && hud.IsPanelOpen)) { Clear(); return; }
         bool foundMove=false,foundLook=false;
         foreach(var touch in Input.touches)
         {
@@ -34,7 +35,8 @@ public sealed class MobileControls : MonoBehaviour
     public void ProcessTouch(int id, Vector2 position, Vector2 delta, TouchPhase phase)
     {
             var hud=GameHud.Instance;
-            if(StartupLoader.IsLoading || AccountSession.InputBlocked || InGameChat.Editing || (hud && hud.IsPanelOpen)){Clear();return;}
+            if(StartupLoader.IsLoading || AccountSession.InputBlocked || InGameChat.Editing || VehicleHud.Driving ||
+                playerPassenger() || (hud && hud.IsPanelOpen)){Clear();return;}
             if(phase==TouchPhase.Began && !(hud && hud.BlocksPointer(position)))
             {
                 if(position.x<Screen.width*.5f && moveFinger<0){moveFinger=id;origin=position;}
@@ -53,6 +55,7 @@ public sealed class MobileControls : MonoBehaviour
             }
     }
     void Clear(){moveFinger=lookFinger=-1;Movement=Look=Vector2.zero;}
+    static bool playerPassenger(){var player=FindAnyObjectByType<ThirdPersonPlayer>();return player&&player.InPoliceCar;}
     void OnApplicationFocus(bool focus){if(!focus)Clear();}
     void OnDisable(){Clear();}
     void OnGUI()

@@ -38,6 +38,7 @@ public sealed class TutorialJourney : MonoBehaviour
     VisualElement quest,prompt,modal;
     Label title,detail,reward,promptTitle,dialogTitle,dialogText,dialogError;
     Button promptButton,primary,secondary,retry;
+    Image vehicleDoorIcon;
     AudioSource narration;
     string dialogAction;
     bool modalOpen,busy,previousCombat;
@@ -119,6 +120,7 @@ public sealed class TutorialJourney : MonoBehaviour
         prompt.style.display=available&&action!=null?DisplayStyle.Flex:DisplayStyle.None;
         prompt.EnableInClassList("arrival-exit-prompt",action=="exit");
         promptTitle.text=action=="finish"||action=="rg"||action=="issue_rg"||action=="mission3"?"PREFEITURA":action=="driving_finish"?"AUTOESCOLA":action=="talk"?"MORADOR DA CIDADE":"EMPRÉSTIMO TEMPORÁRIO";promptButton.text=caption;promptButton.userData=action;
+        if(vehicleDoorIcon!=null)vehicleDoorIcon.style.display=action=="enter"||action=="exit"?DisplayStyle.Flex:DisplayStyle.None;
         if(available&&action!=null&&Input.GetKeyDown(KeyCode.E)&&action!="exit")Interact(action);
     }
     internal void Interact(string action)
@@ -200,7 +202,8 @@ public sealed class TutorialJourney : MonoBehaviour
         var root=document.rootVisualElement;root.styleSheets.Add(Resources.Load<StyleSheet>("ArrivalStyles"));
         quest=Box("arrival-quest",root);quest.name="arrival-quest";title=Text("MISSÃO 01 · PRIMEIRO CORRE  1/6","arrival-title",quest);title.name="arrival-objective-title";detail=Text("Carregando...","arrival-detail",quest);detail.name="arrival-objective-detail";reward=Text("RECOMPENSA  ·  100 XP  +  R$ 150","arrival-reward",quest);
         retry=Button("TENTAR NOVAMENTE",()=>StartCoroutine(Load()),quest);retry.style.display=DisplayStyle.None;
-        prompt=Box("arrival-prompt",root);prompt.name="arrival-prompt";promptTitle=Text("","arrival-title",prompt);promptButton=Button("",()=>Interact(promptButton.userData as string),prompt);promptButton.name="arrival-interact";prompt.style.display=DisplayStyle.None;
+        prompt=Box("arrival-prompt",root);prompt.name="arrival-prompt";promptTitle=Text("","arrival-title",prompt);promptButton=Button("",()=>Interact(promptButton.userData as string),prompt);promptButton.name="arrival-interact";
+        vehicleDoorIcon=new Image{image=Resources.Load<Texture2D>("RedutoVehicleHud/door"),scaleMode=ScaleMode.ScaleToFit,pickingMode=PickingMode.Ignore};vehicleDoorIcon.name="arrival-vehicle-door-icon";vehicleDoorIcon.style.width=24;vehicleDoorIcon.style.height=24;vehicleDoorIcon.style.marginLeft=8;promptButton.Add(vehicleDoorIcon);prompt.style.display=DisplayStyle.None;
         modal=Box("arrival-shade",root);modal.name="arrival-dialog";var card=Box("arrival-dialog-card",modal);var content=Box("arrival-dialog-content",card);
         Text("HORIZONTE BRASIL RP  ·  MISSÃO 01","arrival-kicker",content);dialogTitle=Text("","arrival-dialog-title",content);dialogTitle.name="arrival-dialog-title";dialogText=Text("","arrival-dialog-text",content);dialogText.name="arrival-dialog-text";
         dialogError=Text("","arrival-error",content);dialogError.name="arrival-dialog-error";var actions=Box("arrival-dialog-actions",content);

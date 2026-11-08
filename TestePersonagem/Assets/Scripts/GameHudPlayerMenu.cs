@@ -115,7 +115,9 @@ public sealed partial class GameHud
         MenuCommand(scroll,onDuty?"Sair de serviço":"Entrar em serviço",()=>InGameChat.Instance?.SendCommand(onDuty?"/servico off":"/servico on"));
         if(!onDuty)return;
         MenuCommand(scroll,"Atualizar chamados",()=>InGameChat.Instance?.SendCommand("/chamados"));
-        MenuCommand(scroll,"Ver delegacia no mapa",()=>InGameChat.Instance?.SendCommand("/delegacia"));
+        MenuCommand(scroll,"Delegacia / entrar ou sair da custódia",()=>InGameChat.Instance?.SendCommand("/delegacia"));
+        if(GameHud.Instance&&GameHud.Instance.Player&&PolicePrisonWorld.IsInside(GameHud.Instance.Player.transform.position))
+            MenuCommand(scroll,"Colocar acompanhante na cela",()=>{ClosePanel();InGameChat.Instance?.OpenWithText("/cela 10 ");});
         foreach(var call in dispatchCalls??Array.Empty<PoliceDispatchCall>())
         {
             var card=Element("player-mission-card",scroll);
@@ -143,11 +145,11 @@ public sealed partial class GameHud
         menuTabs.style.display=wide?DisplayStyle.Flex:DisplayStyle.None;
         menuTabs.Clear();
         if(!wide)return;
-        MenuTab(menuTabs,"Central","menu",panel!="map"&&panel!="missions"&&panel!="wallet"&&panel!="settings",()=>OpenPanel("menu"));
-        MenuTab(menuTabs,"Mapa","map",panel=="map",()=>OpenPanel("map"));
-        MenuTab(menuTabs,"Missões","missions",panel=="missions",()=>OpenPanel("missions"));
-        MenuTab(menuTabs,"Economia","economy",panel=="wallet",()=>CriminalEconomyPilotPanel.OpenSection("activity"));
-        MenuTab(menuTabs,"Configurações","settings",panel=="settings",()=>OpenPanel("settings"));
+        MenuTab(menuTabs,"Central","menu",panel=="menu",()=>OpenPanel("menu"));
+        MenuTab(menuTabs,"Jogadores","players",panel=="online-players",()=>OpenPanel("online-players"));
+        MenuTab(menuTabs,"Inventário","inventory",panel=="inventory",()=>OpenPanel("inventory"));
+        MenuTab(menuTabs,"Reportar","report",false,()=>{ClosePanel();InGameChat.Instance?.OpenWithText("/report ");});
+        MenuTab(menuTabs,"Loja","store",false,()=>ShowToast("Loja em breve."));
     }
 
     Button MenuTab(VisualElement parent,string title,string id,bool selected,Action click)
@@ -193,7 +195,6 @@ public sealed partial class GameHud
         {
             case "interface":
                 MenuHeading(scroll,"Interface","Organize os botões de ação do seu jeito.");
-                MenuCommand(scroll,"Editar HUD",OpenActionEditor);
                 break;
             case "controls":
                 MenuHeading(scroll,"Controles","Atalhos de teclado e mouse. No celular, use os botões na tela.");

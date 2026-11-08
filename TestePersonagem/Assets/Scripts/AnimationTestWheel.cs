@@ -20,6 +20,8 @@ public sealed class AnimationTestWheel : MonoBehaviour
     RenderTexture previewTexture;
     System.Action onClose;
     static AnimationClip[] clips;
+    internal static string NetworkClip { get; private set; } = "";
+    internal static int NetworkSequence { get; private set; }
     ThirdPersonPlayer worldPlayer;
     Animator worldAnimator;
     float finishTime;
@@ -183,11 +185,28 @@ public sealed class AnimationTestWheel : MonoBehaviour
             playback.footHeight = playback.LowestFoot() - player.transform.position.y;
         playback.finishTime = Time.unscaledTime + (clip.isLooping ? Mathf.Max(3f, clip.length) : clip.length);
         playback.Play(playback.worldAnimator, clip);
+        NetworkClip=clip.name;
+        NetworkSequence=NetworkSequence==int.MaxValue?1:NetworkSequence+1;
+    }
+
+    internal static void PlayOnRemote(Animator animator, string clipName)
+    {
+        var clip=FindClip(clipName);
+        if(!animator||!clip)return;
+        var playback=animator.GetComponent<AnimationTestWheel>()??animator.gameObject.AddComponent<AnimationTestWheel>();
+        playback.worldPlayer=null;
+        playback.finishTime=Time.unscaledTime+(clip.isLooping?Mathf.Max(3f,clip.length):clip.length);
+        playback.Play(animator,clip);
     }
 
     void LateUpdate()
     {
-        if (!worldPlayer || !graph.IsValid()) return;
+        if (!graph.IsValid()) return;
+        if (!worldPlayer)
+        {
+            if(Time.unscaledTime>=finishTime)graph.Destroy();
+            return;
+        }
         if (Time.unscaledTime >= finishTime || worldPlayer.CurrentSpeed > .15f || worldPlayer.IsJumping ||
             worldPlayer.IsCuffed || worldPlayer.InPoliceCar || worldPlayer.animator != worldAnimator)
         {

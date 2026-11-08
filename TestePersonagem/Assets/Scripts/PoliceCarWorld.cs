@@ -20,9 +20,12 @@ public sealed class PoliceCarWorld : MonoBehaviour
     readonly Dictionary<string,CarVisual> visuals=new Dictionary<string,CarVisual>();
     ThirdPersonPlayer player;
     Button interaction;
+    Button passengerInteraction;
     Image interactionIcon;
     Label interactionCaption;
     PoliceVehicleController nearest;
+    string nearestId,passengerCarId;
+    bool passengerBusy;
     public void Initialize(ThirdPersonPlayer owner){player=owner;Instance=this;}
     public void Apply(PoliceCarState[] cars,string selfCarId=null,Vector3? selfPosition=null,int revision=-1)
     {
@@ -35,6 +38,8 @@ public sealed class PoliceCarWorld : MonoBehaviour
             if(!visuals.TryGetValue(car.id,out var visual))
             {visual=Build(car.id,new Vector3(car.x,car.y,car.z),car.yaw);visuals.Add(car.id,visual);}
             visual.ownerUid=car.ownerUid;
+            if(AccountSession.HasCharacter&&car.occupantUid==AccountSession.Instance.State.uid)passengerCarId=car.id;
+            else if(passengerCarId==car.id)passengerCarId=null;
             visual.target=Ground(new Vector3(car.x,car.y,car.z));visual.yaw=car.yaw;
             visual.controls.ApplyState(car,player,selfCarId,selfPosition);
             bool driverExiting=string.IsNullOrEmpty(car.driverUid);
@@ -48,6 +53,7 @@ public sealed class PoliceCarWorld : MonoBehaviour
             float driverYaw=driverExiting?car.yaw+(Vector3.Dot(driverStart-visual.root.transform.position,visual.root.transform.right)>0?90:-90):PlayerYaw(driverUid,car.yaw);
             if(!visual.controls.Occupied)visual.driver.SetOccupant(car.driverUid,driverStart,startYaw:driverYaw);
             bool passengerExiting=string.IsNullOrEmpty(car.occupantUid);
+            if(!passengerExiting)visual.passenger.SetRearSeat(car.occupantCuffed);
             string passengerUid=passengerExiting?visual.lastPassengerUid:car.occupantUid;
             if(!string.IsNullOrEmpty(passengerUid))visual.passenger.UseVisual(
                 MultiplayerWorld.Instance?MultiplayerWorld.Instance.AnimatorForUid(passengerUid):player.animator);
@@ -55,13 +61,13 @@ public sealed class PoliceCarWorld : MonoBehaviour
             // boarding where the actor is still visibly standing instead.
             Vector3 passengerPoint=passengerExiting
                 ?PlayerPosition(passengerUid,Ground(visual.root.transform.position+visual.root.transform.right*2.1f),selfPosition)
-                :VisiblePlayerPosition(passengerUid,visual.root.transform.TransformPoint(visual.rig.RearDoor));
+                :VisiblePlayerPosition(passengerUid,visual.root.transform.TransformPoint(car.occupantCuffed?visual.rig.RearDoor:visual.rig.FrontPassengerDoor));
             float passengerYaw=passengerExiting?float.NaN:VisiblePlayerYaw(passengerUid,car.yaw);
             if(!passengerExiting)visual.lastPassengerUid=car.occupantUid;
             visual.passenger.SetOccupant(car.occupantUid,passengerPoint,startYaw:passengerYaw);
             bool occupied=!string.IsNullOrEmpty(car.occupantUid);
             visual.label.gameObject.SetActive(occupied);
-            visual.label.text=occupied?"DETIDO  ID "+car.occupantUid+"  ·  "+car.occupantName:"";
+            visual.label.text=occupied?((car.occupantCuffed?"DETIDO":"PASSAGEIRO")+"  ID "+car.occupantUid+"  ·  "+car.occupantName):"";
         }
         var removed=new List<string>();foreach(var id in visuals.Keys)if(!current.Contains(id))removed.Add(id);
         foreach(var id in removed){Destroy(visuals[id].root);visuals.Remove(id);}
@@ -101,12 +107,13 @@ public sealed class PoliceCarWorld : MonoBehaviour
     }
     CarVisual Build(string id,Vector3 position,float yaw)
     {
-        var root=new GameObject("Viatura policial "+id);root.layer=2;
+        bool civilian=id.StartsWith("city-");
+        var root=new GameObject((civilian?"Carro civil ":"Viatura policial ")+id);root.layer=2;
         root.transform.SetPositionAndRotation(Ground(position),Quaternion.Euler(0,yaw,0));
-        var rig=PoliceCarRig.Create(root.transform,Resources.Load<GameObject>("Vehicles/Police/PoliceCar"));
+        var rig=PoliceCarRig.Create(root.transform,Resources.Load<GameObject>(civilian?"Vehicles/Mustang1969/FINAL_MODEL_302_69":"Vehicles/Police/PoliceCar"));
         var collider=root.AddComponent<BoxCollider>();collider.center=new Vector3(0,.82f,0);collider.size=new Vector3(2.05f,1.65f,4.5f);
         var driver=new GameObject("Banco do motorista").AddComponent<PoliceSeatAvatar>();driver.transform.SetParent(root.transform,false);driver.Initialize(rig,player.animator,true);
-        var passenger=new GameObject("Banco traseiro").AddComponent<PoliceSeatAvatar>();passenger.transform.SetParent(root.transform,false);passenger.Initialize(rig,player.animator,false);
+        var passenger=new GameObject("Banco do passageiro").AddComponent<PoliceSeatAvatar>();passenger.transform.SetParent(root.transform,false);passenger.Initialize(rig,player.animator,false);
         var controls=root.AddComponent<PoliceVehicleController>();controls.Initialize(id,rig,driver);
         var badge=new GameObject("Ocupante",typeof(TextMesh));badge.layer=2;badge.transform.SetParent(root.transform,false);
         badge.transform.localPosition=new Vector3(0,2.15f,0);
@@ -151,31 +158,52 @@ public sealed class PoliceCarWorld : MonoBehaviour
             interaction.style.position=Position.Absolute;interaction.style.right=240;interaction.style.bottom=126;
             interaction.style.width=70;interaction.style.height=70;HudPack.Skin(interaction,35);
             interaction.style.flexDirection=FlexDirection.Column;interaction.style.alignItems=Align.Center;interaction.style.justifyContent=Justify.Center;
-            interactionIcon=HudPack.Image("door");interactionIcon.name="police-car-interact-icon";interactionIcon.style.width=28;interactionIcon.style.height=28;interaction.Add(interactionIcon);
+            interactionIcon=new Image{image=Resources.Load<Texture2D>("RedutoVehicleHud/door"),scaleMode=ScaleMode.ScaleToFit,pickingMode=PickingMode.Ignore};interactionIcon.name="police-car-interact-icon";interactionIcon.style.width=34;interactionIcon.style.height=34;interaction.Add(interactionIcon);
             interactionCaption=new Label("E ENTRAR"){name="police-car-interact-label",pickingMode=PickingMode.Ignore};interactionCaption.style.fontSize=10;interactionCaption.style.color=Color.white;interactionCaption.style.marginTop=3;interactionCaption.style.unityFontStyleAndWeight=FontStyle.Bold;
             interactionCaption.style.textShadow=new TextShadow{offset=new Vector2(0,1),blurRadius=2,color=new Color(0,0,0,.95f)};interaction.Add(interactionCaption);
             hud.Root.Add(interaction);hud.RegisterPointerBlocker(interaction);
+            passengerInteraction=new Button(()=>PassengerInteract()){name="vehicle-passenger-interact",text="PASSAGEIRO"};
+            passengerInteraction.style.position=Position.Absolute;passengerInteraction.style.right=315;passengerInteraction.style.bottom=126;
+            passengerInteraction.style.width=112;passengerInteraction.style.height=70;passengerInteraction.style.color=Color.white;
+            passengerInteraction.style.unityFontStyleAndWeight=FontStyle.Bold;HudPack.Skin(passengerInteraction,16);
+            hud.Root.Add(passengerInteraction);hud.RegisterPointerBlocker(passengerInteraction);
         }
-        nearest=null;float best=.85f;
+        nearest=null;nearestId=null;float best=3.2f;
         foreach(var v in visuals.Values)
         {
             // Keep the interaction visible while waiting for server capability sync.
-            bool allowed=v.controls.LocalPreview||AccountSession.HasCharacter&&AdminPlayerPanel.PoliceDuty&&v.ownerUid==AccountSession.Instance.State.uid;
+            bool allowed=v.controls.LocalPreview||AccountSession.HasCharacter;
             float distance=v.controls.EntryDistance(player);
-            if(allowed&&distance<best){best=distance;nearest=v.controls;}
+            if(allowed&&distance<best){best=distance;nearest=v.controls;nearestId=v.controls.Id;}
         }
         bool active=PoliceVehicleController.Active;
-        interactionIcon.image=HudPack.Texture(active?"exit":"door");
         interactionCaption.text=active?"F SAIR":"E ENTRAR";
-        bool show=(active||nearest)&&!hud.IsPanelOpen&&!InGameChat.Editing&&!StartupLoader.IsLoading;
-        interaction.style.display=show?DisplayStyle.Flex:DisplayStyle.None;
+        bool passenger=!string.IsNullOrEmpty(passengerCarId);
+        bool show=(active||nearest||passenger)&&!hud.IsPanelOpen&&!InGameChat.Editing&&!StartupLoader.IsLoading;
+        interaction.style.display=show&&!active&&!passenger?DisplayStyle.Flex:DisplayStyle.None;
+        passengerInteraction.style.display=show&&!active&&(passenger||nearest&&!player.InPoliceCar)?DisplayStyle.Flex:DisplayStyle.None;
+        passengerInteraction.text=passenger?"SAIR":"PASSAGEIRO";
+        passengerInteraction.SetEnabled(!passengerBusy);
         interaction.SetEnabled(active?!PoliceVehicleController.Active.Busy:!nearest||!nearest.Busy);
         interaction.tooltip=active?"Sair da viatura [F]":nearest&&!nearest.LocalPreview&&(!MultiplayerWorld.Instance||!MultiplayerWorld.Instance.PoliceVehicleAvailable)
             ?"Aguardando sincronização da viatura com o servidor":"Entrar na viatura [E]";
-        if(show&&!active&&Input.GetKeyDown(KeyCode.E))Interact();
+        if(show&&!active&&!passenger&&Input.GetKeyDown(KeyCode.E))Interact();
+        if(show&&passenger&&Input.GetKeyDown(KeyCode.F))PassengerInteract();
     }
     void Interact(){if(PoliceVehicleController.Active)PoliceVehicleController.Active.RequestExit();else nearest?.RequestEnter(player);}
+    void PassengerInteract(){if(!passengerBusy&&(!string.IsNullOrEmpty(passengerCarId)||!string.IsNullOrEmpty(nearestId)))StartCoroutine(PassengerRoutine());}
+    System.Collections.IEnumerator PassengerRoutine()
+    {
+        passengerBusy=true;
+        bool exit=!string.IsNullOrEmpty(passengerCarId);
+        string id=exit?passengerCarId:nearestId;
+        AdminReply reply=null;
+        yield return AccountSession.Instance.AdminRequest("POST","/v1/police/car",JsonUtility.ToJson(new CarAction{action=exit?"passenger-exit":"passenger-enter",carId=id}),r=>reply=r);
+        passengerBusy=false;
+        if(reply==null||!string.IsNullOrEmpty(reply.code))GameHud.Instance?.ShowToast(reply?.error??"Não foi possível usar o banco do passageiro.");
+    }
+    [System.Serializable] sealed class CarAction{public string action,carId;}
     void LateUpdate(){if(Camera.main)foreach(var v in visuals.Values)v.label.transform.rotation=Camera.main.transform.rotation;}
     public void Clear(){Apply(System.Array.Empty<PoliceCarState>());}
-    void OnDestroy(){Clear();if(interaction!=null)interaction.RemoveFromHierarchy();if(Instance==this)Instance=null;}
+    void OnDestroy(){Clear();if(interaction!=null)interaction.RemoveFromHierarchy();passengerInteraction?.RemoveFromHierarchy();if(Instance==this)Instance=null;}
 }

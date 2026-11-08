@@ -16,6 +16,14 @@ public sealed class RifleSocketCalibrationData
     public RifleSocketPose[] entries;
 }
 
+[System.Serializable]
+public sealed class PistolGripProfile
+{
+    public RifleSocketPose carry;
+    public Vector3 rightPalmInWeapon;
+    public Vector3 supportInWeapon;
+}
+
 // Retarget the two-handed grip to this avatar's proportions after animation.
 // The imported shooting clip has no finger tracks and uses a different skeleton.
 public sealed class ShootingGrip
@@ -32,7 +40,7 @@ public sealed class ShootingGrip
     {
         public Transform upper, lower, hand;
         public Quaternion upperFrame, lowerFrame, palmFrame, handInLower, upperRest;
-        public Vector3 palmCenter, lowerAxis, upperAxis;
+        public Vector3 palmCenter, lowerAxis, upperAxis, elbowPoleInRoot;
         public readonly List<Finger> fingers = new List<Finger>();
         public readonly List<Twist> twists = new List<Twist>();
         public readonly List<Twist> upperTwists = new List<Twist>();
@@ -48,7 +56,11 @@ public sealed class ShootingGrip
     Transform root, weapon;
     Arm right, left;
     RifleSocketPose authoredSocket;
+    PistolGripProfile twoHandedPistol;
     Transform authoredSupport;
+    Vector3 smoothedPistolGrip,pistolGripVelocity;
+    bool pistolGripReady;
+    public bool TwoHandedPistol => twoHandedPistol != null;
     public Vector3 AuthoredRifleDirection=>authoredSocket!=null&&right!=null?
         right.hand.rotation*authoredSocket.weaponInRightHand*Vector3.forward:Vector3.forward;
     public float RifleGripError
@@ -127,19 +139,91 @@ public sealed class ShootingGrip
 
     public bool ConfigureAuthoredPistol(Animator animator,Transform pistol,Transform playerRoot)
     {
+        twoHandedPistol=null;
         if(!Configure(animator,pistol,pistol?pistol.Find("Muzzle"):null,playerRoot,false))return false;
+        string key=AuthoredAvatarKey(animator);
         var json=Resources.Load<TextAsset>("SAExpanded/PistolSockets");
         var data=json?JsonUtility.FromJson<RifleSocketCalibrationData>(json.text):null;
-        authoredSocket=data?.entries==null?null:System.Array.Find(data.entries,p=>p.avatarKey==AuthoredAvatarKey(animator));
+        authoredSocket=data?.entries==null?null:System.Array.Find(data.entries,p=>p.avatarKey==key);
+        if(authoredSocket==null)
+        {
+            var profileAsset=Resources.Load<TextAsset>("Characters/Fla/FlaPistolGrip");
+            var profile=profileAsset?JsonUtility.FromJson<PistolGripProfile>(profileAsset.text):null;
+            if(profile?.carry?.avatarKey==key)
+            {
+                twoHandedPistol=profile;
+                authoredSocket=profile.carry;
+            }
+        }
         return authoredSocket!=null;
     }
-    public void ApplyAuthoredPistol(bool aiming,float pitch,float recoil)
+    public void ApplyAuthoredPistol()
     {
         if(authoredSocket==null||right==null||!weapon)return;
         var rotation=right.hand.rotation*authoredSocket.weaponInRightHand;
         weapon.SetPositionAndRotation(right.hand.TransformPoint(right.palmCenter),rotation);
-        // colt45_fire is a one-handed pistol track. Its free arm remains authored.
         foreach(var finger in right.fingers)PoseFinger(finger);
+    }
+
+    public void ApplyTwoHandedPistol(float aimWeight,Vector3 aimPoint,Vector3 muzzleInWeapon)
+    {
+        var profile=twoHandedPistol;
+        Quaternion carry=right.hand.rotation*profile.carry.weaponInRightHand;
+        Vector3 carryPosition=right.hand.TransformPoint(right.palmCenter)-carry*profile.rightPalmInWeapon;
+        if(aimWeight<=0f)
+        {
+            pistolGripReady=false;pistolGripVelocity=Vector3.zero;
+            weapon.SetPositionAndRotation(carryPosition,carry);
+            foreach(var finger in right.fingers)PoseFinger(finger,.82f);
+            return;
+        }
+
+        Vector3 shoulders=(right.upper.position+left.upper.position)*.5f;
+        float reach=Vector3.Distance(right.upper.position,right.lower.position)+Vector3.Distance(right.lower.position,right.hand.position);
+        Vector3 forward=Vector3.RotateTowards(root.forward,(aimPoint-shoulders).normalized,50f*Mathf.Deg2Rad,0f);
+        Quaternion aim=Quaternion.LookRotation(forward,root.up);
+        Vector3 position=shoulders+forward*(reach*.76f)+root.up*.075f+root.right*.025f;
+        // Use the muzzle, rather than the shoulder, as the origin of the sight line.
+        forward=Vector3.RotateTowards(root.forward,(aimPoint-position-aim*muzzleInWeapon).normalized,50f*Mathf.Deg2Rad,0f);
+        aim=Quaternion.LookRotation(forward,root.up);
+        // The rig's palm frames keep the thumb up and the fingers toward the
+        // grip even when the source avatar's wrist axes differ from the Fla.
+        var rightPalm=Quaternion.LookRotation(new Vector3(0f,.34f,.94f),Vector3.up);
+        var leftPalm=Quaternion.LookRotation(new Vector3(.40f,.25f,.88f),Vector3.up);
+        var rightRotation=aim*rightPalm*Quaternion.Inverse(right.palmFrame);
+        var leftRotation=aim*leftPalm*Quaternion.Inverse(left.palmFrame);
+        var rightOffset=aim*profile.rightPalmInWeapon-rightRotation*Vector3.Scale(right.palmCenter,right.hand.lossyScale);
+        var leftOffset=aim*profile.supportInWeapon-leftRotation*Vector3.Scale(left.palmCenter,left.hand.lossyScale);
+        for(int i=0;i<4;i++)
+        {
+            ConstrainReach(ref position,right,rightOffset);
+            ConstrainReach(ref position,left,leftOffset);
+        }
+        // Idle breathing and retarget rounding move the shoulders by a few
+        // millimetres every frame. Filter the shared grip once so both hands
+        // and the weapon move together instead of visibly vibrating.
+        if(!pistolGripReady){smoothedPistolGrip=position;pistolGripReady=true;}
+        else smoothedPistolGrip=Vector3.SmoothDamp(smoothedPistolGrip,position,ref pistolGripVelocity,.06f,
+            Mathf.Infinity,Mathf.Max(.0001f,Time.deltaTime));
+        position=smoothedPistolGrip;
+        SolveArm(right,Vector3.Lerp(right.hand.position,position+rightOffset,aimWeight),
+            Quaternion.Slerp(right.hand.rotation,rightRotation,aimWeight),StableElbowHint(right),0,true);
+        var rotation=Quaternion.Slerp(carry,aim,aimWeight);
+        position=right.hand.TransformPoint(right.palmCenter)-rotation*profile.rightPalmInWeapon;
+        weapon.SetPositionAndRotation(position,rotation);
+        leftRotation=Quaternion.Slerp(left.hand.rotation,rotation*leftPalm*Quaternion.Inverse(left.palmFrame),aimWeight);
+        var support=weapon.TransformPoint(profile.supportInWeapon);
+        var target=support-leftRotation*Vector3.Scale(left.palmCenter,left.hand.lossyScale);
+        SolveArm(left,Vector3.Lerp(left.hand.position,target,aimWeight),leftRotation,StableElbowHint(left),0,true);
+        // Close the firing hand around the physical handle. The index already
+        // has a smaller authored curl, so it remains resting on the trigger.
+        foreach(var finger in right.fingers)PoseFinger(finger,.96f);
+        foreach(var finger in left.fingers)
+        {
+            var authored=finger.bone.localRotation;
+            PoseFinger(finger,.82f);
+            finger.bone.localRotation=Quaternion.Slerp(authored,finger.bone.localRotation,aimWeight);
+        }
     }
 
     // Called on an isolated avatar sampled in the authored idle pose. This is
@@ -239,6 +323,13 @@ public sealed class ShootingGrip
         arm.handInLower = Quaternion.Inverse(arm.lower.rotation) * arm.hand.rotation;
         arm.upperAxis = arm.upper.InverseTransformDirection(arm.lower.position - arm.upper.position).normalized;
         arm.upperRest = arm.upper.localRotation;
+        // Store an anatomical pole in player space once. Reading lower.position
+        // again after IK made the previous frame feed the next one and allowed
+        // the elbow to creep upward while the camera moved.
+        // A two-handed pistol stance keeps both elbows below the wrists and
+        // slightly open. A straight bind/T-pose has no reliable bend plane,
+        // so use an explicit player-space pole instead of deriving it from it.
+        arm.elbowPoleInRoot=new Vector3(isRight?.42f:-.42f,-.88f,-.20f).normalized;
         foreach (var bone in arm.upper.GetComponentsInChildren<Transform>())
         {
             float amount;
@@ -362,9 +453,15 @@ public sealed class ShootingGrip
         foreach(var finger in left.fingers)PoseFinger(finger);
     }
 
-    static void PoseFinger(Finger finger)
+    static void PoseFinger(Finger finger,float amount=1f)
     {
-        finger.bone.localRotation = finger.rest * Quaternion.AngleAxis(finger.curl, finger.curlAxis);
+        finger.bone.localRotation = finger.rest * Quaternion.AngleAxis(finger.curl*amount, finger.curlAxis);
+    }
+
+    Vector3 StableElbowHint(Arm arm)
+    {
+        float length=Vector3.Distance(arm.upper.position,arm.lower.position);
+        return arm.upper.position+root.TransformDirection(arm.elbowPoleInRoot)*length;
     }
 
     static void ConstrainReach(ref Vector3 grip, Arm arm, Vector3 wristOffset)

@@ -12,6 +12,8 @@ public partial class ThirdPersonPlayer : MonoBehaviour
     public float jumpHeight = .75f;
     public float jumpPreparation = .105f;
     const float Gravity = 22f;
+    public TesteGameplaySession AnimationTest { get; set; }
+    float ActiveGravity => AnimationTest && AnimationTest.Active ? AnimationTest.JumpGravity : Gravity;
     const float JumpRecovery = 1.15f;
     float jumpElapsed;
     bool jumpLaunched, jumpRequested;
@@ -33,7 +35,7 @@ public partial class ThirdPersonPlayer : MonoBehaviour
     bool combatLocked;
     public bool CombatLocked
     {
-        get=>combatLocked||(animator&&animator.TryGetComponent<CombatAvatarAnimation>(out var combat)&&combat.Busy);
+        get=>combatLocked||(AnimationTest&&AnimationTest.MovementLocked)||(animator&&animator.TryGetComponent<CombatAvatarAnimation>(out var combat)&&combat.Busy);
         set=>combatLocked=value;
     }
     int adminSpeedMultiplier = 1;
@@ -87,14 +89,14 @@ public partial class ThirdPersonPlayer : MonoBehaviour
 
     void Start()
     {
-        if(AccountSession.Instance)AccountSession.Instance.AttachPlayer(this);
+        PolicePrisonWorld.Create(this);
+        if(!AnimationTest && AccountSession.Instance)AccountSession.Instance.AttachPlayer(this);
         GameHud.Bootstrap();
         HousePortal.Create(this);
         // Initial tutorial is paused while the new city is being evaluated.
         MobileControls.Create();
         MobilePerformance.Configure();
-        MultiplayerWorld.Create(this);
-        VoiceChat.Create(this);
+        if (!AnimationTest) { MultiplayerWorld.Create(this); VoiceChat.Create(this); }
         RifleWeapon.Create(this);
         PlayerLifeHud.Create(this);
         gameObject.AddComponent<PoliceDutyLabel>();
@@ -116,7 +118,7 @@ public partial class ThirdPersonPlayer : MonoBehaviour
             {
                 if(WaitForStreamingGround(Vector3.zero))return;
                 if(controller.isGrounded&&verticalSpeed<0)verticalSpeed=-2;
-                verticalSpeed=Mathf.Max(verticalSpeed-Gravity*Time.deltaTime,-30);
+                verticalSpeed=Mathf.Max(verticalSpeed-ActiveGravity*Time.deltaTime,-30);
                 controller.Move(Vector3.up*verticalSpeed*Time.deltaTime);
             }
             return;
@@ -129,7 +131,7 @@ public partial class ThirdPersonPlayer : MonoBehaviour
             Vector3 horizontal=delta.magnitude>.03f?delta.normalized*Mathf.Min(custodySpeed,delta.magnitude/Mathf.Max(Time.deltaTime,.001f)):Vector3.zero;
             if(WaitForStreamingGround(horizontal*Time.deltaTime))return;
             if(controller.isGrounded&&verticalSpeed<0)verticalSpeed=-2f;
-            verticalSpeed=Mathf.Max(verticalSpeed-Gravity*Time.deltaTime,-30f);
+            verticalSpeed=Mathf.Max(verticalSpeed-ActiveGravity*Time.deltaTime,-30f);
             controller.Move((horizontal+Vector3.up*verticalSpeed)*Time.deltaTime);
             transform.rotation=Quaternion.RotateTowards(transform.rotation,Quaternion.Euler(0,custodyYaw,0),turnSpeed*Time.deltaTime);
             CurrentSpeed=horizontal.magnitude;animator.SetFloat("Speed",CurrentSpeed,.12f,Time.deltaTime);
@@ -137,7 +139,7 @@ public partial class ThirdPersonPlayer : MonoBehaviour
         }
         bool panelOpen=InGameChat.Editing||(GameHud.Instance && GameHud.Instance.IsPanelOpen);
         if(!DemoMode&&!panelOpen&&Input.GetKeyDown(KeyCode.Space))jumpRequested=true;
-        if(CombatLocked)jumpRequested=false;
+        if(CombatLocked || (AnimationTest && AnimationTest.Active && !AnimationTest.CanJump))jumpRequested=false;
         if(jumpRequested)
         {
             if(!panelOpen&&controller.isGrounded&&!IsJumping)
@@ -158,7 +160,11 @@ public partial class ThirdPersonPlayer : MonoBehaviour
         Vector3 right = Vector3.ProjectOnPlane(cameraTransform.right, Vector3.up).normalized;
         Vector3 direction = forward * input.y + right * input.x;
         bool rifleAiming=TryGetComponent<RifleWeapon>(out var rifle)&&rifle.Equipped&&rifle.Aiming;
+        bool animationTestActive = AnimationTest && AnimationTest.Active;
+        rifleAiming |= animationTestActive && AnimationTest.Aiming;
+        if (animationTestActive && AnimationTest.Crouched) run = false;
         float speed = input.magnitude * (run&&!rifleAiming ? runSpeed * (DemoMode ? 1 : AdminSpeedMultiplier) : walkSpeed);
+        if (animationTestActive && AnimationTest.Crouched) speed *= .52f;
         if(WaitForStreamingGround(direction*speed*Time.deltaTime))return;
         if(rifleAiming)
             transform.rotation=Quaternion.RotateTowards(transform.rotation,Quaternion.LookRotation(forward),turnSpeed*Time.deltaTime);
@@ -169,10 +175,10 @@ public partial class ThirdPersonPlayer : MonoBehaviour
         {
             jumpElapsed+=Time.deltaTime;
             if(!jumpLaunched&&jumpElapsed>=jumpPreparation)
-            {verticalSpeed=Mathf.Sqrt(2f*Gravity*jumpHeight);jumpLaunched=true;}
+            {verticalSpeed=Mathf.Sqrt(2f*ActiveGravity*jumpHeight);jumpLaunched=true;}
         }
         if (controller.isGrounded && verticalSpeed < 0) verticalSpeed = -2f;
-        verticalSpeed = Mathf.Max(verticalSpeed - Gravity * Time.deltaTime, -30f);
+        verticalSpeed = Mathf.Max(verticalSpeed - ActiveGravity * Time.deltaTime, -30f);
         Vector3 before = transform.position;
         var collisions=controller.Move((direction * speed + Vector3.up * verticalSpeed) * Time.deltaTime);
         if((collisions&CollisionFlags.Above)!=0&&verticalSpeed>0)verticalSpeed=0;
@@ -189,7 +195,8 @@ public partial class ThirdPersonPlayer : MonoBehaviour
             animator.SetFloat("Speed",CurrentSpeed);
             float landingBlend = .06f;
             foreach (var info in animator.GetCurrentAnimatorClipInfo(0))
-                if (info.clip && info.clip.name == "PuloSA") landingBlend = .18f;
+                if (info.clip && (info.clip.name == "PuloSA" || info.clip.name == GangsterPlayerVisual.FlaJumpClip))
+                    landingBlend = .18f;
             animator.CrossFadeInFixedTime("Locomocao",landingBlend,0);
         }
         else animator.SetFloat("Speed", CurrentSpeed, .12f, Time.deltaTime);
@@ -282,6 +289,7 @@ public partial class ThirdPersonPlayer : MonoBehaviour
     {
         bool wasJailed=IsJailed;
         IsJailed=jailUntil>serverTime;
+        GameHud.Instance?.SetJailTime(jailUntil,serverTime);
         bool changed=IsCuffed!=(cuffed||IsJailed);
         IsCuffed=cuffed||IsJailed;
         escorted=cuffed&&!IsJailed&&!string.IsNullOrEmpty(officerUid);
@@ -289,6 +297,8 @@ public partial class ThirdPersonPlayer : MonoBehaviour
         if(cuffedPose)cuffedPose.Cuffed=cuffed;
         if(IsJailed&&!IsTeleporting&&(!wasJailed||Vector3.ProjectOnPlane(transform.position-position,Vector3.up).sqrMagnitude>9))
             TeleportTo(position,yaw);
+        else if(!IsJailed&&!IsTeleporting&&(wasJailed||PolicePrisonWorld.IsCellPosition(transform.position)))
+            TeleportTo(PolicePrisonWorld.StreetExit,90);
         if(IsJailed!=wasJailed)
         {
             long minutes=(jailUntil-serverTime+59999)/60000;
@@ -312,7 +322,7 @@ public partial class ThirdPersonPlayer : MonoBehaviour
             controller.enabled=false;transform.SetPositionAndRotation(seatPosition,Quaternion.Euler(0,seatYaw,0));
             if(orbit)orbit.RetargetPreservingView(transform,false);
             animator.gameObject.SetActive(false);
-            GameHud.Instance?.ShowAccountMessage("Você está no banco traseiro da viatura");
+            GameHud.Instance?.ShowAccountMessage("Você está no banco do passageiro");
         }
         else
         {

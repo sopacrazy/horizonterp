@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -21,8 +22,74 @@ public sealed class PoliceRadio : MonoBehaviour
     public bool Latched=>gesture.Latched;
     Label stateLabel,channelLabel,speakerLabel,openChannel;
     int selected=1;
+    int openedFrame,outsideFinger=-1;
+    Vector2 outsideStart;
     bool busy,wasPolice;
     float speakerUntil;
+    static readonly string[] rightHudNames={"radio-open","radio-push-to-talk","police-car-interact","vehicle-passenger-interact",
+        "action-list","action-sprint","action-jump","vehicle-controls","vehicle-options"};
+    static readonly string[] rightHudClasses={"h2-microphone","h2-room","h2-latency","h2-top","h2-wallet","realcity-info"};
+    readonly Dictionary<VisualElement,StyleEnum<Visibility>> hiddenRightHud=new Dictionary<VisualElement,StyleEnum<Visibility>>();
+
+    void TogglePanel(){SetPanelOpen(panel.style.display!=DisplayStyle.Flex);}
+    void SetPanelOpen(bool open)
+    {
+        panel.style.display=open?DisplayStyle.Flex:DisplayStyle.None;
+        if(open)openedFrame=Time.frameCount;
+        outsideFinger=-1;
+        UpdateRightHudMask();
+    }
+    bool InsideRadio(Vector2 screenPosition)
+    {
+        if(panel?.panel==null)return false;
+        var panelPoint=RuntimePanelUtils.ScreenToPanel(panel.panel,
+            new Vector2(screenPosition.x,Screen.height-screenPosition.y));
+        return panel.worldBound.Contains(panelPoint);
+    }
+    void CloseOnOutsideTap()
+    {
+        if(panel==null||panel.style.display!=DisplayStyle.Flex||Time.frameCount<=openedFrame)return;
+        if(Application.isMobilePlatform)
+        {
+            foreach(var touch in Input.touches)
+            {
+                if(touch.phase==TouchPhase.Began&&outsideFinger<0&&!InsideRadio(touch.position))
+                {outsideFinger=touch.fingerId;outsideStart=touch.position;}
+                if(touch.fingerId!=outsideFinger)continue;
+                if(touch.phase==TouchPhase.Canceled)outsideFinger=-1;
+                else if(touch.phase==TouchPhase.Ended)
+                {
+                    outsideFinger=-1;
+                    if(Vector2.Distance(outsideStart,touch.position)<35f&&!InsideRadio(touch.position))
+                    {SetPanelOpen(false);break;}
+                }
+            }
+        }
+        else if(Input.GetMouseButtonUp(0)&&!InsideRadio(Input.mousePosition))SetPanelOpen(false);
+    }
+    void UpdateRightHudMask()
+    {
+        if(panel==null||hud==null)return;
+        if(panel.style.display==DisplayStyle.Flex)
+        {
+            foreach(var name in rightHudNames)
+                Hide(hud.Root.Q<VisualElement>(name));
+            foreach(var className in rightHudClasses)
+                Hide(hud.Root.Q<VisualElement>(className:className));
+        }
+        else
+        {
+            foreach(var item in hiddenRightHud)
+                if(item.Key?.panel!=null)item.Key.style.visibility=item.Value;
+            hiddenRightHud.Clear();
+        }
+    }
+    void Hide(VisualElement element)
+    {
+        if(element==null||hiddenRightHud.ContainsKey(element))return;
+        hiddenRightHud.Add(element,element.style.visibility);
+        element.style.visibility=Visibility.Hidden;
+    }
 
     public static void Create(GameHud owner)
     {
@@ -40,10 +107,17 @@ public sealed class PoliceRadio : MonoBehaviour
         var l=new Label(text);l.style.fontSize=size;l.style.color=Color.white;l.style.marginBottom=7;
         l.pickingMode=PickingMode.Ignore;return l;
     }
+    static Button ScreenButton(string text,Action action)
+    {
+        var button=Button(text,action);
+        button.style.height=31;button.style.marginBottom=3;button.style.fontSize=11;
+        button.style.paddingLeft=5;button.style.paddingRight=5;
+        return button;
+    }
     void Build(GameHud owner)
     {
         hud=owner;
-        openButton=Button("",()=>{panel.style.display=panel.style.display==DisplayStyle.Flex?DisplayStyle.None:DisplayStyle.Flex;});
+        openButton=Button("",TogglePanel);
         openButton.name="radio-open";openButton.tooltip="Rádio policial";
         openButton.style.position=Position.Absolute;openButton.style.right=24;openButton.style.top=202;
         openButton.style.width=46;openButton.style.height=46;openButton.style.alignItems=Align.Center;openButton.style.justifyContent=Justify.Center;HudPack.Skin(openButton,14);
@@ -79,25 +153,31 @@ public sealed class PoliceRadio : MonoBehaviour
         {if(gesture.Up(e.pointerId,Time.unscaledTimeAsDouble,true))ApplyTalkInput();});
         owner.Root.Add(talkButton);
         owner.RegisterPointerBlocker(talkButton);
-        panel=new VisualElement{name="radio-panel"};panel.style.position=Position.Absolute;panel.style.right=24;panel.style.top=258;
-        panel.style.width=270;panel.style.paddingLeft=14;panel.style.paddingRight=14;
-        panel.style.paddingTop=13;panel.style.paddingBottom=13;
-        HudPack.Skin(panel,16);
-        var header=new VisualElement{name="radio-panel-header"};header.style.flexDirection=FlexDirection.Row;header.style.alignItems=Align.Center;panel.Add(header);
-        var title=Label("RÁDIO DA POLÍCIA",16);title.name="radio-panel-title";title.style.flexGrow=1;header.Add(title);
-        var close=new Button(()=>panel.style.display=DisplayStyle.None){name="radio-close",tooltip="Fechar rádio"};close.style.width=30;close.style.height=30;close.style.alignItems=Align.Center;close.style.justifyContent=Justify.Center;HudPack.Skin(close,10);
-        var closeIcon=HudPack.Image("close");closeIcon.style.width=18;closeIcon.style.height=18;close.Add(closeIcon);header.Add(close);
-        stateLabel=Label("Desconectado");stateLabel.name="radio-state";panel.Add(stateLabel);
-        channelLabel=Label("Selecione um canal");channelLabel.name="radio-selected-channel";panel.Add(channelLabel);
+        panel=new VisualElement{name="radio-panel"};panel.style.position=Position.Absolute;panel.style.right=24;panel.style.top=24;
+        panel.style.width=400;panel.style.height=600;
+        var device=new Image{image=Resources.Load<Texture2D>("PoliceRadio/Device"),scaleMode=ScaleMode.StretchToFill,pickingMode=PickingMode.Ignore};
+        device.name="radio-device";device.style.position=Position.Absolute;device.style.left=0;device.style.right=0;device.style.top=0;device.style.bottom=0;panel.Add(device);
+        var screen=new ScrollView(ScrollViewMode.Vertical){name="radio-screen"};screen.style.position=Position.Absolute;
+        screen.style.left=125;screen.style.top=229;screen.style.width=151;screen.style.height=196;
+        screen.style.paddingLeft=3;screen.style.paddingRight=3;
+        screen.verticalScrollerVisibility=ScrollerVisibility.Auto;
+        panel.Add(screen);
+        var header=new VisualElement{name="radio-panel-header"};header.style.flexDirection=FlexDirection.Row;header.style.alignItems=Align.Center;screen.Add(header);
+        var title=Label("RÁDIO POLICIAL",12);title.name="radio-panel-title";title.style.flexGrow=1;title.style.marginBottom=0;header.Add(title);
+        var close=new Button(()=>SetPanelOpen(false)){name="radio-close",tooltip="Fechar rádio"};close.style.width=26;close.style.height=26;close.style.alignItems=Align.Center;close.style.justifyContent=Justify.Center;HudPack.Skin(close,8);
+        var closeIcon=HudPack.Image("close");closeIcon.style.width=15;closeIcon.style.height=15;close.Add(closeIcon);header.Add(close);
+        stateLabel=Label("Desconectado",11);stateLabel.name="radio-state";stateLabel.style.marginTop=5;stateLabel.style.marginBottom=3;screen.Add(stateLabel);
+        channelLabel=Label("Selecione um canal",10);channelLabel.name="radio-selected-channel";channelLabel.style.marginBottom=4;screen.Add(channelLabel);
         foreach(var option in new[]{(1,"1 · Central"),(2,"2 · Patrulha"),(3,"3 · Operações")})
         {
             int choice=option.Item1;
-            var button=Button(option.Item2,()=>{selected=choice;Refresh();});button.name="radio-select-"+choice;panel.Add(button);
+            var button=ScreenButton(option.Item2,()=>{selected=choice;Refresh();});button.name="radio-select-"+choice;screen.Add(button);
         }
-        connectButton=Button("CONECTAR / TROCAR CANAL",()=>StartCoroutine(SetChannel(selected)));connectButton.name="radio-connect";panel.Add(connectButton);
-        disconnectButton=Button("DESCONECTAR",()=>StartCoroutine(SetChannel(0)));disconnectButton.name="radio-disconnect";panel.Add(disconnectButton);
-        var slider=new Slider("Volume",0,1){name="radio-volume",value=Volume};slider.style.color=Color.white;
-        slider.RegisterValueChangedCallback(e=>Volume=e.newValue);panel.Add(slider);
+        connectButton=ScreenButton("CONECTAR / TROCAR",()=>StartCoroutine(SetChannel(selected)));connectButton.name="radio-connect";connectButton.style.backgroundColor=new Color(.08f,.35f,.25f,.95f);screen.Add(connectButton);
+        disconnectButton=ScreenButton("DESCONECTAR",()=>StartCoroutine(SetChannel(0)));disconnectButton.name="radio-disconnect";screen.Add(disconnectButton);
+        var volumeTitle=Label("VOLUME",10);volumeTitle.style.marginTop=2;volumeTitle.style.marginBottom=0;screen.Add(volumeTitle);
+        var slider=new Slider(0,1){name="radio-volume",value=Volume};slider.style.height=25;
+        slider.RegisterValueChangedCallback(e=>Volume=e.newValue);screen.Add(slider);
         speakerLabel=Label("");speakerLabel.name="radio-current-speaker";speakerLabel.style.position=Position.Absolute;
         speakerLabel.style.right=82;speakerLabel.style.top=216;owner.Root.Add(speakerLabel);
         owner.Root.Add(panel);owner.RegisterPointerBlocker(panel);panel.style.display=DisplayStyle.None;Refresh();
@@ -106,7 +186,7 @@ public sealed class PoliceRadio : MonoBehaviour
     {
         bool police=AccountSession.HasCharacter&&AdminPlayerPanel.PoliceDuty;
         if(police&&!wasPolice)StartCoroutine(ReadChannel());
-        if(!police&&wasPolice){EndTalk();Channel=0;panel.style.display=DisplayStyle.None;}
+        if(!police&&wasPolice){EndTalk();Channel=0;SetPanelOpen(false);}
         wasPolice=police;
         bool blocked=hud.IsPanelOpen||InGameChat.Editing;
         if(!Connected||blocked)EndTalk();
@@ -118,6 +198,8 @@ public sealed class PoliceRadio : MonoBehaviour
         }
         if(speakerLabel!=null&&Time.unscaledTime>speakerUntil)speakerLabel.text="";
         Refresh();
+        UpdateRightHudMask();
+        CloseOnOutsideTap();
     }
     bool keyPressed;
     void Refresh()
@@ -182,6 +264,6 @@ public sealed class PoliceRadio : MonoBehaviour
     }
     void OnApplicationPause(bool pause){if(pause)EndTalk();}
     void OnApplicationFocus(bool focus){if(!focus)EndTalk();}
-    void OnDisable(){EndTalk();}
-    void OnDestroy(){EndTalk();if(Instance==this)Instance=null;}
+    void OnDisable(){EndTalk();if(panel!=null)SetPanelOpen(false);}
+    void OnDestroy(){EndTalk();if(panel!=null)SetPanelOpen(false);if(Instance==this)Instance=null;}
 }

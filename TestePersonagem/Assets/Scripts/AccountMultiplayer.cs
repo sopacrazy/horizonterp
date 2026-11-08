@@ -32,6 +32,8 @@ using UnityEngine.Networking;
     public int radioChannel;
     public VoicePacket[] voiceFrames,radioFrames;
     public CombatState combat;
+    public string animationClip;
+    public int animationSequence;
 }
 [Serializable] public class WeaponVisualFrame
 {
@@ -76,7 +78,7 @@ using UnityEngine.Networking;
 [Serializable] public class PoliceCarState
 {
     public string id,ownerUid,occupantUid,occupantName,driverUid,driverName;
-    public bool lightbar,siren;
+    public bool lightbar,siren,occupantCuffed;
     public float x,y,z,yaw;
 }
 [Serializable] public class MultiplayerReply
@@ -91,6 +93,8 @@ using UnityEngine.Networking;
     public bool combatAvailable;
     public bool weaponStateAvailable;
     public bool pistolStateAvailable;
+    public bool animationSyncAvailable;
+    public bool prisonAvailable;
     public bool rifleDamageAvailable,respawnAvailable;
     public CombatState selfCombat;
     public CombatPeerState[] combatPeers;
@@ -132,6 +136,7 @@ public sealed partial class AccountSession
             request.uploadHandler=new UploadHandlerRaw(Encoding.UTF8.GetBytes(json));
             request.SetRequestHeader("Content-Type","application/json");
             request.SetRequestHeader("Authorization","Bearer "+requestToken);
+            request.SetRequestHeader("X-Horizonte-Version-Code",GameVersion.Current.versionCode.ToString());
             yield return request.SendWebRequest();
             MultiplayerReply reply=null;
             try{reply=JsonUtility.FromJson<MultiplayerReply>(request.downloadHandler.text);}catch{}

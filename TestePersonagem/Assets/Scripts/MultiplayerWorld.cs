@@ -161,6 +161,12 @@ public sealed class MultiplayerWorld : MonoBehaviour
                 if(vehicleRevision==PoliceVehicleController.StateRevision)police.Abort();
                 yield break;
             }
+            if(reply?.code=="INVALID_FRAME"&&police&&reply.error!=null&&
+                (reply.error.Contains("Veículo inválido")||reply.error.Contains("Viatura inválida")))
+            {
+                if(vehicleRevision==PoliceVehicleController.StateRevision)police.Abort();
+                yield break;
+            }
             if(!string.IsNullOrEmpty(voice)&&(reply?.code=="INVALID_FRAME"||reply?.code=="RADIO_FORBIDDEN"))
             {VoiceChat.Instance?.Stop();GameHud.Instance?.ShowAccountMessage("Voz ainda indisponível no servidor");}
             if(reply!=null&&string.IsNullOrEmpty(reply.code)&&reply.peers!=null)

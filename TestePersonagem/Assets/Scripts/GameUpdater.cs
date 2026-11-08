@@ -21,7 +21,7 @@ public sealed class GameUpdater : MonoBehaviour
     // stays below that limit; later releases may use a larger download budget.
     const long MaxUpdateBytes=600L*1024*1024;
     AndroidRelease release;
-    bool prompt,continuePlaying,waitingPermission;
+    bool prompt,waitingPermission;
     string error;
     public static bool IsNewer(AndroidRelease value,int installedCode)=>value!=null&&value.available&&value.versionCode>installedCode;
     public static bool Valid(AndroidRelease value)
@@ -39,16 +39,31 @@ public sealed class GameUpdater : MonoBehaviour
     {
         if(Application.platform!=RuntimePlatform.Android||Application.isEditor)yield break;
         foreach(string argument in Environment.GetCommandLineArgs())if(argument.StartsWith("--verify-"))yield break;
-        progress("VERIFICANDO ATUALIZAÇÕES · v"+Application.version,0);
-        using(var request=UnityWebRequest.Get(GameVersion.Current.updateManifestUrl+"?installed="+GameVersion.Current.versionCode))
+        while(true)
         {
-            request.timeout=8;request.redirectLimit=3;
-            yield return request.SendWebRequest();
-            if(request.result!=UnityWebRequest.Result.Success){progress("VERIFICAÇÃO INDISPONÍVEL · CONTINUANDO",0);yield return new WaitForSecondsRealtime(1);yield break;}
-            try{release=JsonUtility.FromJson<AndroidRelease>(request.downloadHandler.text);}catch{release=null;}
+            progress("CONECTANDO · VERIFICANDO VERSÃO v"+Application.version,0);
+            AndroidRelease latest=null;
+            using(var request=UnityWebRequest.Get(GameVersion.Current.updateManifestUrl+"?installed="+GameVersion.Current.versionCode))
+            {
+                request.timeout=8;request.redirectLimit=3;
+                yield return request.SendWebRequest();
+                if(request.result==UnityWebRequest.Result.Success)
+                    try{latest=JsonUtility.FromJson<AndroidRelease>(request.downloadHandler.text);}catch{latest=null;}
+            }
+            if(!Valid(latest))
+            {
+                progress("SEM INTERNET OU VERSÃO INDISPONÍVEL · TENTANDO NOVAMENTE",0);
+                yield return new WaitForSecondsRealtime(5);continue;
+            }
+            if(!IsNewer(latest,GameVersion.Current.versionCode))yield break;
+            release=latest;
+            yield return DownloadRequired(progress);
+            if(prompt)while(true)yield return new WaitForSecondsRealtime(1);
+            yield return new WaitForSecondsRealtime(5);
         }
-        if(!IsNewer(release,GameVersion.Current.versionCode))yield break;
-        if(!Valid(release)){progress("ATUALIZAÇÃO INVÁLIDA · CONTINUANDO",0);yield return new WaitForSecondsRealtime(1);yield break;}
+    }
+    IEnumerator DownloadRequired(Action<string,float> progress)
+    {
         string path=null;
         try
         {
@@ -57,7 +72,7 @@ public sealed class GameUpdater : MonoBehaviour
             using(var bridge=new AndroidJavaClass("com.horizonte.update.HbrpApkProvider"))path=bridge.CallStatic<string>("downloadPath",activity);
         }
         catch{progress("ATUALIZAÇÃO INDISPONÍVEL NESTE APARELHO",0);}
-        if(path==null){yield return new WaitForSecondsRealtime(2);yield break;}
+        if(path==null)yield break;
         string partial=path+".part";
         if(File.Exists(partial))File.Delete(partial);
         using(var request=UnityWebRequest.Get(release.apkUrl))
@@ -74,20 +89,18 @@ public sealed class GameUpdater : MonoBehaviour
             if(request.result!=UnityWebRequest.Result.Success||!File.Exists(partial)||new FileInfo(partial).Length!=release.bytes)
             {
                 if(File.Exists(partial))File.Delete(partial);
-                progress("DOWNLOAD INTERROMPIDO · TENTE AO REABRIR O JOGO",0);yield return new WaitForSecondsRealtime(2);yield break;
+                progress("DOWNLOAD INTERROMPIDO · TENTANDO NOVAMENTE",0);yield break;
             }
         }
         progress("CONFERINDO ATUALIZAÇÃO",.85f);
         var hashing=Task.Run(()=>FileHash(partial));while(!hashing.IsCompleted)yield return null;
         if(hashing.IsFaulted||!string.Equals(hashing.Result,release.sha256,StringComparison.OrdinalIgnoreCase))
         {
-            File.Delete(partial);progress("ARQUIVO INVÁLIDO · ATUALIZAÇÃO CANCELADA",0);yield return new WaitForSecondsRealtime(2);yield break;
+            File.Delete(partial);progress("ARQUIVO INVÁLIDO · TENTANDO NOVAMENTE",0);yield break;
         }
         if(File.Exists(path))File.Delete(path);File.Move(partial,path);
         progress("v"+release.version+" PRONTA · CONFIRME NO ANDROID",1);
         prompt=true;OpenInstaller();
-        while(!continuePlaying)yield return null;
-        prompt=false;
     }
     void OpenInstaller()
     {
@@ -99,7 +112,7 @@ public sealed class GameUpdater : MonoBehaviour
             using(var bridge=new AndroidJavaClass("com.horizonte.update.HbrpApkProvider"))
                 waitingPermission=bridge.CallStatic<int>("install",activity,release.versionCode)==1;
         }
-        catch{error="O Android não abriu a instalação. Tente novamente ou continue nesta versão.";waitingPermission=false;}
+        catch{error="O Android não abriu a instalação. Tente novamente.";waitingPermission=false;}
     }
     void OnApplicationFocus(bool focused)
     {
@@ -122,6 +135,6 @@ public sealed class GameUpdater : MonoBehaviour
         GUI.Label(new Rect(box.x+20*scale,box.y+58*scale,box.width-40*scale,60*scale),error??"Confirme a instalação do Horizonte no Android. Se solicitado, permita atualizações por este aplicativo.",body);
         var button=new GUIStyle(GUI.skin.button){fontSize=Mathf.RoundToInt(15*scale)};
         if(GUI.Button(new Rect(box.x+20*scale,box.y+135*scale,255*scale,52*scale),"Instalar atualização",button))OpenInstaller();
-        if(GUI.Button(new Rect(box.x+295*scale,box.y+135*scale,255*scale,52*scale),"Continuar nesta versão",button))continuePlaying=true;
+        if(GUI.Button(new Rect(box.x+295*scale,box.y+135*scale,255*scale,52*scale),"Sair do jogo",button))Application.Quit();
     }
 }

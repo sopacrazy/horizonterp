@@ -34,7 +34,8 @@ public sealed partial class AccountSession : MonoBehaviour
     public static AccountSession Instance {get;private set;}
     public static bool Authenticated => Instance && !string.IsNullOrEmpty(Instance.token);
     public static bool HasCharacter => Authenticated && Instance.State!=null && !string.IsNullOrEmpty(Instance.State.characterId);
-    public static bool InputBlocked => CityEntryLoading.Active || (Instance && (Instance.AuthVisible || !HasCharacter || Instance.leaving));
+    public static bool InputBlocked => CityEntryLoading.Active || (Instance && (Instance.AuthVisible || !HasCharacter || Instance.leaving ||
+        (VerificationTransport==null&&Instance.ReadyToEnterCity&&MultiplayerWorld.Instance&&!MultiplayerWorld.Instance.Connected)));
     public bool AuthVisible {get;private set;}
     public bool ReadyToEnterCity {get;private set;}
     public ApiPlayerState State {get;private set;}
@@ -66,7 +67,7 @@ public sealed partial class AccountSession : MonoBehaviour
     public UIDocument Document=>document;
     ApiPublicConfig config;
     string token;
-    bool busy,register,leaving,allowQuit;
+    bool busy,register,leaving,allowQuit,enteringCity;
     bool checkingAuthorization;
     float lastValidAuthorization=-10f;
     float nextSave;
@@ -144,7 +145,21 @@ public sealed partial class AccountSession : MonoBehaviour
     }
     void EnterCity()
     {
-        if(busy||!HasCharacter||ReadyToEnterCity)return;
+        if(busy||enteringCity||!HasCharacter||ReadyToEnterCity)return;
+        StartCoroutine(EnterCityOnline());
+    }
+    IEnumerator EnterCityOnline()
+    {
+        enteringCity=true;
+        ApiReply current=null;
+        yield return Request("GET","/v1/player",null,true,r=>current=r);
+        enteringCity=false;
+        if(!HasCharacter||current?.state==null)
+        {
+            if(characterPlayCaption!=null)characterPlayCaption.text="SEM CONEXÃO · VERIFIQUE A INTERNET E TOQUE EM JOGAR";
+            yield break;
+        }
+        if(CanApplyPlayerState(current.state))AdoptPlayerState(current.state);
         HideRemembered();
         CityEntryLoading.Show();
         ReadyToEnterCity=true;AuthVisible=false;root.style.display=DisplayStyle.None;HideCharacterLobby();
@@ -282,6 +297,7 @@ public sealed partial class AccountSession : MonoBehaviour
         {
             request.downloadHandler=new DownloadHandlerBuffer();request.timeout=20;request.redirectLimit=0;
             request.certificateHandler=new PinnedCertificate(config.certificateSha256);
+            request.SetRequestHeader("X-Horizonte-Version-Code",GameVersion.Current.versionCode.ToString());
             if(body!=null){request.uploadHandler=new UploadHandlerRaw(Encoding.UTF8.GetBytes(body));request.SetRequestHeader("Content-Type","application/json");}
             if(authenticated)request.SetRequestHeader("Authorization","Bearer "+requestToken);
             yield return request.SendWebRequest();

@@ -24,6 +24,7 @@ public sealed class MissionVehicle : MonoBehaviour
         var root=new GameObject("Carro pessoal do NPC · empréstimo temporário");root.layer=2;
         root.transform.SetPositionAndRotation(position,Quaternion.Euler(0,90,0));
         var loan=root.AddComponent<MissionVehicle>();loan.controller=root.AddComponent<CharacterController>();
+        root.AddComponent<VehicleHud>().Initialize(loan);
         loan.controller.height=1.55f;loan.controller.center=new Vector3(0,.80f,0);loan.controller.radius=.83f;loan.controller.stepOffset=.30f;loan.controller.slopeLimit=40;
         loan.BuildVisual();return loan;
     }
@@ -142,11 +143,14 @@ public sealed class MissionVehicle : MonoBehaviour
         Vector2 input=Vector2.zero;
         if(!blocked)
         {
-            input=MobileControls.HasTouches?MobileControls.Movement:new Vector2(Input.GetAxisRaw("Horizontal"),Input.GetAxisRaw("Vertical"));
+            input=Application.isMobilePlatform?Vector2.zero:
+                new Vector2(Input.GetAxisRaw("Horizontal"),Input.GetAxisRaw("Vertical"));
             if(AccountSession.VerificationTransport!=null&&TutorialJourney.AllowVerification&&VerificationInput.HasValue)input=VerificationInput.Value;
             if(Input.GetKeyDown(KeyCode.F)&&Exit())return;
+            if(VehicleHud.PedalsHeld)input.y=VehicleHud.Throttle;
+            if(VehicleHud.SteeringHeld)input.x=VehicleHud.Steering;
         }
-        float target=blocked?0:input.y*7.5f;Speed=Mathf.MoveTowards(Speed,target,(blocked?15:5)*Time.deltaTime);
+        float target=blocked?0:input.y*7.5f;Speed=Mathf.MoveTowards(Speed,target,(blocked||VehicleHud.Braking?15:5)*Time.deltaTime);
         if(Mathf.Abs(Speed)>.15f)transform.Rotate(0,input.x*65*Mathf.Clamp(Speed/3,-1,1)*Time.deltaTime,0);
         if(controller.isGrounded&&vertical<0)vertical=-2;vertical=Mathf.Max(-30,vertical-22*Time.deltaTime);
         Vector3 before=transform.position;controller.Move((transform.forward*Speed+Vector3.up*vertical)*Time.deltaTime);

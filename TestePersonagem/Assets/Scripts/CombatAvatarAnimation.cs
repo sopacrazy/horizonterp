@@ -37,7 +37,8 @@ public sealed class CombatAvatarAnimation : MonoBehaviour
     public string Kind {get;private set;}
     public bool Ready=>animator&&layer>=0&&combo&&hit&&death;
     public bool Dead=>dead;
-    public bool Busy=>dead||Kind!=null;
+    // Receiving a hit is visual feedback; it must not disable movement, jumping or attacks.
+    public bool Busy=>dead||Kind=="attack"||Kind=="death";
     public float AttackDuration=>combo?combo.length:2.2f;
     public float ClipStartSeconds=>clipOffset;
     public float CurrentClipSeconds=>Mathf.Min(Kind=="attack"?combo.length:Kind=="hit"?hit.length:death?death.length:0,clipOffset+Elapsed-(Kind=="hit"?MeleeHitOffsets[hitIndex]:0));

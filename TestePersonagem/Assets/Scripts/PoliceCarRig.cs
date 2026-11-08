@@ -22,12 +22,15 @@ public sealed class PoliceCarRig : MonoBehaviour
     // All positions use the rig/parent frame, with +Z pointing toward the hood.
     // Seat coordinates locate the humanoid's hips, not its standing feet.
     public Vector3 DriverSeat { get; private set; } = new Vector3(-.43f, .79f, .16f);
+    public Vector3 FrontPassengerSeat { get; private set; } = new Vector3(.43f, .79f, .16f);
     public Vector3 RearSeat { get; private set; } = new Vector3(.43f, .79f, -.66f);
     public Vector3 DriverDoor { get; private set; } = new Vector3(-1.43f, .03f, .42f);
+    public Vector3 FrontPassengerDoor { get; private set; } = new Vector3(1.43f, .03f, .42f);
     public Vector3 RearDoor { get; private set; } = new Vector3(1.43f, .03f, -.55f);
     // The handle follows its door's pivot so the reaching hand does not remain
     // at the closed-door position while the panel swings outward.
     public Vector3 DriverHandle => CurrentHandle(0, new Vector3(-.95f, .97f, .42f));
+    public Vector3 FrontPassengerHandle => CurrentHandle(1, new Vector3(.95f, .97f, .42f));
     public Vector3 RearHandle => CurrentHandle(3, new Vector3(.95f, .97f, -.55f));
 
     public static PoliceCarRig Create(Transform parent, GameObject source)
@@ -91,6 +94,11 @@ public sealed class PoliceCarRig : MonoBehaviour
             {
                 DriverDoor = new Vector3(-Dimensions.x * .5f - .37f, .03f, bounds.center.z);
                 SaveHandle(index, part, "Object_37", new Vector3(bounds.min.x + .07f, .97f, bounds.center.z));
+            }
+            if (index == 1)
+            {
+                FrontPassengerDoor = new Vector3(Dimensions.x * .5f + .37f, .03f, bounds.center.z);
+                SaveHandle(index, part, "Object_43", new Vector3(bounds.max.x - .04f, .97f, bounds.center.z));
             }
             if (index == 3)
             {
@@ -177,22 +185,15 @@ public sealed class PoliceCarRig : MonoBehaviour
 
     void PrepareGlass()
     {
-        // Exact glass meshes identified in the source, rather than making all
-        // black materials transparent (which would also hide dashboard/trim).
+        // Hide only the glass meshes, leaving the seats and dashboard visible.
         var glass = new HashSet<string> { "Object_36", "Object_42", "Object_50", "Object_56", "Object_69", "Object_91" };
         foreach (var renderer in model.GetComponentsInChildren<Renderer>(true))
         {
-            if (!glass.Contains(renderer.name)) continue;
-            var originals = renderer.sharedMaterials; var materials = new Material[originals.Length];
-            for (int index = 0; index < originals.Length; index++)
-            {
-                var material = new Material(Shader.Find("Standard")); material.name = "Vidro viatura · runtime";
-                material.color = new Color(.19f, .28f, .31f, .22f); material.SetFloat("_Mode", 2);
-                material.SetInt("_SrcBlend", (int)BlendMode.SrcAlpha); material.SetInt("_DstBlend", (int)BlendMode.OneMinusSrcAlpha);
-                material.SetInt("_ZWrite", 0); material.EnableKeyword("_ALPHABLEND_ON"); material.renderQueue = 3000;
-                runtimeMaterials.Add(material); materials[index] = material;
-            }
-            renderer.sharedMaterials = materials;
+            bool sideWindow=renderer.name.IndexOf("window",StringComparison.OrdinalIgnoreCase)>=0;
+            foreach(var material in renderer.sharedMaterials)
+                if(material&&material.name.IndexOf("Glass_Window",StringComparison.OrdinalIgnoreCase)>=0)sideWindow=true;
+            if (!glass.Contains(renderer.name) && !sideWindow) continue;
+            renderer.enabled = false;
         }
     }
     void OnDestroy() { foreach (var material in runtimeMaterials) if (material) {if(Application.isPlaying)Destroy(material);else DestroyImmediate(material);} }
